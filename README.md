@@ -137,6 +137,10 @@ scripts/      Utility scripts
 
 Some folders or files may change as the project continues to evolve.
 
+## Visualization Source Files
+
+The original Colab-runnable visualization notebooks and prototype files are stored in `visualization-source/`. These files are kept separately from the main Next.js website code so the project is easier to understand and maintain.
+
 ## Project Status
 
 This project is in active development.

@@ -7,6 +7,8 @@ dist/
 .env.local
 .env*.local
 .DS_Store
+__pycache__/
+.ipynb_checkpoints/
 reference_materials/
 npm-debug.log*
 yarn-debug.log*
