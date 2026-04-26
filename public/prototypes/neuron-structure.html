@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>single_neuron.ipynb</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+
+<div id="neuron-demo-activation-wrap" style="max-width:1320px;margin:18px auto;background:#f7fbff;padding:18px;border-radius:24px;font-family:Arial,sans-serif;">
+  <div style="font-size:30px;font-weight:700;color:#0f172a;margin-bottom:6px;">Single Neuron / Forward Pass</div>
+  <div style="font-size:14px;color:#64748b;margin-bottom:14px;">latest clean version + activation engine + step controls</div>
+
+  <div style="background:#ffffff;border:1px solid #dbeafe;border-radius:24px;padding:18px;box-shadow:0 10px 30px rgba(59,130,246,0.06);">
+    <div style="background:#0d1124;border:1px solid #1f2a4d;border-radius:18px;padding:14px;">
+      <canvas id="neuronCanvasA" width="1180" height="560"
+        style="display:block;width:100%;max-width:1180px;margin:0 auto;border-radius:14px;background:#151a34;"></canvas>
+
+      <div style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:14px;">
+        <button id="prevBtnA" style="padding:10px 14px;border:none;border-radius:10px;background:#e5e7eb;color:#111827;cursor:pointer;">← Prev</button>
+        <button id="nextBtnA" style="padding:10px 14px;border:none;border-radius:10px;background:#e5e7eb;color:#111827;cursor:pointer;">Next →</button>
+
+        <button id="playPauseBtnA" style="padding:10px 16px;border:none;border-radius:10px;background:#2563eb;color:white;cursor:pointer;">▶ Play</button>
+        <button id="replayBtnA" style="padding:10px 16px;border:none;border-radius:10px;background:#e5e7eb;color:#111827;cursor:pointer;">Replay</button>
+
+        <label for="activationSelectA" style="color:#dbeafe;font-size:14px;">Activation</label>
+        <select id="activationSelectA" style="padding:10px 12px;border-radius:10px;border:1px solid #475569;background:#0f172a;color:#e2e8f0;cursor:pointer;">
+          <option value="sigmoid" selected>sigmoid</option>
+          <option value="relu">ReLU</option>
+          <option value="tanh">tanh</option>
+          <option value="leakyrelu">Leaky ReLU</option>
+        </select>
+
+        <input id="timeSliderA" type="range" min="0" max="9.8" step="0.01" value="0" style="width:430px;">
+        <span id="timeLabelA" style="color:#d1d5db;font-size:13px;min-width:72px;">0.00 s</span>
+      </div>
+
+      <div id="stepMarkersA" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;"></div>
+
+      <div style="text-align:center;margin-top:8px;font-size:12px;color:#94a3b8;">
+        Change the activation to see how the curve and final output change while keeping the same forward-pass structure.
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px;">
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:18px;padding:16px 18px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="font-size:16px;font-weight:700;color:#1e3a8a;">Formula</div>
+          <div id="activationMetaA" style="font-size:14px;color:#1d4ed8;font-weight:600;"></div>
+        </div>
+        <div id="formulaMainA" style="font-size:30px;color:#111827;line-height:1.8;margin-top:8px;"></div>
+        <div id="formulaSubA" style="font-size:22px;color:#334155;line-height:1.8;margin-top:4px;"></div>
+        <div id="formulaFinalA" style="font-size:24px;color:#7c3aed;font-weight:700;margin-top:8px;"></div>
+      </div>
+
+      <div style="background:#eefbf5;border:1px solid #bbf7d0;border-radius:18px;padding:16px 18px;">
+        <div style="font-size:16px;font-weight:700;color:#166534;margin-bottom:10px;">Activation note</div>
+        <div id="activationDescA" style="font-size:18px;line-height:1.75;color:#475569;"></div>
+      </div>
+
+      <div style="background:#f5faff;border:1px solid #c7d2fe;border-radius:18px;padding:16px 18px;">
+        <div style="font-size:16px;font-weight:700;color:#3730a3;margin-bottom:10px;">Selected activation formula</div>
+        <div id="activationFormulaA" style="font-size:26px;color:#111827;line-height:1.8;"></div>
+      </div>
+
+      <div style="background:#f8fbff;border:1px solid #dbeafe;border-radius:18px;padding:16px 18px;">
+        <div style="font-size:16px;font-weight:700;color:#1e3a8a;margin-bottom:10px;">Current moment</div>
+        <div id="momentTitleA" style="font-size:28px;font-weight:700;color:#111827;margin-bottom:8px;"></div>
+        <div id="momentDescA" style="font-size:18px;line-height:1.75;color:#475569;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  if (!window.__mathjax_loaded__) {
+    const mj = document.createElement("script");
+    mj.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+    mj.async = true;
+    document.head.appendChild(mj);
+    window.__mathjax_loaded__ = true;
+  }
+
+  const canvas = document.getElementById("neuronCanvasA");
+  const ctx = canvas.getContext("2d");
+
+  const playPauseBtn = document.getElementById("playPauseBtnA");
+  const replayBtn = document.getElementById("replayBtnA");
+  const prevBtn = document.getElementById("prevBtnA");
+  const nextBtn = document.getElementById("nextBtnA");
+  const activationSelect = document.getElementById("activationSelectA");
+  const timeSlider = document.getElementById("timeSliderA");
+  const timeLabel = document.getElementById("timeLabelA");
+  const stepMarkersWrap = document.getElementById("stepMarkersA");
+
+  const formulaMain = document.getElementById("formulaMainA");
+  const formulaSub = document.getElementById("formulaSubA");
+  const formulaFinal = document.getElementById("formulaFinalA");
+  const activationMeta = document.getElementById("activationMetaA");
+  const activationDesc = document.getElementById("activationDescA");
+  const activationFormula = document.getElementById("activationFormulaA");
+  const momentTitle = document.getElementById("momentTitleA");
+  const momentDesc = document.getElementById("momentDescA");
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const TOTAL = 9.8;
+
+  const STEP_MARKERS = [
+    { t: 1.8, label: "1 Inputs light up" },
+    { t: 3.0, label: "2 Weighted sum" },
+    { t: 6.0, label: "3 Bias enters" },
+    { t: 7.7, label: "4 Activation" },
+    { t: 8.75, label: "5 Output" }
+  ];
+
+  const VALS = {
+    x1: 0.8,
+    x2: 0.6,
+    x3: 0.5,
+    w1: 1.2,
+    w2: -0.8,
+    w3: 0.9,
+    b: 0.4
+  };
+  VALS.c1 = VALS.w1 * VALS.x1; // 0.96
+  VALS.c2 = VALS.w2 * VALS.x2; // -0.48
+  VALS.c3 = VALS.w3 * VALS.x3; // 0.45
+  VALS.z1 = VALS.c1;                    // 0.96
+  VALS.z2 = VALS.c1 + VALS.c2;          // 0.48
+  VALS.z3 = VALS.c1 + VALS.c2 + VALS.c3;// 0.93
+  VALS.z  = VALS.z3 + VALS.b;           // 1.33
+
+  let activationKind = "sigmoid";
+
+  const COLORS = {
+    bgTop: "#121735",
+    bgBottom: "#171c38",
+    neuronStroke: "#58C4DD",
+    neuronFill: "#39FF14",
+    edgeDefault: "#596178",
+    edgeSignal: "#FFF36A",
+    biasStroke: "#F5A623",
+    sumStroke: "#F5A623",
+    sumFill: "#5b4612",
+    actStroke: "#FFD700",
+    actFill: "#173224",
+    outputStroke: "#BC13FE",
+    outputFill: "#40225d",
+    label: "#F8FAFC",
+    sub: "#AAB4CC",
+    formula: "#88CCFF",
+    red: "#F87171",
+    blue: "#60A5FA",
+    green: "#4ADE80",
+    white: "#FFFFFF"
+  };
+
+  const POS = {
+    inputsTextX: 36,
+    bracketX: 110,
+
+    x1: {x: 210, y: 180},
+    x2: {x: 210, y: 280},
+    x3: {x: 210, y: 380},
+
+    sum:  {x: 620, y: 280},
+    bias: {x: 620, y: 92},
+    act:  {x: 860, y: 280},
+    out:  {x: 1070, y: 280}
+  };
+
+  const EDGES = {
+    e1: {x1: POS.x1.x + 38, y1: POS.x1.y, x2: POS.sum.x - 48, y2: POS.sum.y - 42},
+    e2: {x1: POS.x2.x + 38, y1: POS.x2.y, x2: POS.sum.x - 48, y2: POS.sum.y},
+    e3: {x1: POS.x3.x + 38, y1: POS.x3.y, x2: POS.sum.x - 48, y2: POS.sum.y + 42},
+    eb: {x1: POS.bias.x,     y1: POS.bias.y + 34, x2: POS.sum.x, y2: POS.sum.y - 52},
+    ea: {x1: POS.sum.x + 46, y1: POS.sum.y, x2: POS.act.x - 62, y2: POS.act.y},
+    eo: {x1: POS.act.x + 62, y1: POS.act.y, x2: POS.out.x - 44, y2: POS.out.y}
+  };
+
+  const ACTIVATIONS = {
+    sigmoid: {
+      label: "sigmoid",
+      display: "sigmoid",
+      apply: (z) => 1 / (1 + Math.exp(-z)),
+      desc: "Sigmoid maps any real number into the range (0, 1). It is smooth and easy to interpret as a probability-like output, but it can saturate when |z| becomes large.",
+      formulaLatex: String.raw`\[
+      \sigma(x) = \frac{1}{1 + e^{-x}}
+      \]`,
+      finalLatex: (z, y) => String.raw`\[
+      y = \sigma(z) = \frac{1}{1 + e^{-z}} = \frac{1}{1 + e^{-${z.toFixed(2)}}} = ${y.toFixed(2)}
+      \]`,
+      yDomain: [-0.05, 1.05],
+      stroke: COLORS.actStroke
+    },
+    relu: {
+      label: "ReLU",
+      display: "ReLU",
+      apply: (z) => Math.max(0, z),
+      desc: "ReLU outputs 0 for negative inputs and passes positive inputs through unchanged. It is simple and widely used because it keeps positive signals strong and is easy to optimize.",
+      formulaLatex: String.raw`\[
+      \operatorname{ReLU}(x) = \max(0, x)
+      \]`,
+      finalLatex: (z, y) => String.raw`\[
+      y = \operatorname{ReLU}(z) = \max(0, z) = \max(0, ${z.toFixed(2)}) = ${y.toFixed(2)}
+      \]`,
+      yDomain: [-0.6, 4.2],
+      stroke: COLORS.green
+    },
+    tanh: {
+      label: "tanh",
+      display: "tanh",
+      apply: (z) => Math.tanh(z),
+      desc: "tanh squashes values into the range (-1, 1). Compared with sigmoid, it is zero-centered, so it is often easier to interpret when you want positive and negative responses.",
+      formulaLatex: String.raw`\[
+      \tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}
+      \]`,
+      finalLatex: (z, y) => String.raw`\[
+      y = \tanh(z) = \tanh(${z.toFixed(2)}) = ${y.toFixed(2)}
+      \]`,
+      yDomain: [-1.1, 1.1],
+      stroke: "#facc15"
+    },
+    leakyrelu: {
+      label: "Leaky ReLU",
+      display: "Leaky ReLU",
+      apply: (z) => z >= 0 ? z : 0.01 * z,
+      desc: "Leaky ReLU behaves like ReLU for positive inputs, but keeps a small negative slope on the left side. This avoids completely flat negative regions and helps preserve some gradient flow.",
+      formulaLatex: String.raw`\[
+      \operatorname{LeakyReLU}(x) = \max(0.01x, x)
+      \]`,
+      finalLatex: (z, y) => String.raw`\[
+      y = \operatorname{LeakyReLU}(z) =
+      \begin{cases}
+      z, & z \ge 0 \\
+      0.01z, & z < 0
+      \end{cases}
+      = ${y.toFixed(2)}
+      \]`,
+      yDomain: [-0.8, 4.2],
+      stroke: "#f59e0b"
+    }
+  };
+
+  function currentActivation() {
+    return ACTIVATIONS[activationKind];
+  }
+
+  function currentY() {
+    return currentActivation().apply(VALS.z);
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeInOut(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t) * t; }
+  function linear(t) { return t; }
+
+  function hexToRgb(hex) {
+    const h = hex.replace("#", "");
+    return {
+      r: parseInt(h.substring(0, 2), 16),
+      g: parseInt(h.substring(2, 4), 16),
+      b: parseInt(h.substring(4, 6), 16)
+    };
+  }
+
+  function colorWithAlpha(hex, a) {
+    const c = hexToRgb(hex);
+    return `rgba(${c.r}, ${c.g}, ${c.b}, ${a})`;
+  }
+
+  function lerpColor(a, b, t) {
+    const ca = hexToRgb(a), cb = hexToRgb(b);
+    return `rgb(${Math.round(lerp(ca.r, cb.r, t))}, ${Math.round(lerp(ca.g, cb.g, t))}, ${Math.round(lerp(ca.b, cb.b, t))})`;
+  }
+
+  function drawBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, COLORS.bgTop);
+    g.addColorStop(1, COLORS.bgBottom);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function text(txt, x, y, size=24, color=COLORS.label, align="left", alpha=1, weight="500") {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.font = `${weight} ${size}px Georgia, "Times New Roman", serif`;
+    ctx.textAlign = align;
+    ctx.textBaseline = "middle";
+    ctx.fillText(txt, x, y);
+    ctx.restore();
+  }
+
+  function mathText(txt, x, y, size=24, color=COLORS.label, align="left", alpha=1, weight="500") {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.font = `${weight} ${size}px "Cambria Math", "STIX Two Math", Georgia, serif`;
+    ctx.textAlign = align;
+    ctx.textBaseline = "middle";
+    ctx.fillText(txt, x, y);
+    ctx.restore();
+  }
+
+  function drawLine(x1, y1, x2, y2, color, width, alpha=1, dashed=false) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = "round";
+    if (dashed) ctx.setLineDash([10, 8]);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawArrowHead(x, y, angle, color, alpha=1) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-14, -7);
+    ctx.lineTo(-14, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawGlow(ctx, x, y, r, color, intensity) {
+    [1.8, 1.35, 1.0].forEach((scale, i) => {
+      const alpha = intensity * [0.035, 0.06, 0.12][i];
+      ctx.beginPath();
+      ctx.arc(x, y, r * scale, 0, Math.PI * 2);
+      ctx.fillStyle = colorWithAlpha(color, alpha);
+      ctx.fill();
+    });
+  }
+
+  function drawNode(x, y, r, stroke, fillColor, fillOpacity, glowIntensity, label, labelSize=22) {
+    ctx.save();
+    drawGlow(ctx, x, y, r, stroke, glowIntensity);
+
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = colorWithAlpha(fillColor, fillOpacity);
+    ctx.fill();
+
+    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = stroke;
+    ctx.stroke();
+
+    mathText(label, x, y + 1, labelSize, COLORS.label, "center", 1, "600");
+    ctx.restore();
+  }
+
+  function drawEdgeSignal(edge, progress, color, width=3.2) {
+    if (progress < 0 || progress > 1) return;
+
+    const drawP = Math.min(progress * 2, 1);
+    const eraseP = Math.max(progress * 2 - 1, 0);
+
+    const sx = lerp(edge.x1, edge.x2, eraseP);
+    const sy = lerp(edge.y1, edge.y2, eraseP);
+    const ex = lerp(edge.x1, edge.x2, drawP);
+    const ey = lerp(edge.y1, edge.y2, drawP);
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function roundRect(x, y, w, h, r, fill, stroke=null) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    if (stroke) {
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function activationFunctionValue(kind, x) {
+    if (kind === "sigmoid") return 1 / (1 + Math.exp(-x));
+    if (kind === "relu") return Math.max(0, x);
+    if (kind === "tanh") return Math.tanh(x);
+    if (kind === "leakyrelu") return x >= 0 ? x : 0.01 * x;
+    return x;
+  }
+
+  function drawActivationCurve(kind, cx, cy, w, h, progress, color, zForDot) {
+    if (progress <= 0) return;
+
+    const xMin = -4, xMax = 4;
+    const yMin = currentActivation().yDomain[0];
+    const yMax = currentActivation().yDomain[1];
+
+    const pad = 16;
+    const left = cx - w/2 + pad;
+    const right = cx + w/2 - pad;
+    const top = cy - h/2 + pad;
+    const bottom = cy + h/2 - pad;
+
+    const px = (x) => left + (x - xMin) / (xMax - xMin) * (right - left);
+    const py = (y) => bottom - (y - yMin) / (yMax - yMin) * (bottom - top);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(cx - w/2 + 8, cy - h/2 + 8, w - 16, h - 16);
+    ctx.clip();
+
+    const axisColor = colorWithAlpha("#cbd5e1", 0.18);
+    drawLine(px(xMin), py(0), px(xMax), py(0), axisColor, 1);
+    drawLine(px(0), py(yMin), px(0), py(yMax), axisColor, 1);
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+
+    const n = 120;
+    const xReveal = xMin + progress * (xMax - xMin);
+    let started = false;
+
+    for (let i = 0; i <= n; i++) {
+      const x = xMin + (xMax - xMin) * (i / n);
+      if (x > xReveal) break;
+      const y = activationFunctionValue(kind, x);
+      const X = px(x);
+      const Y = py(y);
+      if (!started) {
+        ctx.moveTo(X, Y);
+        started = true;
+      } else {
+        ctx.lineTo(X, Y);
+      }
+    }
+    ctx.stroke();
+
+    if (progress > 0.92) {
+      const zx = clamp(zForDot, xMin, xMax);
+      const zy = activationFunctionValue(kind, zx);
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(px(zx), py(zy), 4.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  function state0() {
+    return {
+      fade: 0,
+      titleWrite: 0,
+
+      inputFill: [0, 0, 0],
+      inputGlow: [0, 0, 0],
+      inputTextAlpha: [0.4, 0.4, 0.4],
+
+      signalProgress: [-1, -1, -1],
+      weightPulse: [0, 0, 0],
+
+      biasFill: 0,
+      biasGlow: 0,
+      biasTextAlpha: 0.45,
+      biasSignal: -1,
+
+      zValue: 0,
+      sumFill: 0,
+      sumGlow: 0,
+
+      sumToAct: -1,
+      actShow: 0,
+      actGlow: 0,
+      actCurve: 0,
+
+      actToOut: -1,
+      outShow: 0,
+      outGlow: 0,
+
+      finalFormulaAlpha: 0
+    };
+  }
+
+  class Animator {
+    constructor() {
+      this.clips = [];
+      this.t0 = null;
+      this.elapsed = 0;
+      this.playing = false;
+      this.raf = null;
+    }
+
+    add(start, duration, updateFn, easeFn=easeInOut) {
+      this.clips.push({ start, duration, updateFn, easeFn });
+    }
+
+    buildState(timeSec) {
+      const s = state0();
+      this.clips.forEach(clip => {
+        if (timeSec < clip.start) return;
+        const raw = clamp((timeSec - clip.start) / clip.duration, 0, 1);
+        clip.updateFn(clip.easeFn(raw), s);
+      });
+      return s;
+    }
+
+    applyAt(timeSec) {
+      this.elapsed = timeSec;
+      const s = this.buildState(timeSec);
+      render(s, timeSec);
+      updateText(timeSec);
+      syncControls();
+      updateStepMarkerUI();
+      updatePrevNextUI();
+    }
+
+    run(fromSec=null) {
+      if (fromSec !== null) this.elapsed = fromSec;
+      this.playing = true;
+      this.t0 = null;
+
+      const tick = (now) => {
+        if (!this.playing) return;
+        if (this.t0 === null) this.t0 = now - this.elapsed * 1000;
+
+        this.elapsed = (now - this.t0) / 1000;
+        if (this.elapsed >= TOTAL) {
+          this.elapsed = TOTAL;
+          this.playing = false;
+        }
+
+        this.applyAt(this.elapsed);
+
+        if (this.playing) this.raf = requestAnimationFrame(tick);
+      };
+      this.raf = requestAnimationFrame(tick);
+    }
+
+    pause() {
+      this.playing = false;
+      if (this.raf) cancelAnimationFrame(this.raf);
+    }
+
+    replay() {
+      this.pause();
+      this.applyAt(0);
+      this.run(0);
+    }
+  }
+
+  const animator = new Animator();
+
+  animator.add(0.0, 0.5, (p, s) => {
+    s.fade = p;
+  });
+
+  animator.add(0.8, 0.7, (p, s) => {
+    s.titleWrite = p;
+  }, linear);
+
+  animator.add(1.8, 0.4, (p, s) => {
+    s.inputFill[0] = lerp(0, 0.85, p);
+    s.inputGlow[0] = p;
+    s.inputTextAlpha[0] = lerp(0.45, 1.0, p);
+  });
+
+  animator.add(2.1, 0.4, (p, s) => {
+    s.inputFill[1] = lerp(0, 0.85, p);
+    s.inputGlow[1] = p;
+    s.inputTextAlpha[1] = lerp(0.45, 1.0, p);
+  });
+
+  animator.add(2.4, 0.4, (p, s) => {
+    s.inputFill[2] = lerp(0, 0.85, p);
+    s.inputGlow[2] = p;
+    s.inputTextAlpha[2] = lerp(0.45, 1.0, p);
+  });
+
+  animator.add(3.0, 0.9, (p, s) => {
+    s.signalProgress[0] = p;
+    s.weightPulse[0] = Math.sin(Math.PI * p);
+  }, linear);
+
+  animator.add(3.75, 0.35, (p, s) => {
+    s.zValue = lerp(0, VALS.z1, p);
+    s.sumFill = p * 0.65;
+  });
+
+  animator.add(4.0, 0.9, (p, s) => {
+    s.signalProgress[1] = p;
+    s.weightPulse[1] = Math.sin(Math.PI * p);
+  }, linear);
+
+  animator.add(4.75, 0.35, (p, s) => {
+    s.zValue = lerp(VALS.z1, VALS.z2, p);
+    s.sumFill = 0.65 + p * 0.1;
+  });
+
+  animator.add(5.0, 0.9, (p, s) => {
+    s.signalProgress[2] = p;
+    s.weightPulse[2] = Math.sin(Math.PI * p);
+  }, linear);
+
+  animator.add(5.75, 0.35, (p, s) => {
+    s.zValue = lerp(VALS.z2, VALS.z3, p);
+    s.sumFill = 0.75 + p * 0.1;
+  });
+
+  animator.add(6.0, 0.35, (p, s) => {
+    s.biasFill = lerp(0, 0.85, p);
+    s.biasGlow = p;
+    s.biasTextAlpha = lerp(0.45, 1.0, p);
+  });
+
+  animator.add(6.2, 0.75, (p, s) => {
+    s.biasSignal = p;
+  }, linear);
+
+  animator.add(6.85, 0.35, (p, s) => {
+    s.zValue = lerp(VALS.z3, VALS.z, p);
+    s.sumFill = 0.9 + p * 0.1;
+    s.sumGlow = p;
+  });
+
+  animator.add(7.25, 0.65, (p, s) => {
+    s.sumGlow = Math.max(s.sumGlow, 0.6 + 0.4 * p);
+    s.sumToAct = p;
+  }, linear);
+
+  animator.add(7.7, 0.55, (p, s) => {
+    s.actShow = p;
+    s.actGlow = p;
+    s.actCurve = p;
+  });
+
+  animator.add(8.3, 0.55, (p, s) => {
+    s.actToOut = p;
+  }, linear);
+
+  animator.add(8.75, 0.55, (p, s) => {
+    s.outShow = p;
+    s.outGlow = Math.sin(Math.PI * p);
+  });
+
+  animator.add(9.15, 0.45, (p, s) => {
+    s.finalFormulaAlpha = p;
+  });
+
+  function render(s, t) {
+    ctx.clearRect(0, 0, W, H);
+    drawBackground();
+
+    ctx.save();
+    ctx.globalAlpha = Math.max(s.fade, 0.02);
+
+    const titleFull = "Forward pass choreography";
+    const subtitleFull = "left → center → activation → output";
+
+    const titleLen = Math.max(1, Math.floor(titleFull.length * s.titleWrite));
+    const subtitleLen = Math.max(1, Math.floor(subtitleFull.length * s.titleWrite));
+
+    text(titleFull.substring(0, titleLen), 44, 42, 24, COLORS.label, "left", 1, "600");
+    text(subtitleFull.substring(0, subtitleLen), 46, 70, 12.5, COLORS.sub, "left", 1, "400");
+
+    text("Inputs", POS.inputsTextX, 280, 22, COLORS.label, "left", 0.96, "600");
+
+    drawLine(POS.bracketX, 142, POS.bracketX, 418, "#8791ae", 2.2);
+    drawLine(POS.bracketX, 142, POS.bracketX + 22, 142, "#8791ae", 2.2);
+    drawLine(POS.bracketX, 418, POS.bracketX + 22, 418, "#8791ae", 2.2);
+
+    drawNode(POS.x1.x, POS.x1.y, 38, COLORS.neuronStroke, COLORS.neuronFill, s.inputFill[0], 0.6 * s.inputGlow[0], "x1", 20);
+    drawNode(POS.x2.x, POS.x2.y, 38, COLORS.neuronStroke, COLORS.neuronFill, s.inputFill[1], 0.6 * s.inputGlow[1], "x2", 20);
+    drawNode(POS.x3.x, POS.x3.y, 38, COLORS.neuronStroke, COLORS.neuronFill, s.inputFill[2], 0.6 * s.inputGlow[2], "x3", 20);
+
+    mathText("= 0.8", 336, 156, 17, COLORS.sub, "left", s.inputTextAlpha[0], "500");
+    mathText("= 0.6", 336, 302, 17, COLORS.sub, "left", s.inputTextAlpha[1], "500");
+    mathText("= 0.5", 336, 406, 17, COLORS.sub, "left", s.inputTextAlpha[2], "500");
+
+    text("Bias", POS.bias.x, 20, 21, COLORS.label, "center", 1, "600");
+    drawNode(POS.bias.x, POS.bias.y, 34, COLORS.biasStroke, COLORS.neuronFill, s.biasFill, 0.75 * s.biasGlow, "b", 22);
+    mathText("= 0.4", POS.bias.x + 58, POS.bias.y, 17, COLORS.sub, "left", s.biasTextAlpha, "500");
+
+    drawLine(EDGES.e1.x1, EDGES.e1.y1, EDGES.e1.x2, EDGES.e1.y2, COLORS.edgeDefault, 1.6);
+    drawLine(EDGES.e2.x1, EDGES.e2.y1, EDGES.e2.x2, EDGES.e2.y2, COLORS.edgeDefault, 1.6);
+    drawLine(EDGES.e3.x1, EDGES.e3.y1, EDGES.e3.x2, EDGES.e3.y2, COLORS.edgeDefault, 1.6);
+    drawLine(EDGES.eb.x1, EDGES.eb.y1, EDGES.eb.x2, EDGES.eb.y2, COLORS.edgeDefault, 1.6, 1, true);
+    drawLine(EDGES.ea.x1, EDGES.ea.y1, EDGES.ea.x2, EDGES.ea.y2, COLORS.edgeDefault, 1.6);
+    drawLine(EDGES.eo.x1, EDGES.eo.y1, EDGES.eo.x2, EDGES.eo.y2, COLORS.edgeDefault, 1.6);
+
+    const w1Color = lerpColor(COLORS.sub, COLORS.formula, s.weightPulse[0]);
+    const w2Color = lerpColor(COLORS.sub, COLORS.red, s.weightPulse[1]);
+    const w3Color = lerpColor(COLORS.sub, COLORS.formula, s.weightPulse[2]);
+
+    text("w1", 470, 144, 18, w1Color, "center", 1, "600");
+    text("w2", 470, 270, 18, w2Color, "center", 1, "600");
+    text("w3", 470, 424, 18, w3Color, "center", 1, "600");
+
+    drawEdgeSignal(EDGES.e1, s.signalProgress[0], COLORS.edgeSignal, 3.0);
+    drawEdgeSignal(EDGES.e2, s.signalProgress[1], COLORS.edgeSignal, 3.0);
+    drawEdgeSignal(EDGES.e3, s.signalProgress[2], COLORS.edgeSignal, 3.0);
+    drawEdgeSignal(EDGES.eb, s.biasSignal, COLORS.edgeSignal, 3.0);
+
+    drawNode(POS.sum.x, POS.sum.y, 44, COLORS.sumStroke, COLORS.sumFill, s.sumFill, 0.9 * s.sumGlow, "Σ", 38);
+    mathText("z = " + s.zValue.toFixed(2), POS.sum.x, POS.sum.y + 80, 22, COLORS.edgeSignal, "center", 1, "600");
+
+    drawEdgeSignal(EDGES.ea, s.sumToAct, COLORS.edgeSignal, 3.0);
+    if (s.sumToAct > 0.03) {
+      const headX = lerp(EDGES.ea.x1, EDGES.ea.x2, Math.min(s.sumToAct * 2, 1));
+      const headY = lerp(EDGES.ea.y1, EDGES.ea.y2, Math.min(s.sumToAct * 2, 1));
+      drawArrowHead(headX, headY, 0, COLORS.edgeSignal, 1);
+    }
+
+    if (s.actShow > 0.001) {
+      const act = currentActivation();
+      drawGlow(ctx, POS.act.x, POS.act.y, 40, act.stroke, 0.72 * s.actGlow);
+      roundRect(POS.act.x - 56, POS.act.y - 56, 112, 112, 18, colorWithAlpha(COLORS.actFill, 0.95), act.stroke);
+      drawActivationCurve(activationKind, POS.act.x, POS.act.y, 112, 112, s.actCurve, act.stroke, VALS.z);
+      text("Activation", POS.act.x, POS.act.y + 88, 20, COLORS.label, "center", 1, "600");
+      text(act.display, POS.act.x, POS.act.y - 74, 16, act.stroke, "center", 1, "600");
+    }
+
+    drawEdgeSignal(EDGES.eo, s.actToOut, COLORS.edgeSignal, 3.0);
+    if (s.actToOut > 0.03) {
+      const headX = lerp(EDGES.eo.x1, EDGES.eo.x2, Math.min(s.actToOut * 2, 1));
+      const headY = lerp(EDGES.eo.y1, EDGES.eo.y2, Math.min(s.actToOut * 2, 1));
+      drawArrowHead(headX, headY, 0, COLORS.edgeSignal, 1);
+    }
+
+    if (s.outShow > 0.001) {
+      const yVal = currentY();
+      drawNode(POS.out.x, POS.out.y, 40, COLORS.outputStroke, COLORS.neuronFill, s.outShow * 0.75, 0.7 * (0.5 + s.outGlow), "y", 24);
+      text("Output", POS.out.x, POS.out.y - 78, 22, COLORS.label, "center", s.outShow, "600");
+      mathText("= " + yVal.toFixed(2), POS.out.x, POS.out.y + 72, 19, COLORS.outputStroke, "center", s.outShow, "600");
+    }
+
+    ctx.restore();
+  }
+
+  function getMoment(t) {
+    const moments = [
+      {t:0.0,  title:"Scene appears", desc:"First show the structure quietly so the learner can read the layout before motion starts."},
+      {t:0.8,  title:"Title writes in", desc:"The title reveals itself from left to right instead of popping in like a slide."},
+      {t:1.8,  title:"Input neurons light up", desc:"The three input neurons activate one by one with staggered timing."},
+      {t:3.0,  title:"Edge signal propagation begins", desc:"A bright segment sweeps along each edge, using draw-then-erase instead of a moving dot."},
+      {t:3.75, title:"First contribution accumulates", desc:"After the first edge sweep, the running sum updates to the first partial value."},
+      {t:4.75, title:"Second contribution changes z", desc:"The second input contributes a negative amount, so the sum drops."},
+      {t:5.75, title:"Third contribution arrives", desc:"The third input adds one more positive term to the running total."},
+      {t:6.2,  title:"Bias enters from above", desc:"Bias is treated as its own event, flowing down from the top into the summation node."},
+      {t:7.25, title:"Signal moves to activation", desc:"Once z is complete, the signal sweeps to the activation block on the right."},
+      {t:7.7,  title:"Activation transforms z", desc:"The selected activation function reshapes z into the final output. Change the activation selector to compare different behaviors."},
+      {t:8.75, title:"Output lights up", desc:"The output node activates and its value depends on the selected activation function."},
+      {t:9.15, title:"Full equation stays on screen", desc:"The learner can now review both the forward-pass structure and the chosen activation calmly."}
+    ];
+    let cur = moments[0];
+    for (const m of moments) if (t >= m.t) cur = m;
+    return cur;
+  }
+
+  function getCurrentStepIndex(timeSec) {
+    let idx = 0;
+    for (let i = 0; i < STEP_MARKERS.length; i++) {
+      if (timeSec >= STEP_MARKERS[i].t) idx = i;
+    }
+    return idx;
+  }
+
+  function jumpToStep(index) {
+    index = clamp(index, 0, STEP_MARKERS.length - 1);
+    animator.pause();
+    animator.applyAt(STEP_MARKERS[index].t);
+  }
+
+  function renderStepMarkers() {
+    stepMarkersWrap.innerHTML = "";
+    STEP_MARKERS.forEach((step, idx) => {
+      const btn = document.createElement("button");
+      btn.textContent = step.label;
+      btn.dataset.idx = String(idx);
+      btn.style.padding = "8px 12px";
+      btn.style.borderRadius = "999px";
+      btn.style.border = "1px solid #475569";
+      btn.style.background = "#0f172a";
+      btn.style.color = "#cbd5e1";
+      btn.style.cursor = "pointer";
+      btn.style.fontSize = "12px";
+      btn.style.transition = "all 0.15s ease";
+      btn.onclick = () => jumpToStep(idx);
+      stepMarkersWrap.appendChild(btn);
+    });
+  }
+
+  function updateStepMarkerUI() {
+    const idx = getCurrentStepIndex(animator.elapsed);
+    const buttons = stepMarkersWrap.querySelectorAll("button");
+    buttons.forEach((btn, i) => {
+      if (i === idx) {
+        btn.style.background = "#dbeafe";
+        btn.style.color = "#1e3a8a";
+        btn.style.borderColor = "#93c5fd";
+        btn.style.fontWeight = "700";
+      } else {
+        btn.style.background = "#0f172a";
+        btn.style.color = "#cbd5e1";
+        btn.style.borderColor = "#475569";
+        btn.style.fontWeight = "500";
+      }
+    });
+  }
+
+  function updatePrevNextUI() {
+    const idx = getCurrentStepIndex(animator.elapsed);
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx >= STEP_MARKERS.length - 1;
+
+    prevBtn.style.opacity = prevBtn.disabled ? "0.45" : "1";
+    nextBtn.style.opacity = nextBtn.disabled ? "0.45" : "1";
+    prevBtn.style.cursor = prevBtn.disabled ? "not-allowed" : "pointer";
+    nextBtn.style.cursor = nextBtn.disabled ? "not-allowed" : "pointer";
+  }
+
+  let lastMathKey = "";
+
+  function updateText(t) {
+    const act = currentActivation();
+    const yVal = currentY();
+    const m = getMoment(t);
+
+    momentTitle.textContent = m.title;
+    momentDesc.textContent = m.desc;
+
+    activationMeta.textContent = "Selected activation: " + act.display;
+    activationDesc.textContent = act.desc;
+
+    const mainEq = String.raw`\[
+    z = w_1x_1 + w_2x_2 + w_3x_3 + b
+    \]`;
+
+    let subEq = "";
+    let finalEq = "";
+
+    if (t < 3.75) {
+      subEq = String.raw`\[
+      z = 0
+      \]`;
+    } else if (t < 4.75) {
+      subEq = String.raw`\[
+      z = w_1x_1 = ${VALS.w1}\cdot${VALS.x1} = ${VALS.z1.toFixed(2)}
+      \]`;
+    } else if (t < 5.75) {
+      subEq = String.raw`\[
+      z = ${VALS.z1.toFixed(2)} + (${VALS.c2.toFixed(2)}) = ${VALS.z2.toFixed(2)}
+      \]`;
+    } else if (t < 6.85) {
+      subEq = String.raw`\[
+      z = ${VALS.z2.toFixed(2)} + ${VALS.c3.toFixed(2)} = ${VALS.z3.toFixed(2)}
+      \]`;
+    } else if (t < 9.15) {
+      subEq = String.raw`\[
+      z = ${VALS.z3.toFixed(2)} + ${VALS.b} = ${VALS.z.toFixed(2)}
+      \]`;
+    } else {
+      subEq = String.raw`\[
+      z = w_1x_1 + w_2x_2 + w_3x_3 + b = ${VALS.z.toFixed(2)}
+      \]`;
+      finalEq = act.finalLatex(VALS.z, yVal);
+    }
+
+    const activationOnly = act.formulaLatex;
+    const mathKey = mainEq + "||" + subEq + "||" + finalEq + "||" + activationOnly + "||" + activationKind;
+
+    if (mathKey !== lastMathKey) {
+      formulaMain.innerHTML = mainEq;
+      formulaSub.innerHTML = subEq;
+      formulaFinal.innerHTML = finalEq;
+      activationFormula.innerHTML = activationOnly;
+      lastMathKey = mathKey;
+
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([formulaMain, formulaSub, formulaFinal, activationFormula]).catch(() => {});
+      }
+    }
+  }
+
+  function syncControls() {
+    timeSlider.value = animator.elapsed.toFixed(2);
+    timeLabel.textContent = animator.elapsed.toFixed(2) + " s";
+    playPauseBtn.textContent = animator.playing ? "⏸ Pause" : "▶ Play";
+  }
+
+  playPauseBtn.onclick = () => {
+    if (animator.playing) animator.pause();
+    else animator.run(animator.elapsed);
+    syncControls();
+  };
+
+  replayBtn.onclick = () => {
+    animator.replay();
+  };
+
+  prevBtn.onclick = () => {
+    const idx = getCurrentStepIndex(animator.elapsed);
+    jumpToStep(Math.max(0, idx - 1));
+  };
+
+  nextBtn.onclick = () => {
+    const idx = getCurrentStepIndex(animator.elapsed);
+    jumpToStep(Math.min(STEP_MARKERS.length - 1, idx + 1));
+  };
+
+  timeSlider.oninput = (e) => {
+    animator.pause();
+    animator.applyAt(parseFloat(e.target.value));
+  };
+
+  activationSelect.onchange = (e) => {
+    activationKind = e.target.value;
+    animator.applyAt(animator.elapsed);
+  };
+
+  renderStepMarkers();
+  animator.applyAt(0);
+})();
+</script>
+
+</body>
+</html>

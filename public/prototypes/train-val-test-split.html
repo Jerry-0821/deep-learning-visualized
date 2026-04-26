@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>train_val_test_split_visualization.py</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+
+<div id="split-page-train-val-test-split-visualization">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    #split-page-train-val-test-split-visualization {
+      --white: #ffffff;
+      --black: #1d1d1f;
+      --gray1: #f5f5f7;
+      --gray2: #e8e8ed;
+      --gray3: #6e6e73;
+      --gray4: #aeaeb2;
+      --blue: #0071e3;
+      --blueLight: #e8f0fe;
+      --teal: #0f6e56;
+      --tealLight: #e9f7f2;
+      --amber: #8a5410;
+      --amberLight: #faeddc;
+      --shadow: 0 18px 44px rgba(34, 62, 132, 0.08);
+      --panel: rgba(255,255,255,0.78);
+      --radius: 22px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      color: var(--black);
+    }
+
+    #split-page-train-val-test-split-visualization * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    #split-page-train-val-test-split-visualization .page {
+      max-width: 1420px;
+      margin: 18px auto;
+      background:
+        radial-gradient(circle at top right, rgba(0,113,227,0.06), transparent 24%),
+        linear-gradient(to bottom, #ffffff 0%, #fbfcff 100%);
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    #split-page-train-val-test-split-visualization .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 32px;
+      border-bottom: 0.5px solid var(--gray2);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    #split-page-train-val-test-split-visualization .nav-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    #split-page-train-val-test-split-visualization .nav-brand { font-size: 13px; font-weight: 600; }
+    #split-page-train-val-test-split-visualization .nav-status { font-size: 13px; color: var(--gray4); }
+
+    #split-page-train-val-test-split-visualization .hero {
+      padding: 42px 32px 28px;
+      border-bottom: 0.5px solid var(--gray2);
+    }
+
+    #split-page-train-val-test-split-visualization .hero-shell {
+      max-width: 1260px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.22fr) minmax(320px, 0.78fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    #split-page-train-val-test-split-visualization .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blueLight);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+      letter-spacing: .01em;
+    }
+
+    #split-page-train-val-test-split-visualization h1 {
+      font-size: clamp(32px, 4vw, 44px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.03;
+      margin-bottom: 10px;
+    }
+
+    #split-page-train-val-test-split-visualization h1 span {
+      background: linear-gradient(135deg, var(--blue), #58a6ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #split-page-train-val-test-split-visualization .desc {
+      font-size: 15px;
+      color: var(--gray3);
+      line-height: 1.68;
+      max-width: 760px;
+      margin-bottom: 22px;
+    }
+
+    #split-page-train-val-test-split-visualization .meta { display: flex; flex-wrap: wrap; gap: 20px; }
+    #split-page-train-val-test-split-visualization .meta-item { font-size: 12px; color: var(--gray4); }
+    #split-page-train-val-test-split-visualization .meta-item span { color: var(--black); font-weight: 600; }
+
+    #split-page-train-val-test-split-visualization .hero-panel {
+      background: linear-gradient(180deg,#fbfdff 0%, #f4f8ff 100%);
+      border: 1px solid rgba(0,113,227,0.08);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 12px 28px rgba(34, 62, 132, 0.06);
+    }
+
+    #split-page-train-val-test-split-visualization .hero-panel-label {
+      font-size: 10px;
+      color: var(--gray4);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    #split-page-train-val-test-split-visualization .hero-panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -.02em;
+      margin-bottom: 14px;
+    }
+
+    #split-page-train-val-test-split-visualization .hero-points { display: flex; flex-direction: column; gap: 12px; }
+
+    #split-page-train-val-test-split-visualization .hero-point {
+      display: flex;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    #split-page-train-val-test-split-visualization .dot {
+      width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex: none;
+    }
+
+    #split-page-train-val-test-split-visualization .hero-point strong { display: block; font-size: 12px; margin-bottom: 2px; }
+    #split-page-train-val-test-split-visualization .hero-point span { font-size: 12px; color: var(--gray3); line-height: 1.5; }
+
+    #split-page-train-val-test-split-visualization .main {
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 30px 32px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #split-page-train-val-test-split-visualization .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray3);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    #split-page-train-val-test-split-visualization .panel {
+      background: var(--panel);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 40px rgba(0, 77, 163, 0.06);
+      backdrop-filter: blur(18px);
+    }
+
+    #split-page-train-val-test-split-visualization .controls-shell {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #split-page-train-val-test-split-visualization .controls-head h2 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 2px;
+    }
+
+    #split-page-train-val-test-split-visualization .controls-head .sub {
+      font-size: 13px;
+      color: var(--gray3);
+      line-height: 1.55;
+    }
+
+    #split-page-train-val-test-split-visualization .controls-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    #split-page-train-val-test-split-visualization .control-block {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    #split-page-train-val-test-split-visualization .control-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    #split-page-train-val-test-split-visualization .control-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--black);
+      letter-spacing: -0.01em;
+    }
+
+    #split-page-train-val-test-split-visualization .control-value {
+      font-size: 12px;
+      color: var(--gray4);
+      font-weight: 600;
+    }
+
+    #split-page-train-val-test-split-visualization .control-help {
+      font-size: 12px;
+      color: var(--gray3);
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
+    #split-page-train-val-test-split-visualization .chip-row, #split-page-train-val-test-split-visualization .seg-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    #split-page-train-val-test-split-visualization .chip, #split-page-train-val-test-split-visualization .seg-btn {
+      border: 1px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.86);
+      color: var(--black);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .16s ease;
+      font-family: inherit;
+    }
+
+    #split-page-train-val-test-split-visualization .chip:hover, #split-page-train-val-test-split-visualization .seg-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    #split-page-train-val-test-split-visualization .chip.active, #split-page-train-val-test-split-visualization .seg-btn.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    #split-page-train-val-test-split-visualization input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    #split-page-train-val-test-split-visualization .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--gray3);
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #split-page-train-val-test-split-visualization .toggle input[type="checkbox"] { accent-color: var(--blue); cursor: pointer; }
+
+    #split-page-train-val-test-split-visualization .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.24fr) minmax(320px, 0.76fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    #split-page-train-val-test-split-visualization .viz-shell, #split-page-train-val-test-split-visualization .side-shell {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #split-page-train-val-test-split-visualization .card {
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    #split-page-train-val-test-split-visualization .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    #split-page-train-val-test-split-visualization .card-title { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+    #split-page-train-val-test-split-visualization .card-sub { font-size: 11px; color: var(--gray4); }
+
+    #split-page-train-val-test-split-visualization .future-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 12px;
+      border-radius: 16px;
+      background: linear-gradient(180deg,#fbfdff 0%, #f4f8ff 100%);
+      border: 1px solid rgba(0,113,227,0.08);
+    }
+
+    #split-page-train-val-test-split-visualization .future-label {
+      min-width: 118px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    #split-page-train-val-test-split-visualization .mix-track {
+      position: relative;
+      width: 100%;
+      height: 22px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--gray1);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    #split-page-train-val-test-split-visualization .mix-web, #split-page-train-val-test-split-visualization .mix-app {
+      position: absolute;
+      top: 0; bottom: 0;
+    }
+
+    #split-page-train-val-test-split-visualization .mix-web { left: 0; background: linear-gradient(135deg, #cfd8ea, #e6ebf5); }
+    #split-page-train-val-test-split-visualization .mix-app { right: 0; background: linear-gradient(135deg, #9fddcb, #d8f3ea); }
+
+    #split-page-train-val-test-split-visualization .mix-pct {
+      min-width: 54px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+      text-align: right;
+    }
+
+    #split-page-train-val-test-split-visualization .mix-legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--gray3);
+    }
+
+    #split-page-train-val-test-split-visualization .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #split-page-train-val-test-split-visualization .legend-dot {
+      width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+    }
+
+    #split-page-train-val-test-split-visualization .split-row {
+      display: grid;
+      grid-template-columns: 84px minmax(0, 1fr) 62px;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    #split-page-train-val-test-split-visualization .split-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    #split-page-train-val-test-split-visualization .split-meta {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gray4);
+      text-align: right;
+    }
+
+    #split-page-train-val-test-split-visualization .split-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #split-page-train-val-test-split-visualization .size-ghost {
+      width: 100%;
+      height: 34px;
+      background: rgba(245,245,247,0.9);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    #split-page-train-val-test-split-visualization .size-fill {
+      height: 100%;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+      transition: width .25s ease;
+    }
+
+    #split-page-train-val-test-split-visualization .size-fill .mix-web,
+    #split-page-train-val-test-split-visualization .size-fill .mix-app {
+      position: absolute;
+      top: 0; bottom: 0;
+    }
+
+    #split-page-train-val-test-split-visualization .size-fill .mix-web { left: 0; background: linear-gradient(135deg, #d7deea, #eef2f8); }
+    #split-page-train-val-test-split-visualization .size-fill .mix-app { right: 0; background: linear-gradient(135deg, #8ed9c5, #c8f1e4); }
+
+    #split-page-train-val-test-split-visualization .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    #split-page-train-val-test-split-visualization .role-card {
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    #split-page-train-val-test-split-visualization .role-tag {
+      font-size: 10px;
+      color: var(--gray4);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    #split-page-train-val-test-split-visualization .role-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    #split-page-train-val-test-split-visualization .role-text {
+      font-size: 12px;
+      color: var(--gray3);
+      line-height: 1.55;
+    }
+
+    #split-page-train-val-test-split-visualization .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      margin-bottom: 10px;
+    }
+
+    #split-page-train-val-test-split-visualization .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    #split-page-train-val-test-split-visualization .ok { background: #e9f7f2; color: var(--teal); border-color: rgba(15,110,86,0.12); }
+    #split-page-train-val-test-split-visualization .ok .status-dot { background: var(--teal); }
+    #split-page-train-val-test-split-visualization .warn { background: #faeddc; color: var(--amber); border-color: rgba(138,84,16,0.12); }
+    #split-page-train-val-test-split-visualization .warn .status-dot { background: var(--amber); }
+    #split-page-train-val-test-split-visualization .bad { background: #fdeceb; color: #b6402b; border-color: rgba(182,64,43,0.12); }
+    #split-page-train-val-test-split-visualization .bad .status-dot { background: #d85a30; }
+
+    #split-page-train-val-test-split-visualization .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    #split-page-train-val-test-split-visualization .metric {
+      border-radius: 14px;
+      padding: 12px;
+      background: var(--gray1);
+    }
+
+    #split-page-train-val-test-split-visualization .metric-label { font-size: 11px; color: var(--gray4); margin-bottom: 4px; }
+    #split-page-train-val-test-split-visualization .metric-value { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }
+
+    #split-page-train-val-test-split-visualization .mini-progress {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.06);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    #split-page-train-val-test-split-visualization .mini-progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width .25s ease;
+    }
+
+    #split-page-train-val-test-split-visualization .list-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #split-page-train-val-test-split-visualization .list-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--gray1);
+      font-size: 12px;
+    }
+
+    #split-page-train-val-test-split-visualization .list-row strong { color: var(--black); }
+    #split-page-train-val-test-split-visualization .list-row span { color: var(--gray3); line-height: 1.5; text-align: right; }
+
+    #split-page-train-val-test-split-visualization .timeline {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    #split-page-train-val-test-split-visualization .tick {
+      padding: 10px 6px;
+      text-align: center;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray4);
+      background: rgba(245,245,247,0.86);
+      border: 1px solid rgba(0,0,0,0.04);
+      transition: .18s ease;
+    }
+
+    #split-page-train-val-test-split-visualization .tick.active {
+      background: var(--blueLight);
+      color: var(--blue);
+      border-color: rgba(0,113,227,0.10);
+      transform: translateY(-1px);
+    }
+
+    #split-page-train-val-test-split-visualization .formula-box {
+      font-size: 12.5px;
+      color: var(--black);
+      background: var(--gray1);
+      border-radius: 14px;
+      padding: 14px 16px;
+      line-height: 1.8;
+    }
+
+    #split-page-train-val-test-split-visualization .formula-box strong { color: var(--blue); }
+
+    #split-page-train-val-test-split-visualization .footer-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 18px 32px 24px;
+      border-top: 0.5px solid var(--gray2);
+      font-size: 12px;
+      color: var(--gray4);
+    }
+
+    @media (max-width: 1120px) {
+      #split-page-train-val-test-split-visualization .controls-grid { grid-template-columns: 1fr 1fr; }
+      #split-page-train-val-test-split-visualization .layout { grid-template-columns: 1fr; }
+      #split-page-train-val-test-split-visualization .hero-shell { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 860px) {
+      #split-page-train-val-test-split-visualization .role-grid { grid-template-columns: 1fr; }
+      #split-page-train-val-test-split-visualization .timeline { grid-template-columns: repeat(6, minmax(0,1fr)); }
+    }
+
+    @media (max-width: 700px) {
+      #split-page-train-val-test-split-visualization .hero, #split-page-train-val-test-split-visualization .main { padding-left: 18px; padding-right: 18px; }
+      #split-page-train-val-test-split-visualization .controls-grid { grid-template-columns: 1fr; }
+      #split-page-train-val-test-split-visualization .metric-grid { grid-template-columns: 1fr 1fr; }
+      #split-page-train-val-test-split-visualization .split-row { grid-template-columns: 72px minmax(0,1fr) 54px; }
+    }
+  </style>
+
+  <div class="page">
+    <nav class="nav">
+      <div class="nav-back">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Deep Learning Strategy
+      </div>
+      <div class="nav-brand">Interactive Lab</div>
+      <div class="nav-status" id="navStatus">Dev/Test should match future users</div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-shell">
+        <div>
+          <div class="badge">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+            Module 3 · ML Strategy
+          </div>
+          <h1>Train / Val / Test Split<br><span>Data Partitioning</span></h1>
+          <p class="desc">
+            This topic is not only about percentages. It is about assigning <strong>different jobs</strong> to each split and making sure your dev and test sets represent the <strong>future data you actually care about</strong>. Use the controls to see how a split can look good on paper but still fail in the real world.
+          </p>
+          <div class="meta">
+            <div class="meta-item">Train <span>learn parameters</span></div>
+            <div class="meta-item">Val / Dev <span>choose ideas</span></div>
+            <div class="meta-item">Test <span>final unbiased check</span></div>
+            <div class="meta-item">Core risk <span>wrong target or test leakage</span></div>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <div class="hero-panel-label">Key concepts</div>
+          <div class="hero-panel-title">What to watch for</div>
+          <div class="hero-points">
+            <div class="hero-point">
+              <div class="dot" style="background:#0071e3"></div>
+              <div>
+                <strong>Different jobs</strong>
+                <span>Train learns, dev compares experiments, and test should stay locked until the very end.</span>
+              </div>
+            </div>
+            <div class="hero-point">
+              <div class="dot" style="background:#0f6e56"></div>
+              <div>
+                <strong>Future-user match matters</strong>
+                <span>A dev/test set that looks clean but does not reflect future users can push you toward the wrong model.</span>
+              </div>
+            </div>
+            <div class="hero-point">
+              <div class="dot" style="background:#8a5410"></div>
+              <div>
+                <strong>Do not tune on test</strong>
+                <span>If you repeatedly look at test while iterating, your final number becomes less trustworthy.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <main class="main">
+      <div class="section-label">Interactive Playground</div>
+
+      <section class="panel controls-shell">
+        <div class="controls-head">
+          <h2>Controls</h2>
+          <p class="sub">Pick a preset, adjust each split's source mix, change the data scale, and simulate repeated development cycles.</p>
+        </div>
+
+        <div class="controls-grid">
+          <div class="control-block">
+            <div class="control-label" style="margin-bottom:10px;">Quick presets</div>
+            <div class="chip-row">
+              <button class="chip active" data-preset="wrong">Wrong target</button>
+              <button class="chip" data-preset="better">Better target</button>
+              <button class="chip" data-preset="balanced">Balanced</button>
+              <button class="chip" data-preset="leak">Test leakage</button>
+            </div>
+            <div class="control-help">Jump between the main teaching cases without adjusting everything manually.</div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-top">
+              <div class="control-label">Data scale</div>
+              <div class="control-value" id="scaleValue">Big data</div>
+            </div>
+            <div class="seg-row">
+              <button class="seg-btn" data-scale="small">Small</button>
+              <button class="seg-btn" data-scale="medium">Medium</button>
+              <button class="seg-btn active" data-scale="big">Big</button>
+            </div>
+            <div class="control-help">This changes the overall split sizes, not the source mix inside each split.</div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-top">
+              <div class="control-label">Train app data</div>
+              <div class="control-value" id="trainMixVal">20%</div>
+            </div>
+            <input type="range" id="trainMix" min="0" max="100" step="5" value="20">
+            <div class="control-help">How much of the training set comes from real mobile-app style data instead of clean web images.</div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-top">
+              <div class="control-label">Dev / Val app data</div>
+              <div class="control-value" id="devMixVal">0%</div>
+            </div>
+            <input type="range" id="devMix" min="0" max="100" step="5" value="0">
+            <div class="control-help">This split should represent the data you care about when choosing models.</div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-top">
+              <div class="control-label">Test app data</div>
+              <div class="control-value" id="testMixVal">0%</div>
+            </div>
+            <input type="range" id="testMix" min="0" max="100" step="5" value="0">
+            <div class="control-help">Test should usually match the same future distribution as dev, but stay unopened during iteration.</div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-top">
+              <div class="control-label">Development cycles</div>
+              <div class="control-value" id="iterVal">6</div>
+            </div>
+            <input type="range" id="iterations" min="0" max="12" step="1" value="6">
+            <div class="control-help">Higher means you tried more ideas, tuned more settings, and pushed harder on dev performance.</div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-label" style="margin-bottom:10px;">Test usage</div>
+            <label class="toggle"><input type="checkbox" id="peekTest"> Peek at test while iterating (bad)</label>
+            <div class="control-help">Leave this off for a proper final check. Turn it on to see confidence collapse.</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="layout">
+        <section class="panel viz-shell">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Split builder</div>
+                <div class="card-sub">Future users vs. what each split actually contains</div>
+              </div>
+            </div>
+
+            <div class="future-bar">
+              <div class="future-label">Future users</div>
+              <div class="mix-track">
+                <div class="mix-web" style="width:10%;"></div>
+                <div class="mix-app" style="width:90%;"></div>
+              </div>
+              <div class="mix-pct">90% app</div>
+            </div>
+
+            <div class="mix-legend">
+              <div class="legend-item"><span class="legend-dot" style="background:#dde3ef"></span>Web images — cleaner, easier, more professional</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#a9e4d3"></span>App images — blurrier, noisier, more realistic</div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <div class="split-row">
+                <div class="split-name">Train</div>
+                <div class="split-bar-wrap">
+                  <div class="size-ghost"><div class="size-fill" id="trainSizeBar"><div class="mix-web" id="trainWeb"></div><div class="mix-app" id="trainApp"></div></div></div>
+                </div>
+                <div class="split-meta" id="trainSizeMeta">98%</div>
+              </div>
+
+              <div class="split-row">
+                <div class="split-name">Dev</div>
+                <div class="split-bar-wrap">
+                  <div class="size-ghost"><div class="size-fill" id="devSizeBar"><div class="mix-web" id="devWeb"></div><div class="mix-app" id="devApp"></div></div></div>
+                </div>
+                <div class="split-meta" id="devSizeMeta">1%</div>
+              </div>
+
+              <div class="split-row" style="margin-bottom:0;">
+                <div class="split-name">Test</div>
+                <div class="split-bar-wrap">
+                  <div class="size-ghost"><div class="size-fill" id="testSizeBar"><div class="mix-web" id="testWeb"></div><div class="mix-app" id="testApp"></div></div></div>
+                </div>
+                <div class="split-meta" id="testSizeMeta">1%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Role of each split</div>
+                <div class="card-sub">This is why train / dev / test are not interchangeable</div>
+              </div>
+            </div>
+            <div class="role-grid">
+              <div class="role-card">
+                <div class="role-tag">Train</div>
+                <div class="role-title">Learn parameters</div>
+                <div class="role-text">Use this split for gradient updates and fitting weights. More training data usually helps, but its distribution does not define the target by itself.</div>
+              </div>
+              <div class="role-card">
+                <div class="role-tag">Dev / Val</div>
+                <div class="role-title">Choose ideas</div>
+                <div class="role-text">Use this split to compare architectures, hyperparameters, and data strategies. This split should reflect future data you care about.</div>
+              </div>
+              <div class="role-card">
+                <div class="role-tag">Test</div>
+                <div class="role-title">Final honest check</div>
+                <div class="role-text">Open this only at the end. If you keep using it during iteration, the final score stops being an unbiased estimate.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Development timeline</div>
+                <div class="card-sub">More cycles mean more tuning pressure on the split you are watching</div>
+              </div>
+            </div>
+            <div class="timeline" id="timeline"></div>
+            <div class="formula-box" id="timelineNote" style="margin-top:12px;">
+              <strong>Healthy workflow:</strong> iterate on dev, then check test once at the end.<br>
+              <strong>Unhealthy workflow:</strong> keep peeking at test and slowly overfit your project decisions to it.
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel side-shell">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Current diagnosis</div>
+                <div class="card-sub">How trustworthy and useful this split is</div>
+              </div>
+            </div>
+
+            <div id="statusPill" class="status-pill warn">
+              <span class="status-dot"></span><span id="statusText">Wrong target</span>
+            </div>
+
+            <div class="metric-grid">
+              <div class="metric">
+                <div class="metric-label">Dev score</div>
+                <div class="metric-value" id="devScore">94</div>
+                <div class="mini-progress"><div class="mini-progress-fill" id="devFill" style="width:94%; background:#0071e3;"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Real-world score</div>
+                <div class="metric-value" id="realScore">39</div>
+                <div class="mini-progress"><div class="mini-progress-fill" id="realFill" style="width:39%; background:#0f6e56;"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Target match</div>
+                <div class="metric-value" id="targetMatch">8</div>
+                <div class="mini-progress"><div class="mini-progress-fill" id="targetFill" style="width:8%; background:#8a5410;"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Trust in final test</div>
+                <div class="metric-value" id="trustScore">96</div>
+                <div class="mini-progress"><div class="mini-progress-fill" id="trustFill" style="width:96%; background:#5d4fc4;"></div></div>
+              </div>
+            </div>
+
+            <div class="list-rows">
+              <div class="list-row">
+                <strong>Biggest issue</strong>
+                <span id="issueText">Dev and test are still mostly clean web images, but future users are mobile-app images.</span>
+              </div>
+              <div class="list-row">
+                <strong>What to do next</strong>
+                <span id="actionText">Move dev and test closer to the future app distribution, even if the reported dev score becomes lower.</span>
+              </div>
+              <div class="list-row">
+                <strong>Beginner takeaway</strong>
+                <span id="takeawayText">A split can make you feel good with a high dev number while still optimizing the wrong target.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Core rule</div>
+                <div class="card-sub">The sentence to remember</div>
+              </div>
+            </div>
+            <div class="formula-box" id="ruleBox">
+              <strong>Train</strong> learns the weights.<br>
+              <strong>Dev</strong> chooses among ideas.<br>
+              <strong>Test</strong> gives the final honest estimate.<br><br>
+              The best split is not the one with the prettiest intermediate score. It is the one whose <strong>dev/test sets reflect future data and stay honest</strong>.
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <div class="footer-strip">Train split · Validation split · Test split · Future-user match · Honest evaluation</div>
+  </div>
+
+<script>
+(function() {
+  const state = {
+    scale: 'big',
+    trainMix: 20,
+    devMix: 0,
+    testMix: 0,
+    iterations: 6,
+    peekTest: false,
+    preset: 'wrong'
+  };
+
+  const scales = {
+    small:  {label: 'Small data', ratios: [60,20,20]},
+    medium: {label: 'Medium data', ratios: [80,10,10]},
+    big:    {label: 'Big data', ratios: [98,1,1]}
+  };
+
+  const futureApp = 90;
+
+  const el = id => document.getElementById(id);
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function round(n) { return Math.round(n); }
+
+  function applyPreset(name) {
+    state.preset = name;
+    if (name === 'wrong') {
+      state.scale = 'big'; state.trainMix = 20; state.devMix = 0; state.testMix = 0; state.iterations = 6; state.peekTest = false;
+    } else if (name === 'better') {
+      state.scale = 'big'; state.trainMix = 20; state.devMix = 90; state.testMix = 90; state.iterations = 6; state.peekTest = false;
+    } else if (name === 'balanced') {
+      state.scale = 'medium'; state.trainMix = 50; state.devMix = 70; state.testMix = 70; state.iterations = 5; state.peekTest = false;
+    } else if (name === 'leak') {
+      state.scale = 'big'; state.trainMix = 25; state.devMix = 90; state.testMix = 90; state.iterations = 11; state.peekTest = true;
+    }
+    syncControls();
+    render();
+  }
+
+  function syncControls() {
+    el('trainMix').value = state.trainMix;
+    el('devMix').value = state.devMix;
+    el('testMix').value = state.testMix;
+    el('iterations').value = state.iterations;
+    el('peekTest').checked = state.peekTest;
+
+    document.querySelectorAll('[data-preset]').forEach(btn => btn.classList.toggle('active', btn.dataset.preset === state.preset));
+    document.querySelectorAll('[data-scale]').forEach(btn => btn.classList.toggle('active', btn.dataset.scale === state.scale));
+  }
+
+  function scoreModel() {
+    const devCloseness = 100 - Math.abs(state.devMix - futureApp);
+    const testCloseness = 100 - Math.abs(state.testMix - futureApp);
+    const devTestAgreement = 100 - Math.abs(state.devMix - state.testMix);
+    const trainDevGap = Math.abs(state.trainMix - state.devMix);
+
+    const devEaseBonus = (100 - state.devMix) * 0.16; // cleaner web-heavy dev looks easier
+    let devScore = 58 + devEaseBonus + 0.18 * (100 - trainDevGap) + Math.min(12, state.iterations * 1.6);
+    devScore = clamp(devScore, 0, 99);
+
+    let realScore = 22 + 0.40 * devCloseness + 0.24 * testCloseness + 0.10 * devTestAgreement - 0.08 * trainDevGap + Math.min(5, state.iterations * 0.6);
+    realScore = clamp(realScore, 0, 99);
+
+    let targetMatch = round((0.6 * devCloseness + 0.4 * testCloseness) / 1.0);
+    targetMatch = clamp(targetMatch, 0, 100);
+
+    let trust = 98 - (state.peekTest ? Math.min(72, state.iterations * 5.4) : 0) - (Math.abs(state.devMix - state.testMix) > 15 ? 8 : 0);
+    trust = clamp(trust, 4, 100);
+
+    return {
+      devCloseness,
+      testCloseness,
+      devTestAgreement,
+      trainDevGap,
+      devScore: round(devScore),
+      realScore: round(realScore),
+      targetMatch,
+      trust: round(trust)
+    };
+  }
+
+  function roleDiagnosis(scores) {
+    if (state.peekTest && state.iterations >= 8) {
+      return {
+        cls: 'bad',
+        title: 'Test leakage',
+        issue: 'You are repeatedly checking test during development, so the final test number is no longer an honest final estimate.',
+        action: 'Lock test again. Keep iterating on dev, then open test only once at the end.',
+        takeaway: 'A high number is not enough. It also needs to be trustworthy.'
+      };
+    }
+
+    if (scores.targetMatch < 55) {
+      return {
+        cls: 'warn',
+        title: 'Wrong target',
+        issue: 'Dev and test are not close to the future user distribution, so model selection is being guided by the wrong target.',
+        action: 'Move dev and test closer to the future app distribution, even if the score drops.',
+        takeaway: 'The job of dev/test is to represent the world you care about, not to flatter the model.'
+      };
+    }
+
+    if (scores.targetMatch >= 55 && scores.targetMatch < 85) {
+      return {
+        cls: 'warn',
+        title: 'Partial match',
+        issue: 'The split is better, but dev/test still only partially resemble the future deployment data.',
+        action: 'Keep improving match and ensure dev and test stay aligned with each other.',
+        takeaway: 'Percentages matter less than whether the held-out splits reflect future reality.'
+      };
+    }
+
+    return {
+      cls: 'ok',
+      title: 'Healthy split',
+      issue: 'Dev and test are close to the future user distribution, and test is still being treated as a final check.',
+      action: 'Use dev for choosing models and keep test unopened until you are ready for the final evaluation.',
+      takeaway: 'A lower but honest score is better than a higher score on the wrong target.'
+    };
+  }
+
+  function renderBars() {
+    const ratios = scales[state.scale].ratios;
+    const splitData = [
+      {name: 'Train', size: ratios[0], app: state.trainMix, sizeBar: 'trainSizeBar', web: 'trainWeb', appId: 'trainApp', meta: 'trainSizeMeta'},
+      {name: 'Dev',   size: ratios[1], app: state.devMix,   sizeBar: 'devSizeBar',   web: 'devWeb',   appId: 'devApp',   meta: 'devSizeMeta'},
+      {name: 'Test',  size: ratios[2], app: state.testMix,  sizeBar: 'testSizeBar',  web: 'testWeb',  appId: 'testApp',  meta: 'testSizeMeta'}
+    ];
+
+    splitData.forEach(s => {
+      const sizeEl = el(s.sizeBar);
+      sizeEl.style.width = s.size + '%';
+      el(s.web).style.width = (100 - s.app) + '%';
+      el(s.appId).style.width = s.app + '%';
+      el(s.meta).textContent = s.size + '%';
+    });
+  }
+
+  function renderTimeline() {
+    const holder = el('timeline');
+    holder.innerHTML = '';
+    for (let i = 0; i < 12; i++) {
+      const div = document.createElement('div');
+      div.className = 'tick' + (i <= state.iterations ? ' active' : '');
+      div.textContent = 'M' + (i + 1);
+      holder.appendChild(div);
+    }
+  }
+
+  function render() {
+    const scores = scoreModel();
+    const diag = roleDiagnosis(scores);
+    const scale = scales[state.scale];
+
+    renderBars();
+    renderTimeline();
+
+    el('scaleValue').textContent = scale.label;
+    el('trainMixVal').textContent = state.trainMix + '%';
+    el('devMixVal').textContent = state.devMix + '%';
+    el('testMixVal').textContent = state.testMix + '%';
+    el('iterVal').textContent = state.iterations;
+
+    const pill = el('statusPill');
+    pill.className = 'status-pill ' + diag.cls;
+    el('statusText').textContent = diag.title;
+
+    el('devScore').textContent = scores.devScore;
+    el('realScore').textContent = scores.realScore;
+    el('targetMatch').textContent = scores.targetMatch;
+    el('trustScore').textContent = scores.trust;
+
+    el('devFill').style.width = scores.devScore + '%';
+    el('realFill').style.width = scores.realScore + '%';
+    el('targetFill').style.width = scores.targetMatch + '%';
+    el('trustFill').style.width = scores.trust + '%';
+
+    el('issueText').textContent = diag.issue;
+    el('actionText').textContent = diag.action;
+    el('takeawayText').textContent = diag.takeaway;
+
+    const stateLabel = state.peekTest ? 'Test has been opened during development' : 'Test is still locked for a final honest check';
+    el('navStatus').textContent = stateLabel;
+
+    el('timelineNote').innerHTML = state.peekTest
+      ? '<strong>Warning:</strong> the test set is now acting like a second dev set. The more cycles you run, the less honest the final test number becomes.'
+      : '<strong>Healthy workflow:</strong> iterate on dev, then check test once at the end. This keeps the final test number meaningful.';
+
+    el('ruleBox').innerHTML = '<strong>Train</strong> learns the weights.<br><strong>Dev</strong> chooses among ideas.<br><strong>Test</strong> gives the final honest estimate.<br><br>The best split is not the one with the prettiest intermediate score. It is the one whose <strong>dev/test sets reflect future data and stay honest</strong>.';
+  }
+
+  document.querySelectorAll('[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+  });
+
+  document.querySelectorAll('[data-scale]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.scale = btn.dataset.scale;
+      syncControls();
+      render();
+    });
+  });
+
+  el('trainMix').addEventListener('input', e => { state.trainMix = +e.target.value; render(); });
+  el('devMix').addEventListener('input', e => { state.devMix = +e.target.value; render(); });
+  el('testMix').addEventListener('input', e => { state.testMix = +e.target.value; render(); });
+  el('iterations').addEventListener('input', e => { state.iterations = +e.target.value; render(); });
+  el('peekTest').addEventListener('change', e => { state.peekTest = e.target.checked; render(); });
+
+  syncControls();
+  render();
+})();
+</script>
+</div>
+
+</body>
+</html>

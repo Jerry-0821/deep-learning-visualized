@@ -1,0 +1,1442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gradient Descent.ipynb</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+
+<div id="gd_combo_8d0a9e18_root">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=STIX+Two+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    #gd_combo_8d0a9e18_root * { box-sizing: border-box; }
+
+    #gd_combo_8d0a9e18_app {
+      width: 100%;
+      max-width: 1280px;
+      margin: 16px auto;
+      padding: 0;
+      background: #eef4ff;
+      border: 1px solid #d9e6ff;
+      border-radius: 24px;
+      box-shadow: 0 16px 40px rgba(41, 72, 152, 0.08);
+      overflow: hidden;
+      color: #0f172a;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    #gd_combo_8d0a9e18_header {
+      padding: 18px 20px 10px 20px;
+    }
+
+    #gd_combo_8d0a9e18_title {
+      margin: 0;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-size: 34px;
+      line-height: 1.12;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #0b1c3f;
+    }
+
+    #gd_combo_8d0a9e18_subtitle {
+      margin: 6px 0 0 0;
+      color: #4f648d;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    #gd_combo_8d0a9e18_mainWrap {
+      padding: 0 16px 18px 16px;
+    }
+
+    .gd_combo_8d0a9e18_panel {
+      background: rgba(255,255,255,0.76);
+      border: 1px solid #c7d8ff;
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+      backdrop-filter: blur(3px);
+    }
+
+    #gd_combo_8d0a9e18_topPanel {
+      margin-bottom: 14px;
+    }
+
+    #gd_combo_8d0a9e18_plotTopRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 10px;
+    }
+
+    #gd_combo_8d0a9e18_plotHeading {
+      min-width: 0;
+    }
+
+    #gd_combo_8d0a9e18_plotHeading h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.15;
+      color: #0d2250;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    #gd_combo_8d0a9e18_plotHeading p {
+      margin: 5px 0 0 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #607398;
+    }
+
+    #gd_combo_8d0a9e18_statusChips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .gd_combo_8d0a9e18_chip {
+      border: 1px solid #d7e3ff;
+      background: rgba(255,255,255,0.9);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #2450b3;
+      white-space: nowrap;
+    }
+
+    #gd_combo_8d0a9e18_plot {
+      width: 100%;
+      height: 650px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #d6e2ff;
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    #gd_combo_8d0a9e18_controlWrap {
+      margin-top: 12px;
+      background: #f7fbff;
+      border: 1px solid #d7e3ff;
+      border-radius: 18px;
+      padding: 12px 12px 10px 12px;
+    }
+
+    #gd_combo_8d0a9e18_buttonRow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .gd_combo_8d0a9e18_btn {
+      border: 1px solid #b8cbf4;
+      background: #ffffff;
+      color: #10224e;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.14s ease;
+    }
+
+    .gd_combo_8d0a9e18_btn:hover {
+      background: #f0f6ff;
+      border-color: #8fb0ea;
+    }
+
+    .gd_combo_8d0a9e18_btnPrimary {
+      background: #2e69f0;
+      border-color: #2e69f0;
+      color: white;
+    }
+
+    .gd_combo_8d0a9e18_btnPrimary:hover {
+      background: #255add;
+      border-color: #255add;
+    }
+
+    #gd_combo_8d0a9e18_stepRow {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .gd_combo_8d0a9e18_smallLabel {
+      font-size: 12px;
+      color: #3b5487;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .gd_combo_8d0a9e18_range {
+      width: 100%;
+      accent-color: #2f6cf2;
+    }
+
+    #gd_combo_8d0a9e18_stepValue {
+      font-size: 12px;
+      color: #16377e;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    #gd_combo_8d0a9e18_paramGrid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .gd_combo_8d0a9e18_paramBox {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid #d7e3ff;
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    .gd_combo_8d0a9e18_paramHead {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 7px;
+    }
+
+    .gd_combo_8d0a9e18_paramName {
+      font-size: 13px;
+      font-weight: 700;
+      color: #10224e;
+    }
+
+    .gd_combo_8d0a9e18_paramVal {
+      font-size: 12px;
+      font-weight: 800;
+      color: #355fc1;
+      white-space: nowrap;
+    }
+
+    #gd_combo_8d0a9e18_toggleRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      padding-top: 2px;
+    }
+
+    .gd_combo_8d0a9e18_check {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #31466f;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    #gd_combo_8d0a9e18_twoDPanel {
+      margin-bottom: 14px;
+    }
+
+    #gd_combo_8d0a9e18_twoDHead {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 10px;
+    }
+
+    #gd_combo_8d0a9e18_twoDHead h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.15;
+      color: #0d2250;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    #gd_combo_8d0a9e18_twoDHead p {
+      margin: 5px 0 0 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #607398;
+    }
+
+    #gd_combo_8d0a9e18_svgWrap {
+      width: 100%;
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+      border: 1px solid #d6e2ff;
+      border-radius: 18px;
+      overflow: hidden;
+      padding: 18px 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #gd_combo_8d0a9e18_svg2d {
+      display: block;
+      width: min(100%, 980px);
+      height: 300px;
+      border-radius: 14px;
+      background: #ffffff;
+    }
+
+    .gd_combo_8d0a9e18_cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .gd_combo_8d0a9e18_formulaCard {
+      background: rgba(255,255,255,0.74);
+      border: 1px solid #c7d8ff;
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+
+    .gd_combo_8d0a9e18_cardTop {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .gd_combo_8d0a9e18_cardTitle {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1b46a5;
+      letter-spacing: 0.01em;
+    }
+
+    .gd_combo_8d0a9e18_cardMeta {
+      font-size: 12px;
+      font-weight: 700;
+      color: #4766aa;
+      text-align: right;
+    }
+
+    .gd_combo_8d0a9e18_formulaText {
+      color: #11244d;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-size: 17px;
+      line-height: 1.8;
+      min-height: 24px;
+    }
+
+    .gd_combo_8d0a9e18_formulaText .mjx-container {
+      margin: 0.3em 0 !important;
+    }
+
+    .gd_combo_8d0a9e18_noteCard {
+      background: rgba(241, 255, 247, 0.86);
+      border: 1px solid #b9e6c9;
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+
+    .gd_combo_8d0a9e18_noteTitle {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f7a44;
+      margin-bottom: 8px;
+    }
+
+    .gd_combo_8d0a9e18_noteText {
+      font-size: 14px;
+      color: #1a3e2f;
+      line-height: 1.65;
+    }
+
+    .gd_combo_8d0a9e18_momentCard {
+      background: rgba(255,255,255,0.74);
+      border: 1px solid #c7d8ff;
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+
+    .gd_combo_8d0a9e18_momentTitle {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1b46a5;
+      margin-bottom: 8px;
+    }
+
+    .gd_combo_8d0a9e18_momentHead {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f1f49;
+      margin-bottom: 4px;
+    }
+
+    .gd_combo_8d0a9e18_momentText {
+      font-size: 14px;
+      color: #4f648d;
+      line-height: 1.62;
+    }
+
+    @media (max-width: 980px) {
+      #gd_combo_8d0a9e18_plotTopRow,
+      #gd_combo_8d0a9e18_twoDHead {
+        flex-direction: column;
+      }
+      #gd_combo_8d0a9e18_statusChips {
+        justify-content: flex-start;
+      }
+      #gd_combo_8d0a9e18_paramGrid {
+        grid-template-columns: 1fr;
+      }
+      #gd_combo_8d0a9e18_plot {
+        height: 560px;
+      }
+      #gd_combo_8d0a9e18_stepRow {
+        grid-template-columns: 1fr;
+      }
+      #gd_combo_8d0a9e18_svg2d {
+        height: 240px;
+      }
+    }
+  </style>
+
+  <div id="gd_combo_8d0a9e18_app">
+    <div id="gd_combo_8d0a9e18_header">
+      <h1 id="gd_combo_8d0a9e18_title">Gradient Descent on a 3D Surface</h1>
+      <div id="gd_combo_8d0a9e18_subtitle">
+        synced 3D view + 2D intuition curve + formula cards below
+      </div>
+    </div>
+
+    <div id="gd_combo_8d0a9e18_mainWrap">
+      <div id="gd_combo_8d0a9e18_topPanel" class="gd_combo_8d0a9e18_panel">
+        <div id="gd_combo_8d0a9e18_plotTopRow">
+          <div id="gd_combo_8d0a9e18_plotHeading">
+            <h2>3D descent view</h2>
+            <p>
+              Drag to rotate the surface. The red point is the current position, the dark path shows the history,
+              and the dashed floor projection helps beginners see how \\(x\\) and \\(y\\) are changing.
+            </p>
+          </div>
+
+          <div id="gd_combo_8d0a9e18_statusChips">
+            <div class="gd_combo_8d0a9e18_chip" id="gd_combo_8d0a9e18_chipStep">Step 0 / 0</div>
+            <div class="gd_combo_8d0a9e18_chip" id="gd_combo_8d0a9e18_chipLoss">Loss 0.000</div>
+            <div class="gd_combo_8d0a9e18_chip" id="gd_combo_8d0a9e18_chipPos">(0.000, 0.000)</div>
+            <div class="gd_combo_8d0a9e18_chip" id="gd_combo_8d0a9e18_chipGrad">‖∇f‖ 0.000</div>
+          </div>
+        </div>
+
+        <div id="gd_combo_8d0a9e18_plot"></div>
+
+        <div id="gd_combo_8d0a9e18_controlWrap">
+          <div id="gd_combo_8d0a9e18_buttonRow">
+            <button class="gd_combo_8d0a9e18_btn" id="gd_combo_8d0a9e18_prevBtn">← Prev</button>
+            <button class="gd_combo_8d0a9e18_btn" id="gd_combo_8d0a9e18_nextBtn">Next →</button>
+            <button class="gd_combo_8d0a9e18_btn gd_combo_8d0a9e18_btnPrimary" id="gd_combo_8d0a9e18_playBtn">▶ Play</button>
+            <button class="gd_combo_8d0a9e18_btn" id="gd_combo_8d0a9e18_pauseBtn">Pause</button>
+            <button class="gd_combo_8d0a9e18_btn" id="gd_combo_8d0a9e18_replayBtn">Replay</button>
+            <button class="gd_combo_8d0a9e18_btn" id="gd_combo_8d0a9e18_viewBtn">Reset View</button>
+          </div>
+
+          <div id="gd_combo_8d0a9e18_stepRow">
+            <div class="gd_combo_8d0a9e18_smallLabel">Current step</div>
+            <input class="gd_combo_8d0a9e18_range" id="gd_combo_8d0a9e18_seekSlider" type="range" min="0" max="0" step="1" value="0">
+            <div id="gd_combo_8d0a9e18_stepValue">0 / 0</div>
+          </div>
+
+          <div id="gd_combo_8d0a9e18_paramGrid">
+            <div class="gd_combo_8d0a9e18_paramBox">
+              <div class="gd_combo_8d0a9e18_paramHead">
+                <div class="gd_combo_8d0a9e18_paramName">Learning rate \\(\\eta\\)</div>
+                <div class="gd_combo_8d0a9e18_paramVal" id="gd_combo_8d0a9e18_lrVal">0.22</div>
+              </div>
+              <input class="gd_combo_8d0a9e18_range" id="gd_combo_8d0a9e18_lrSlider" type="range" min="0.03" max="0.50" step="0.01" value="0.22">
+            </div>
+
+            <div class="gd_combo_8d0a9e18_paramBox">
+              <div class="gd_combo_8d0a9e18_paramHead">
+                <div class="gd_combo_8d0a9e18_paramName">Number of steps</div>
+                <div class="gd_combo_8d0a9e18_paramVal" id="gd_combo_8d0a9e18_stepsVal">36</div>
+              </div>
+              <input class="gd_combo_8d0a9e18_range" id="gd_combo_8d0a9e18_stepsSlider" type="range" min="8" max="80" step="1" value="36">
+            </div>
+
+            <div class="gd_combo_8d0a9e18_paramBox">
+              <div class="gd_combo_8d0a9e18_paramHead">
+                <div class="gd_combo_8d0a9e18_paramName">Animation speed</div>
+                <div class="gd_combo_8d0a9e18_paramVal" id="gd_combo_8d0a9e18_speedVal">420 ms</div>
+              </div>
+              <input class="gd_combo_8d0a9e18_range" id="gd_combo_8d0a9e18_speedSlider" type="range" min="120" max="1200" step="20" value="420">
+            </div>
+          </div>
+
+          <div id="gd_combo_8d0a9e18_toggleRow">
+            <label class="gd_combo_8d0a9e18_check"><input type="checkbox" id="gd_combo_8d0a9e18_showPath" checked> Show full path</label>
+            <label class="gd_combo_8d0a9e18_check"><input type="checkbox" id="gd_combo_8d0a9e18_showProj" checked> Show floor projection</label>
+            <label class="gd_combo_8d0a9e18_check"><input type="checkbox" id="gd_combo_8d0a9e18_showSeg" checked> Highlight current step</label>
+          </div>
+        </div>
+      </div>
+
+      <div id="gd_combo_8d0a9e18_twoDPanel" class="gd_combo_8d0a9e18_panel">
+        <div id="gd_combo_8d0a9e18_twoDHead">
+          <div>
+            <h2>2D intuition view</h2>
+            <p>
+              This is a simplified one-dimensional cost curve for beginner intuition. It uses the same play,
+              replay, step slider, learning rate, and step count as the 3D panel above.
+            </p>
+          </div>
+          <div id="gd_combo_8d0a9e18_statusChips">
+            <div class="gd_combo_8d0a9e18_chip" id="gd_combo_8d0a9e18_chipW">w = 0.000</div>
+            <div class="gd_combo_8d0a9e18_chip" id="gd_combo_8d0a9e18_chipJ">J(w) = 0.000</div>
+            <div class="gd_combo_8d0a9e18_chip" id="gd_combo_8d0a9e18_chipDJ">J'(w) = 0.000</div>
+          </div>
+        </div>
+        <div id="gd_combo_8d0a9e18_svgWrap">
+          <svg id="gd_combo_8d0a9e18_svg2d" viewBox="0 0 760 320" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+      </div>
+
+      <div class="gd_combo_8d0a9e18_cards">
+        <div class="gd_combo_8d0a9e18_formulaCard">
+          <div class="gd_combo_8d0a9e18_cardTop">
+            <div class="gd_combo_8d0a9e18_cardTitle">3D formula</div>
+            <div class="gd_combo_8d0a9e18_cardMeta" id="gd_combo_8d0a9e18_formulaMeta">surface + gradient + update rule</div>
+          </div>
+          <div class="gd_combo_8d0a9e18_formulaText" id="gd_combo_8d0a9e18_formulaMain"></div>
+        </div>
+
+        <div class="gd_combo_8d0a9e18_formulaCard">
+          <div class="gd_combo_8d0a9e18_cardTop">
+            <div class="gd_combo_8d0a9e18_cardTitle">Current 3D step computation</div>
+            <div class="gd_combo_8d0a9e18_cardMeta" id="gd_combo_8d0a9e18_stepMeta">step 0</div>
+          </div>
+          <div class="gd_combo_8d0a9e18_formulaText" id="gd_combo_8d0a9e18_formulaCurrent"></div>
+        </div>
+
+        <div class="gd_combo_8d0a9e18_formulaCard">
+          <div class="gd_combo_8d0a9e18_cardTop">
+            <div class="gd_combo_8d0a9e18_cardTitle">2D intuition formula</div>
+            <div class="gd_combo_8d0a9e18_cardMeta" id="gd_combo_8d0a9e18_formula2DMeta">same controls, 1D cost curve</div>
+          </div>
+          <div class="gd_combo_8d0a9e18_formulaText" id="gd_combo_8d0a9e18_formula2D"></div>
+        </div>
+
+        <div class="gd_combo_8d0a9e18_noteCard">
+          <div class="gd_combo_8d0a9e18_noteTitle">Interpretation</div>
+          <div class="gd_combo_8d0a9e18_noteText" id="gd_combo_8d0a9e18_noteText">
+            The point moves opposite the gradient, because the gradient points toward steepest increase.
+          </div>
+        </div>
+
+        <div class="gd_combo_8d0a9e18_momentCard">
+          <div class="gd_combo_8d0a9e18_momentTitle">Current moment</div>
+          <div class="gd_combo_8d0a9e18_momentHead" id="gd_combo_8d0a9e18_momentHead">Ready to descend</div>
+          <div class="gd_combo_8d0a9e18_momentText" id="gd_combo_8d0a9e18_momentText">
+            The learner can rotate the surface first, then press play to watch the steps.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)'], ['$', '$']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <script>
+    (function boot() {
+      if (typeof Plotly === "undefined" || typeof MathJax === "undefined" || !MathJax.typesetPromise) {
+        setTimeout(boot, 60);
+        return;
+      }
+
+      const CONFIG = {"startX": 4.8, "startY": -4.2, "startW": 4.3, "lr": 0.22, "steps": 36, "speedMs": 420, "xMin": -6, "xMax": 6, "yMin": -6, "yMax": 6, "gridPoints": 90};
+
+      const ids = {
+        plot: "gd_combo_8d0a9e18_plot",
+        svg2d: "gd_combo_8d0a9e18_svg2d",
+        chipStep: "gd_combo_8d0a9e18_chipStep",
+        chipLoss: "gd_combo_8d0a9e18_chipLoss",
+        chipPos: "gd_combo_8d0a9e18_chipPos",
+        chipGrad: "gd_combo_8d0a9e18_chipGrad",
+        chipW: "gd_combo_8d0a9e18_chipW",
+        chipJ: "gd_combo_8d0a9e18_chipJ",
+        chipDJ: "gd_combo_8d0a9e18_chipDJ",
+        prevBtn: "gd_combo_8d0a9e18_prevBtn",
+        nextBtn: "gd_combo_8d0a9e18_nextBtn",
+        playBtn: "gd_combo_8d0a9e18_playBtn",
+        pauseBtn: "gd_combo_8d0a9e18_pauseBtn",
+        replayBtn: "gd_combo_8d0a9e18_replayBtn",
+        viewBtn: "gd_combo_8d0a9e18_viewBtn",
+        seekSlider: "gd_combo_8d0a9e18_seekSlider",
+        stepValue: "gd_combo_8d0a9e18_stepValue",
+        lrSlider: "gd_combo_8d0a9e18_lrSlider",
+        stepsSlider: "gd_combo_8d0a9e18_stepsSlider",
+        speedSlider: "gd_combo_8d0a9e18_speedSlider",
+        lrVal: "gd_combo_8d0a9e18_lrVal",
+        stepsVal: "gd_combo_8d0a9e18_stepsVal",
+        speedVal: "gd_combo_8d0a9e18_speedVal",
+        showPath: "gd_combo_8d0a9e18_showPath",
+        showProj: "gd_combo_8d0a9e18_showProj",
+        showSeg: "gd_combo_8d0a9e18_showSeg",
+        formulaMain: "gd_combo_8d0a9e18_formulaMain",
+        formulaCurrent: "gd_combo_8d0a9e18_formulaCurrent",
+        formula2D: "gd_combo_8d0a9e18_formula2D",
+        formulaMeta: "gd_combo_8d0a9e18_formulaMeta",
+        formula2DMeta: "gd_combo_8d0a9e18_formula2DMeta",
+        stepMeta: "gd_combo_8d0a9e18_stepMeta",
+        noteText: "gd_combo_8d0a9e18_noteText",
+        momentHead: "gd_combo_8d0a9e18_momentHead",
+        momentText: "gd_combo_8d0a9e18_momentText"
+      };
+
+      const el = {};
+      Object.keys(ids).forEach(k => el[k] = document.getElementById(ids[k]));
+
+      const DEFAULT_CAMERA = {
+        eye: {x: 1.72, y: 1.54, z: 0.96},
+        center: {x: 0, y: 0, z: 0},
+        up: {x: 0, y: 0, z: 1}
+      };
+
+      const state = {
+        lr: CONFIG.lr,
+        steps: CONFIG.steps,
+        speedMs: CONFIG.speedMs,
+        startX: CONFIG.startX,
+        startY: CONFIG.startY,
+        startW: CONFIG.startW,
+        step: 0,
+        playing: false,
+        animationId: null,
+        lastFrameTs: null,
+        camera: JSON.parse(JSON.stringify(DEFAULT_CAMERA)),
+        path3d: [],
+        path1d: [],
+        surface: null,
+        zFloor: -1,
+        showPath: true,
+        showProj: true,
+        showSeg: true
+      };
+
+      function f(x, y) {
+        return 0.14 * x * x + 0.08 * x * y + 0.26 * y * y + 0.6;
+      }
+
+      function grad(x, y) {
+        return [
+          0.28 * x + 0.08 * y,
+          0.08 * x + 0.52 * y
+        ];
+      }
+
+      function J(w) {
+        return 0.18 * (w + 1.4) * (w + 1.4) + 0.55;
+      }
+
+      function dJ(w) {
+        return 0.36 * (w + 1.4);
+      }
+
+      function linspace(a, b, n) {
+        const arr = [];
+        if (n === 1) return [a];
+        const step = (b - a) / (n - 1);
+        for (let i = 0; i < n; i++) arr.push(a + i * step);
+        return arr;
+      }
+
+      function buildSurface() {
+        const xs = linspace(CONFIG.xMin, CONFIG.xMax, CONFIG.gridPoints);
+        const ys = linspace(CONFIG.yMin, CONFIG.yMax, CONFIG.gridPoints);
+        const zs = [];
+        let zMin = Infinity;
+        let zMax = -Infinity;
+
+        for (let j = 0; j < ys.length; j++) {
+          const row = [];
+          for (let i = 0; i < xs.length; i++) {
+            const z = f(xs[i], ys[j]);
+            row.push(z);
+            zMin = Math.min(zMin, z);
+            zMax = Math.max(zMax, z);
+          }
+          zs.push(row);
+        }
+        return {xs, ys, zs, zMin, zMax};
+      }
+
+      function runGD3D(startX, startY, lr, steps) {
+        let x = startX;
+        let y = startY;
+        const out = [];
+        for (let t = 0; t <= steps; t++) {
+          const g = grad(x, y);
+          out.push({
+            x, y,
+            z: f(x, y),
+            gx: g[0],
+            gy: g[1],
+            gnorm: Math.hypot(g[0], g[1])
+          });
+          if (t < steps) {
+            x = x - lr * g[0];
+            y = y - lr * g[1];
+          }
+        }
+        return out;
+      }
+
+      function runGD1D(startW, lr, steps) {
+        let w = startW;
+        const out = [];
+        for (let t = 0; t <= steps; t++) {
+          const g = dJ(w);
+          out.push({
+            w: w,
+            j: J(w),
+            dj: g
+          });
+          if (t < steps) {
+            w = w - lr * g;
+          }
+        }
+        return out;
+      }
+
+      function fmt(x) {
+        return Number(x).toFixed(3);
+      }
+
+      function texNum(x) {
+        return Number(x).toFixed(3);
+      }
+
+      function vectorLatex(a, b) {
+        return `\\begin{bmatrix}${texNum(a)}\\\\${texNum(b)}\\end{bmatrix}`;
+      }
+
+      function typeset(elements) {
+        const arr = Array.isArray(elements) ? elements : [elements];
+        if (MathJax.typesetClear) MathJax.typesetClear(arr);
+        MathJax.typesetPromise(arr).catch(() => {});
+      }
+
+      function refreshModel(resetStep=false) {
+        state.path3d = runGD3D(state.startX, state.startY, state.lr, state.steps);
+        state.path1d = runGD1D(state.startW, state.lr, state.steps);
+        if (resetStep) state.step = 0;
+        state.step = Math.min(state.step, state.path3d.length - 1);
+        el.lrVal.textContent = state.lr.toFixed(2);
+        el.stepsVal.textContent = String(state.steps);
+        el.speedVal.textContent = `${state.speedMs} ms`;
+        el.seekSlider.max = String(state.path3d.length - 1);
+        el.seekSlider.value = String(state.step);
+      }
+
+      function getNext3D() {
+        if (state.step < state.path3d.length - 1) return state.path3d[state.step + 1];
+        return state.path3d[state.step];
+      }
+
+      function getNext1D() {
+        if (state.step < state.path1d.length - 1) return state.path1d[state.step + 1];
+        return state.path1d[state.step];
+      }
+
+      function updateChips() {
+        const p3 = state.path3d[state.step];
+        const p1 = state.path1d[state.step];
+
+        el.chipStep.textContent = `Step ${state.step} / ${state.path3d.length - 1}`;
+        el.chipLoss.textContent = `Loss ${fmt(p3.z)}`;
+        el.chipPos.textContent = `(${fmt(p3.x)}, ${fmt(p3.y)})`;
+        el.chipGrad.textContent = `‖∇f‖ ${fmt(p3.gnorm)}`;
+        el.chipW.textContent = `w = ${fmt(p1.w)}`;
+        el.chipJ.textContent = `J(w) = ${fmt(p1.j)}`;
+        el.chipDJ.textContent = `J'(w) = ${fmt(p1.dj)}`;
+
+        el.stepValue.textContent = `${state.step} / ${state.path3d.length - 1}`;
+        el.seekSlider.value = String(state.step);
+      }
+
+      function updateFormulas() {
+        const p3 = state.path3d[state.step];
+        const q3 = getNext3D();
+        const p1 = state.path1d[state.step];
+        const q1 = getNext1D();
+
+        const dx = q3.x - p3.x;
+        const dy = q3.y - p3.y;
+        const lossDrop3 = q3.z - p3.z;
+        const lossDrop1 = q1.j - p1.j;
+
+        el.formulaMain.innerHTML = `
+          \\[
+          f(x,y)=0.14x^2+0.08xy+0.26y^2+0.6
+          \\]
+
+          \\[
+          \\nabla f(x,y)=
+          \\begin{bmatrix}
+          0.28x+0.08y \\\\
+          0.08x+0.52y
+          \\end{bmatrix}
+          \\]
+
+          \\[
+          \\mathbf{w}_{t+1}=\\mathbf{w}_{t}-\\eta\\nabla f(\\mathbf{w}_{t})
+          \\]
+        `;
+
+        el.formulaCurrent.innerHTML = `
+          \\[
+          \\mathbf{w}_{${state.step}}
+          =
+          ${vectorLatex(p3.x, p3.y)},
+          \\qquad
+          \\nabla f\\big(\\mathbf{w}_{${state.step}}\\big)
+          =
+          ${vectorLatex(p3.gx, p3.gy)}
+          \\]
+
+          \\[
+          \\mathbf{w}_{${state.step + 1}}
+          =
+          ${vectorLatex(p3.x, p3.y)}
+          -
+          ${state.lr.toFixed(2)}
+          ${vectorLatex(p3.gx, p3.gy)}
+          =
+          ${vectorLatex(q3.x, q3.y)}
+          \\]
+
+          \\[
+          f\\big(\\mathbf{w}_{${state.step}}\\big)=${fmt(p3.z)}
+          \\qquad\\Longrightarrow\\qquad
+          f\\big(\\mathbf{w}_{${Math.min(state.step + 1, state.path3d.length - 1)}}\\big)=${fmt(q3.z)}
+          \\]
+        `;
+
+        el.formula2D.innerHTML = `
+          \\[
+          J(w)=0.18(w+1.4)^2+0.55,
+          \\qquad
+          J'(w)=0.36(w+1.4)
+          \\]
+
+          \\[
+          w_{${state.step}}=${fmt(p1.w)},
+          \\qquad
+          J'\\big(w_{${state.step}}\\big)=${fmt(p1.dj)}
+          \\]
+
+          \\[
+          w_{${state.step + 1}}
+          =
+          ${fmt(p1.w)}
+          -
+          ${state.lr.toFixed(2)}
+          \\cdot
+          ${fmt(p1.dj)}
+          =
+          ${fmt(q1.w)}
+          \\]
+
+          \\[
+          J\\big(w_{${state.step}}\\big)=${fmt(p1.j)}
+          \\qquad\\Longrightarrow\\qquad
+          J\\big(w_{${Math.min(state.step + 1, state.path1d.length - 1)}}\\big)=${fmt(q1.j)}
+          \\]
+        `;
+
+        el.formulaMeta.textContent = `η = ${state.lr.toFixed(2)} · convex tilted bowl`;
+        el.formula2DMeta.textContent = `same η and step count · 1D beginner view`;
+        el.stepMeta.textContent = `step ${state.step}`;
+
+        if (state.step === state.path3d.length - 1) {
+          el.noteText.innerHTML = `
+            In both panels, the gradient becomes small near the minimum.
+            That is why the updates also become small. The 3D panel shows the full surface;
+            the 2D panel gives the simpler beginner intuition.
+          `;
+          el.momentHead.textContent = "Final state stays on screen";
+          el.momentText.textContent = "Now the learner can compare the 3D surface path and the simpler 2D cost-curve story calmly.";
+        } else {
+          const dirX = dx < 0 ? "left" : dx > 0 ? "right" : "almost not moving in x";
+          const dirY = dy < 0 ? "down in y" : dy > 0 ? "up in y" : "almost not moving in y";
+          const phrase3 = lossDrop3 < 0 ? `The 3D loss decreases by ${fmt(Math.abs(lossDrop3))}.` : `The 3D loss change is ${fmt(lossDrop3)}.`;
+          const phrase2 = lossDrop1 < 0 ? `In the 2D curve, the cost also decreases by ${fmt(Math.abs(lossDrop1))}.` : `In the 2D curve, the cost change is ${fmt(lossDrop1)}.`;
+
+          el.noteText.innerHTML = `
+            At this step, the gradient points toward steepest increase, so the update moves in the opposite direction.
+            In the 3D view, the point moves <b>${dirX}</b> and <b>${dirY}</b>.
+            ${phrase3} ${phrase2}
+          `;
+
+          el.momentHead.textContent = `3D move: (${fmt(dx)}, ${fmt(dy)}) · 2D move: ${fmt(q1.w - p1.w)}`;
+          el.momentText.textContent = `Both panels are synced to the same global controls. The 2D graph is there to make the slope and downhill idea feel immediate.`;
+        }
+
+        typeset([el.formulaMain, el.formulaCurrent, el.formula2D, el.noteText]);
+      }
+
+      function getTraces() {
+        const p = state.path3d[state.step];
+        const traces = [];
+
+        traces.push({
+          type: "surface",
+          x: state.surface.xs,
+          y: state.surface.ys,
+          z: state.surface.zs,
+          colorscale: [
+            [0.00, "#56a6f1"],
+            [0.35, "#67c8ef"],
+            [0.60, "#90ddb1"],
+            [0.82, "#f0d46a"],
+            [1.00, "#f28b57"]
+          ],
+          showscale: false,
+          opacity: 0.97,
+          hovertemplate: "x=%{x:.2f}<br>y=%{y:.2f}<br>f(x,y)=%{z:.2f}<extra></extra>",
+          lighting: {
+            ambient: 0.82,
+            diffuse: 0.9,
+            roughness: 0.48,
+            specular: 0.12
+          }
+        });
+
+        if (state.showPath) {
+          traces.push({
+            type: "scatter3d",
+            mode: "lines",
+            x: state.path3d.slice(0, state.step + 1).map(d => d.x),
+            y: state.path3d.slice(0, state.step + 1).map(d => d.y),
+            z: state.path3d.slice(0, state.step + 1).map(d => d.z),
+            line: {
+              color: "#111827",
+              width: 7
+            },
+            hoverinfo: "skip"
+          });
+        }
+
+        if (state.showProj) {
+          traces.push({
+            type: "scatter3d",
+            mode: "lines",
+            x: state.path3d.slice(0, state.step + 1).map(d => d.x),
+            y: state.path3d.slice(0, state.step + 1).map(d => d.y),
+            z: state.path3d.slice(0, state.step + 1).map(() => state.zFloor),
+            line: {
+              color: "#7c8ba9",
+              width: 4,
+              dash: "dash"
+            },
+            hoverinfo: "skip"
+          });
+
+          traces.push({
+            type: "scatter3d",
+            mode: "markers",
+            x: [p.x],
+            y: [p.y],
+            z: [state.zFloor],
+            marker: {
+              size: 5,
+              color: "#2e69f0"
+            },
+            hoverinfo: "skip"
+          });
+
+          traces.push({
+            type: "scatter3d",
+            mode: "lines",
+            x: [p.x, p.x],
+            y: [p.y, p.y],
+            z: [state.zFloor, p.z],
+            line: {
+              color: "#9fb0cf",
+              width: 3,
+              dash: "dot"
+            },
+            hoverinfo: "skip"
+          });
+        }
+
+        if (state.showSeg && state.step < state.path3d.length - 1) {
+          const q = state.path3d[state.step + 1];
+          traces.push({
+            type: "scatter3d",
+            mode: "lines",
+            x: [p.x, q.x],
+            y: [p.y, q.y],
+            z: [p.z, q.z],
+            line: {
+              color: "#ef4444",
+              width: 10
+            },
+            hoverinfo: "skip"
+          });
+        }
+
+        traces.push({
+          type: "scatter3d",
+          mode: "markers",
+          x: [state.path3d[0].x],
+          y: [state.path3d[0].y],
+          z: [state.path3d[0].z],
+          marker: {
+            size: 7,
+            color: "#f59e0b"
+          },
+          hovertemplate: "Start point<extra></extra>"
+        });
+
+        traces.push({
+          type: "scatter3d",
+          mode: "markers",
+          x: [state.path3d[state.path3d.length - 1].x],
+          y: [state.path3d[state.path3d.length - 1].y],
+          z: [state.path3d[state.path3d.length - 1].z],
+          marker: {
+            size: 7,
+            color: "#22c55e"
+          },
+          hovertemplate: "Final point<extra></extra>"
+        });
+
+        traces.push({
+          type: "scatter3d",
+          mode: "markers+text",
+          x: [p.x],
+          y: [p.y],
+          z: [p.z],
+          text: [`step ${state.step}`],
+          textposition: "top center",
+          textfont: {
+            size: 14,
+            color: "#cf2020"
+          },
+          marker: {
+            size: 9,
+            color: "#dc2626",
+            line: {
+              color: "#ffffff",
+              width: 4
+            }
+          },
+          hovertemplate: `Current point<br>x=${fmt(p.x)}<br>y=${fmt(p.y)}<br>f(x,y)=${fmt(p.z)}<br>||∇f||=${fmt(p.gnorm)}<extra></extra>`
+        });
+
+        return traces;
+      }
+
+      function getLayout() {
+        return {
+          margin: {l: 0, r: 0, t: 0, b: 0},
+          showlegend: false,
+          paper_bgcolor: "rgba(0,0,0,0)",
+          plot_bgcolor: "rgba(0,0,0,0)",
+          uirevision: "keep-view",
+          scene: {
+            xaxis: {
+              title: {text: "x", font: {size: 16, color: "#263b6b"}},
+              range: [CONFIG.xMin, CONFIG.xMax],
+              backgroundcolor: "#fbfdff",
+              gridcolor: "#dde5f5",
+              zerolinecolor: "#cad5ea",
+              tickfont: {size: 12, color: "#566b95"},
+              showspikes: false
+            },
+            yaxis: {
+              title: {text: "y", font: {size: 16, color: "#263b6b"}},
+              range: [CONFIG.yMin, CONFIG.yMax],
+              backgroundcolor: "#fbfdff",
+              gridcolor: "#dde5f5",
+              zerolinecolor: "#cad5ea",
+              tickfont: {size: 12, color: "#566b95"},
+              showspikes: false
+            },
+            zaxis: {
+              title: {text: "f(x,y)", font: {size: 16, color: "#263b6b"}},
+              range: [state.zFloor, state.surface.zMax + 0.8],
+              backgroundcolor: "#fbfdff",
+              gridcolor: "#dde5f5",
+              zerolinecolor: "#cad5ea",
+              tickfont: {size: 12, color: "#566b95"},
+              showspikes: false
+            },
+            aspectratio: {x: 1.16, y: 1.16, z: 0.72},
+            camera: state.camera
+          }
+        };
+      }
+
+      function renderPlot3D() {
+        Plotly.react(el.plot, getTraces(), getLayout(), {
+          displayModeBar: false,
+          responsive: true,
+          scrollZoom: true
+        });
+      }
+
+      function render2D() {
+        const svgW = 760;
+        const svgH = 320;
+
+        const frame = {
+          x: 90,
+          y: 26,
+          w: 560,
+          h: 230
+        };
+
+        const pad = { l: 54, r: 18, t: 16, b: 38 };
+
+        const plotX = frame.x + pad.l;
+        const plotY = frame.y + pad.t;
+        const plotW = frame.w - pad.l - pad.r;
+        const plotH = frame.h - pad.t - pad.b;
+
+        const wMin = -5.4;
+        const wMax = 5.6;
+        const samples = linspace(wMin, wMax, 220);
+        const vals = samples.map(J);
+        const jMinRaw = Math.min(...vals);
+        const jMaxRaw = Math.max(...vals);
+        const jRange = jMaxRaw - jMinRaw;
+        const jMin = jMinRaw - 0.14 * jRange;
+        const jMax = jMaxRaw + 0.10 * jRange;
+
+        const xScale = (w) => plotX + (w - wMin) / (wMax - wMin) * plotW;
+        const yScale = (j) => plotY + plotH - (j - jMin) / (jMax - jMin) * plotH;
+
+        const curvePts = samples.map(w => `${xScale(w)},${yScale(J(w))}`).join(" ");
+
+        const p = state.path1d[state.step];
+        const q = getNext1D();
+        const currentX = xScale(p.w);
+        const currentY = yScale(p.j);
+
+        const tangentAt = (w) => p.j + p.dj * (w - p.w);
+        const tanX1 = xScale(wMin);
+        const tanY1 = yScale(tangentAt(wMin));
+        const tanX2 = xScale(wMax);
+        const tanY2 = yScale(tangentAt(wMax));
+
+        const wStar = -1.4;
+        const jStar = J(wStar);
+
+        let descentSegments = "";
+        const startIdx = Math.max(0, state.step - 8);
+        for (let i = startIdx; i < state.step; i++) {
+          const a = state.path1d[i];
+          const b = state.path1d[i + 1];
+          descentSegments += `
+            <line
+              x1="${xScale(a.w)}" y1="${yScale(a.j)}"
+              x2="${xScale(b.w)}" y2="${yScale(b.j)}"
+              stroke="#1f2937" stroke-width="2.4"
+              marker-end="url(#gd_combo_8d0a9e18_arrowBlack)"
+              opacity="0.82"
+            />
+          `;
+        }
+
+        const nextArrow = state.step < state.path1d.length - 1 ? `
+          <line
+            x1="${xScale(p.w)}" y1="${yScale(p.j)}"
+            x2="${xScale(q.w)}" y2="${yScale(q.j)}"
+            stroke="#ef4444" stroke-width="3"
+            marker-end="url(#gd_combo_8d0a9e18_arrowRed)"
+          />
+        ` : "";
+
+        const initialW = state.path1d[0].w;
+        const initialJ = state.path1d[0].j;
+
+        const svg = `
+          <defs>
+            <marker id="gd_combo_8d0a9e18_axisArrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L6,3 z" fill="#23395d"></path>
+            </marker>
+            <marker id="gd_combo_8d0a9e18_arrowBlack" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L6,3 z" fill="#1f2937"></path>
+            </marker>
+            <marker id="gd_combo_8d0a9e18_arrowRed" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L6,3 z" fill="#ef4444"></path>
+            </marker>
+          </defs>
+
+          <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="#ffffff" rx="16"></rect>
+
+          <rect
+            x="${frame.x}" y="${frame.y}"
+            width="${frame.w}" height="${frame.h}"
+            rx="16"
+            fill="#ffffff"
+            stroke="#e5ecfb"
+            stroke-width="1.4"
+          />
+
+          <line
+            x1="${plotX}" y1="${plotY + plotH}"
+            x2="${plotX + plotW + 10}" y2="${plotY + plotH}"
+            stroke="#23395d" stroke-width="2.2"
+            marker-end="url(#gd_combo_8d0a9e18_axisArrow)"
+          />
+          <line
+            x1="${plotX}" y1="${plotY + plotH}"
+            x2="${plotX}" y2="${plotY - 10}"
+            stroke="#23395d" stroke-width="2.2"
+            marker-end="url(#gd_combo_8d0a9e18_axisArrow)"
+          />
+
+          <text
+            x="${plotX - 46}" y="${plotY + 6}"
+            font-family="STIX Two Text, Georgia, serif"
+            font-size="22"
+            font-weight="600"
+            fill="#23395d"
+          >J(w)</text>
+
+          <text
+            x="${plotX + plotW + 10}" y="${plotY + plotH + 30}"
+            font-family="STIX Two Text, Georgia, serif"
+            font-size="22"
+            font-weight="600"
+            fill="#23395d"
+          >w</text>
+
+          <polyline
+            points="${curvePts}"
+            fill="none"
+            stroke="#5e96d9"
+            stroke-width="4.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <line
+            x1="${tanX1}" y1="${tanY1}"
+            x2="${tanX2}" y2="${tanY2}"
+            stroke="#6b7280"
+            stroke-width="2"
+            stroke-dasharray="7 6"
+            opacity="0.95"
+          />
+
+          <circle cx="${xScale(wStar)}" cy="${yScale(jStar)}" r="4.8" fill="#2563eb" />
+          <text
+            x="${xScale(wStar) + 14}" y="${yScale(jStar) - 12}"
+            font-family="Inter, sans-serif"
+            font-size="13"
+            font-weight="700"
+            fill="#374151"
+          >Global cost minimum</text>
+          <text
+            x="${xScale(wStar) + 14}" y="${yScale(jStar) + 8}"
+            font-family="STIX Two Text, Georgia, serif"
+            font-size="14"
+            fill="#374151"
+          >J_min(w)</text>
+
+          <circle cx="${xScale(initialW)}" cy="${yScale(initialJ)}" r="5.6" fill="#9ca3af" opacity="0.8" />
+          <text
+            x="${xScale(initialW) - 24}" y="${yScale(initialJ) - 24}"
+            font-family="Inter, sans-serif"
+            font-size="13"
+            font-weight="700"
+            fill="#374151"
+          >Initial weight</text>
+
+          ${descentSegments}
+          ${nextArrow}
+
+          <circle cx="${currentX}" cy="${currentY}" r="10.5" fill="#111111" />
+          <circle cx="${currentX}" cy="${currentY}" r="12.8" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.82" />
+
+          <text
+            x="${currentX + 16}" y="${currentY - 12}"
+            font-family="Inter, sans-serif"
+            font-size="14"
+            font-weight="800"
+            fill="#111827"
+          >Step ${state.step}</text>
+
+          <text
+            x="${currentX + 16}" y="${currentY + 9}"
+            font-family="Inter, sans-serif"
+            font-size="13"
+            font-weight="700"
+            fill="#374151"
+          >Gradient</text>
+        `;
+
+        el.svg2d.innerHTML = svg;
+      }
+
+      function renderAll() {
+        updateChips();
+        updateFormulas();
+        renderPlot3D();
+        render2D();
+      }
+
+      function stopAnimation() {
+        state.playing = false;
+        if (state.animationId !== null) {
+          cancelAnimationFrame(state.animationId);
+          state.animationId = null;
+        }
+        state.lastFrameTs = null;
+      }
+
+      function animate(ts) {
+        if (!state.playing) return;
+        if (state.lastFrameTs === null) state.lastFrameTs = ts;
+
+        if (ts - state.lastFrameTs >= state.speedMs) {
+          if (state.step < state.path3d.length - 1) {
+            state.step += 1;
+            renderAll();
+            state.lastFrameTs = ts;
+          } else {
+            stopAnimation();
+            return;
+          }
+        }
+        state.animationId = requestAnimationFrame(animate);
+      }
+
+      function play() {
+        stopAnimation();
+        state.playing = true;
+        state.animationId = requestAnimationFrame(animate);
+      }
+
+      function replay() {
+        stopAnimation();
+        state.step = 0;
+        renderAll();
+        play();
+      }
+
+      function resetView() {
+        state.camera = JSON.parse(JSON.stringify(DEFAULT_CAMERA));
+        Plotly.relayout(el.plot, {"scene.camera": state.camera});
+      }
+
+      function rebuild(resetStep=true) {
+        refreshModel(resetStep);
+        renderAll();
+      }
+
+      state.surface = buildSurface();
+      state.zFloor = state.surface.zMin - 0.75;
+      refreshModel(true);
+
+      Plotly.newPlot(el.plot, getTraces(), getLayout(), {
+        displayModeBar: false,
+        responsive: true,
+        scrollZoom: true
+      }).then(() => {
+        el.plot.on("plotly_relayout", function(evt) {
+          if (evt["scene.camera"]) {
+            state.camera = evt["scene.camera"];
+          }
+        });
+        renderAll();
+      });
+
+      el.prevBtn.addEventListener("click", () => {
+        stopAnimation();
+        state.step = Math.max(0, state.step - 1);
+        renderAll();
+      });
+
+      el.nextBtn.addEventListener("click", () => {
+        stopAnimation();
+        state.step = Math.min(state.path3d.length - 1, state.step + 1);
+        renderAll();
+      });
+
+      el.playBtn.addEventListener("click", play);
+      el.pauseBtn.addEventListener("click", stopAnimation);
+      el.replayBtn.addEventListener("click", replay);
+      el.viewBtn.addEventListener("click", resetView);
+
+      el.seekSlider.addEventListener("input", (e) => {
+        stopAnimation();
+        state.step = Number(e.target.value);
+        renderAll();
+      });
+
+      el.lrSlider.addEventListener("input", (e) => {
+        stopAnimation();
+        state.lr = Number(e.target.value);
+        rebuild(true);
+      });
+
+      el.stepsSlider.addEventListener("input", (e) => {
+        stopAnimation();
+        state.steps = Number(e.target.value);
+        rebuild(true);
+      });
+
+      el.speedSlider.addEventListener("input", (e) => {
+        state.speedMs = Number(e.target.value);
+        el.speedVal.textContent = `${state.speedMs} ms`;
+      });
+
+      el.showPath.addEventListener("change", (e) => {
+        state.showPath = e.target.checked;
+        renderPlot3D();
+      });
+
+      el.showProj.addEventListener("change", (e) => {
+        state.showProj = e.target.checked;
+        renderPlot3D();
+      });
+
+      el.showSeg.addEventListener("change", (e) => {
+        state.showSeg = e.target.checked;
+        renderPlot3D();
+      });
+
+      typeset(document.getElementById("gd_combo_8d0a9e18_app"));
+    })();
+  </script>
+</div>
+
+</body>
+</html>

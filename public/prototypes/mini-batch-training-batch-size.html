@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mini-batch Training and Batch Size Intuition.ipynb</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+
+<div id="mbgd_root_v2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=STIX+Two+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    #mbgd_root_v2 * { box-sizing: border-box; }
+
+    #mbgd_app_v2 {
+      width: 100%;
+      max-width: 1400px;
+      margin: 16px auto;
+      background: linear-gradient(180deg, #f7fbff 0%, #eef5ff 100%);
+      border: 1px solid #d7e4ff;
+      border-radius: 28px;
+      box-shadow: 0 20px 44px rgba(34, 62, 132, 0.08);
+      overflow: hidden;
+      color: #0f172a;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    #mbgd_header_v2 {
+      padding: 22px 22px 12px 22px;
+    }
+
+    #mbgd_title_v2 {
+      margin: 0;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-size: 35px;
+      line-height: 1.06;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: #0d1f4d;
+    }
+
+    #mbgd_subtitle_v2 {
+      margin: 8px 0 0 0;
+      font-size: 14px;
+      color: #5f7197;
+      line-height: 1.6;
+    }
+
+    #mbgd_main_v2 {
+      padding: 0 16px 18px 16px;
+    }
+
+    .mbgd_panel_v2 {
+      background: rgba(255,255,255,0.84);
+      border: 1px solid #d4e1ff;
+      border-radius: 24px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.82);
+      backdrop-filter: blur(4px);
+    }
+
+    #mbgd_controls_panel_v2 {
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    #mbgd_controls_top_v2 {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    #mbgd_method_chips_v2 {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .mbgd_chip_v2 {
+      border: 1px solid #cbdaee;
+      background: rgba(255,255,255,0.97);
+      color: #334155;
+      border-radius: 999px;
+      padding: 10px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      transition: all 0.16s ease;
+    }
+
+    .mbgd_chip_v2.active {
+      background: #eaf2ff;
+      color: #153a92;
+      border-color: #99bfff;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.10) inset;
+    }
+
+    .mbgd_chip_dot_v2 {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    #mbgd_control_group_v2 {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .mbgd_btn_v2 {
+      border: 1px solid #bfd0f4;
+      background: #ffffff;
+      color: #10224e;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.14s ease;
+    }
+
+    .mbgd_btn_v2:hover {
+      background: #f1f6ff;
+      border-color: #95b5ec;
+    }
+
+    .mbgd_btn_v2.primary {
+      background: #2d67ef;
+      border-color: #2d67ef;
+      color: white;
+    }
+
+    .mbgd_btn_v2.primary:hover {
+      background: #255add;
+      border-color: #255add;
+    }
+
+    .mbgd_label_v2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #5d7096;
+      letter-spacing: 0.04em;
+    }
+
+    .mbgd_inline_value_v2 {
+      min-width: 28px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #10224e;
+      text-align: center;
+    }
+
+    #mbgd_timeline_row_v2 {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #mbgd_timeline_row_v2 input[type="range"] {
+      flex: 1 1 420px;
+      accent-color: #2d67ef;
+    }
+
+    #mbgd_big_plot_panel_v2 {
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    #mbgd_big_plot_heading_v2 {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    #mbgd_big_plot_heading_v2 h2 {
+      margin: 0;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-size: 21px;
+      color: #0c2253;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    #mbgd_big_plot_heading_v2 p {
+      margin: 5px 0 0 0;
+      font-size: 13px;
+      color: #607398;
+      line-height: 1.5;
+    }
+
+    #mbgd_plot_status_v2 {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .mbgd_status_chip_v2 {
+      border: 1px solid #d9e5ff;
+      background: rgba(255,255,255,0.9);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #2952b6;
+      white-space: nowrap;
+    }
+
+    #mbgd_plot_wrap_v2 {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #d6e2ff;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    #mbgd_plot_canvas_v2 {
+      width: 100%;
+      height: auto;
+      display: block;
+      aspect-ratio: 1260 / 760;
+    }
+
+    #mbgd_summary_line_v2 {
+      margin-top: 12px;
+      font-size: 18px;
+      line-height: 1.75;
+      color: #475569;
+      text-align: center;
+    }
+
+    #mbgd_rhythm_panel_v2 {
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    #mbgd_rhythm_title_v2 {
+      margin: 0 0 12px 0;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-size: 20px;
+      color: #0d2250;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .mbgd_rhythm_card_v2 {
+      border: 1px solid #dbeafe;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      transition: all 0.16s ease;
+      box-shadow: 0 10px 20px rgba(15,23,42,0.04);
+      cursor: pointer;
+    }
+
+    .mbgd_rhythm_card_v2.active {
+      background: #eef6ff;
+      border-color: #93c5fd;
+      transform: translateY(-1px);
+    }
+
+    .mbgd_rhythm_card_v2:last-child { margin-bottom: 0; }
+
+    .mbgd_rhythm_header_v2 {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .mbgd_rhythm_header_v2 h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+      color: #334155;
+      letter-spacing: 0.08em;
+    }
+
+    .mbgd_rhythm_header_v2 p {
+      margin: 0;
+      font-size: 14px;
+      color: #475569;
+    }
+
+    .mbgd_flow_row_v2, .mbgd_flow_multi_v2 {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mbgd_flow_line_v2 {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .mbgd_flow_line_v2:last-child { margin-bottom: 0; }
+
+    .mbgd_sample_box_v2 {
+      min-width: 46px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid #d6d3d1;
+      background: #fafaf9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #334155;
+      font-weight: 700;
+      transition: all 0.14s ease;
+    }
+
+    .mbgd_sample_box_v2.active {
+      background: #fff7cc;
+      border-color: #eab308;
+      box-shadow: 0 0 0 2px rgba(234,179,8,0.08) inset;
+      transform: translateY(-1px);
+    }
+
+    .mbgd_arrow_token_v2 {
+      font-size: 28px;
+      line-height: 1;
+      color: #334155;
+      padding: 0 4px;
+    }
+
+    .mbgd_update_pill_v2 {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      transition: all 0.14s ease;
+    }
+
+    .mbgd_update_pill_v2.active {
+      background: #dbeafe;
+      color: #1e3a8a;
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.10) inset;
+    }
+
+    #mbgd_bottom_stack_v2 {
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .mbgd_info_card_v2 {
+      border-radius: 22px;
+      padding: 20px 24px;
+    }
+
+    .mbgd_info_card_v2 h3 {
+      margin: 0 0 12px 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    #mbgd_intuition_card_v2 {
+      background: #eefbf5;
+      border: 1px solid #bbf7d0;
+    }
+
+    #mbgd_intuition_card_v2 h3 { color: #166534; }
+
+    #mbgd_formula_card_v2 {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+    }
+
+    #mbgd_formula_card_top_v2 {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    #mbgd_formula_card_v2 h3 { color: #1e40af; margin-bottom: 0; }
+
+    #mbgd_formula_badge_v2 {
+      font-size: 14px;
+      color: #2563eb;
+      font-weight: 700;
+    }
+
+    #mbgd_intuition_text_v2 {
+      font-size: 19px;
+      line-height: 1.8;
+      color: #475569;
+    }
+
+    #mbgd_formula_main_v2 {
+      font-size: 30px;
+      color: #111827;
+      line-height: 1.9;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    #mbgd_formula_sub_v2 {
+      font-size: 24px;
+      color: #334155;
+      line-height: 1.8;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    #mbgd_formula_note_v2 {
+      font-size: 18px;
+      line-height: 1.8;
+      color: #475569;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 760px) {
+      #mbgd_title_v2 { font-size: 29px; }
+      #mbgd_formula_main_v2 { font-size: 24px; }
+      #mbgd_formula_sub_v2 { font-size: 20px; }
+      #mbgd_intuition_text_v2, #mbgd_formula_note_v2, #mbgd_summary_line_v2 { font-size: 16px; }
+    }
+  </style>
+
+  <div id="mbgd_app_v2">
+    <div id="mbgd_header_v2">
+      <h1 id="mbgd_title_v2">Mini-batch Training and Batch Size Intuition</h1>
+      <p id="mbgd_subtitle_v2">
+        compare optimization paths and update rhythm: full batch should look smooth, mini-batch should look moderately wavy, stochastic should look visibly noisy — and all three should meet the same minimum
+      </p>
+    </div>
+
+    <div id="mbgd_main_v2">
+      <div id="mbgd_controls_panel_v2" class="mbgd_panel_v2">
+        <div id="mbgd_controls_top_v2">
+          <div id="mbgd_method_chips_v2">
+            <button class="mbgd_chip_v2" data-method="full">
+              <span class="mbgd_chip_dot_v2" style="background:#5b7bd5;"></span>FULL BATCH
+            </button>
+            <button class="mbgd_chip_v2" data-method="mini">
+              <span class="mbgd_chip_dot_v2" style="background:#49a388;"></span>MINI-BATCH
+            </button>
+            <button class="mbgd_chip_v2" data-method="stochastic">
+              <span class="mbgd_chip_dot_v2" style="background:#df875f;"></span>STOCHASTIC
+            </button>
+          </div>
+
+          <div id="mbgd_control_group_v2">
+            <span class="mbgd_label_v2">Mini-batch size</span>
+            <input id="mbgd_batch_slider_v2" type="range" min="2" max="6" step="1" value="4" style="width:180px;">
+            <span id="mbgd_batch_value_v2" class="mbgd_inline_value_v2">4</span>
+
+            <button id="mbgd_play_btn_v2" class="mbgd_btn_v2 primary">▶ Play</button>
+            <button id="mbgd_replay_btn_v2" class="mbgd_btn_v2">Replay</button>
+          </div>
+        </div>
+
+        <div id="mbgd_timeline_row_v2">
+          <span class="mbgd_label_v2">timeline</span>
+          <input id="mbgd_timeline_slider_v2" type="range" min="0" max="1" step="0.001" value="0">
+          <span id="mbgd_timeline_value_v2" class="mbgd_inline_value_v2" style="min-width:46px;">0%</span>
+        </div>
+      </div>
+
+      <div id="mbgd_big_plot_panel_v2" class="mbgd_panel_v2">
+        <div id="mbgd_big_plot_heading_v2">
+          <div>
+            <h2>large landscape comparison</h2>
+            <p>the three trajectories are intentionally separated: blue enters from upper-left, green from below, orange from the right — they only become close in the final basin region</p>
+          </div>
+          <div id="mbgd_plot_status_v2">
+            <div class="mbgd_status_chip_v2">same minimum</div>
+            <div class="mbgd_status_chip_v2">clear visual contrast</div>
+            <div class="mbgd_status_chip_v2">topic-first teaching layout</div>
+          </div>
+        </div>
+
+        <div id="mbgd_plot_wrap_v2">
+          <canvas id="mbgd_plot_canvas_v2" width="1260" height="760"></canvas>
+        </div>
+
+        <div id="mbgd_summary_line_v2"></div>
+      </div>
+
+      <div id="mbgd_rhythm_panel_v2" class="mbgd_panel_v2">
+        <h2 id="mbgd_rhythm_title_v2">compare update rhythm</h2>
+
+        <div id="mbgd_card_full_v2" class="mbgd_rhythm_card_v2">
+          <div class="mbgd_rhythm_header_v2">
+            <h3>FULL BATCH</h3>
+            <p>one update after the whole dataset</p>
+          </div>
+          <div id="mbgd_full_flow_v2" class="mbgd_flow_row_v2"></div>
+        </div>
+
+        <div id="mbgd_card_mini_v2" class="mbgd_rhythm_card_v2">
+          <div class="mbgd_rhythm_header_v2">
+            <h3>MINI-BATCH</h3>
+            <p>an update after each batch chunk</p>
+          </div>
+          <div id="mbgd_mini_flow_v2" class="mbgd_flow_multi_v2"></div>
+        </div>
+
+        <div id="mbgd_card_stochastic_v2" class="mbgd_rhythm_card_v2">
+          <div class="mbgd_rhythm_header_v2">
+            <h3>STOCHASTIC</h3>
+            <p>one sample, one update, very frequent updates</p>
+          </div>
+          <div id="mbgd_st_toggle_flow_v2" style="display:none;"></div>
+          <div id="mbgd_stochastic_flow_v2" class="mbgd_flow_multi_v2"></div>
+        </div>
+      </div>
+
+      <div id="mbgd_bottom_stack_v2">
+        <div id="mbgd_intuition_card_v2" class="mbgd_info_card_v2">
+          <h3>selected method intuition</h3>
+          <div id="mbgd_intuition_text_v2"></div>
+        </div>
+
+        <div id="mbgd_formula_card_v2" class="mbgd_info_card_v2">
+          <div id="mbgd_formula_card_top_v2">
+            <h3>selected method formula</h3>
+            <div id="mbgd_formula_badge_v2"></div>
+          </div>
+          <div id="mbgd_formula_main_v2"></div>
+          <div id="mbgd_formula_sub_v2"></div>
+          <div id="mbgd_formula_note_v2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      if (!window.__mathjax_loaded__) {
+        const mj = document.createElement("script");
+        mj.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        mj.async = true;
+        document.head.appendChild(mj);
+        window.__mathjax_loaded__ = true;
+      }
+
+      const methodButtons = Array.from(document.querySelectorAll(".mbgd_chip_v2"));
+      const batchSlider = document.getElementById("mbgd_batch_slider_v2");
+      const batchValue = document.getElementById("mbgd_batch_value_v2");
+      const playBtn = document.getElementById("mbgd_play_btn_v2");
+      const replayBtn = document.getElementById("mbgd_replay_btn_v2");
+      const timelineSlider = document.getElementById("mbgd_timeline_slider_v2");
+      const timelineValue = document.getElementById("mbgd_timeline_value_v2");
+
+      const fullFlow = document.getElementById("mbgd_full_flow_v2");
+      const miniFlow = document.getElementById("mbgd_mini_flow_v2");
+      const stochasticFlow = document.getElementById("mbgd_stochastic_flow_v2");
+
+      const cardFull = document.getElementById("mbgd_card_full_v2");
+      const cardMini = document.getElementById("mbgd_card_mini_v2");
+      const cardStochastic = document.getElementById("mbgd_card_stochastic_v2");
+
+      const summaryLine = document.getElementById("mbgd_summary_line_v2");
+      const intuitionText = document.getElementById("mbgd_intuition_text_v2");
+      const formulaBadge = document.getElementById("mbgd_formula_badge_v2");
+      const formulaMain = document.getElementById("mbgd_formula_main_v2");
+      const formulaSub = document.getElementById("mbgd_formula_sub_v2");
+      const formulaNote = document.getElementById("mbgd_formula_note_v2");
+
+      const canvas = document.getElementById("mbgd_plot_canvas_v2");
+      const ctx = canvas.getContext("2d");
+
+      const N = 12;
+      let batchSize = parseInt(batchSlider.value, 10);
+      let selectedMethod = "mini";
+      let progress = 0;
+      let playing = false;
+      let raf = null;
+      let lastTs = null;
+      let lastMathKey = "";
+
+      const COLORS = {
+        full: "#5b7bd5",
+        mini: "#49a388",
+        stochastic: "#df875f",
+        contour: "#ccd5e5",
+        contourFill1: "rgba(91,123,213,0.024)",
+        contourFill2: "rgba(91,123,213,0.014)",
+        text: "#334155",
+        sub: "#64748b",
+        minimum: "#c79a33",
+        minimumCore: "#fef3c7",
+        shadowBlue: "rgba(91,123,213,0.18)",
+        shadowGreen: "rgba(73,163,136,0.18)",
+        shadowOrange: "rgba(223,135,95,0.18)"
+      };
+
+      function ceilDiv(a, b) {
+        return Math.ceil(a / b);
+      }
+
+      function clamp(x, a, b) {
+        return Math.max(a, Math.min(b, x));
+      }
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function fitCanvasToDisplay() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        const cssW = rect.width;
+        const cssH = rect.height;
+        canvas.width = Math.round(cssW * dpr);
+        canvas.height = Math.round(cssH * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function worldToCanvas(p) {
+        const xmin = -3.3, xmax = 3.3, ymin = -2.7, ymax = 2.7;
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        const padLeft = 72;
+        const padRight = 136;
+        const padTop = 78;
+        const padBottom = 78;
+        const plotW = w - padLeft - padRight;
+        const plotH = h - padTop - padBottom;
+        const x = padLeft + (p[0] - xmin) / (xmax - xmin) * plotW;
+        const y = padTop + plotH - (p[1] - ymin) / (ymax - ymin) * plotH;
+        return [x, y];
+      }
+
+      function landscapePoint(level, t) {
+        const angle = Math.PI / 6.0;
+        const c = Math.cos(angle), s = Math.sin(angle);
+        const a = Math.sqrt(level / 1.0);
+        const b = Math.sqrt(level / 6.2);
+        const x0 = a * Math.cos(t);
+        const y0 = b * Math.sin(t);
+        return [c * x0 - s * y0, s * x0 + c * y0];
+      }
+
+      function catmullRomPoints(anchors, samplesPerSegment) {
+        const pts = [];
+        const p = anchors.map(a => [a[0], a[1]]);
+        const n = p.length;
+
+        for (let i = 0; i < n - 1; i++) {
+          const p0 = i === 0 ? p[i] : p[i - 1];
+          const p1 = p[i];
+          const p2 = p[i + 1];
+          const p3 = i + 2 < n ? p[i + 2] : p[i + 1];
+
+          for (let j = 0; j < samplesPerSegment; j++) {
+            const t = j / samplesPerSegment;
+            const t2 = t * t;
+            const t3 = t2 * t;
+
+            const x = 0.5 * (
+              (2 * p1[0]) +
+              (-p0[0] + p2[0]) * t +
+              (2*p0[0] - 5*p1[0] + 4*p2[0] - p3[0]) * t2 +
+              (-p0[0] + 3*p1[0] - 3*p2[0] + p3[0]) * t3
+            );
+
+            const y = 0.5 * (
+              (2 * p1[1]) +
+              (-p0[1] + p2[1]) * t +
+              (2*p0[1] - 5*p1[1] + 4*p2[1] - p3[1]) * t2 +
+              (-p0[1] + 3*p1[1] - 3*p2[1] + p3[1]) * t3
+            );
+
+            pts.push([x, y]);
+          }
+        }
+        pts.push(p[n - 1]);
+        return pts;
+      }
+
+      function buildFullAnchors() {
+        return [
+          [-2.95, 2.10],
+          [-2.55, 1.78],
+          [-2.18, 1.48],
+          [-1.82, 1.16],
+          [-1.48, 0.88],
+          [-1.13, 0.61],
+          [-0.82, 0.39],
+          [-0.56, 0.23],
+          [-0.34, 0.12],
+          [-0.18, 0.055],
+          [-0.07, 0.020],
+          [0.00, 0.00]
+        ];
+      }
+
+      function buildMiniAnchors(B) {
+        const steps = Math.max(11, ceilDiv(N, B) * 4 + 3);
+        const amp = 0.34 - (B - 2) * 0.045;
+        const anchors = [];
+
+        for (let i = 0; i < steps; i++) {
+          const t = i / (steps - 1);
+          const centerX = lerp(-0.22, -0.02, t);
+          const x =
+            centerX +
+            amp * Math.sin(t * Math.PI * 3.0) * Math.pow(1 - t, 0.90) +
+            0.05 * Math.sin(t * Math.PI * 8.2) * Math.pow(1 - t, 1.15);
+
+          const y =
+            lerp(-2.60, 0.00, t) +
+            0.12 * Math.sin(t * Math.PI * 1.4) * Math.pow(1 - t, 1.05);
+
+          anchors.push([x, y]);
+        }
+
+        anchors[anchors.length - 3] = [-0.12, -0.08];
+        anchors[anchors.length - 2] = [-0.04, -0.02];
+        anchors[anchors.length - 1] = [0.00, 0.00];
+        return anchors;
+      }
+
+      function buildStochasticAnchors() {
+        return [
+          [ 2.95, 1.10],
+          [ 2.72, 0.56],
+          [ 2.90, 0.95],
+          [ 2.38, 0.30],
+          [ 2.60, 0.86],
+          [ 2.05, 0.08],
+          [ 2.32, 0.52],
+          [ 1.72,-0.02],
+          [ 1.98, 0.40],
+          [ 1.35,-0.12],
+          [ 1.56, 0.24],
+          [ 1.02,-0.06],
+          [ 1.18, 0.18],
+          [ 0.72,-0.02],
+          [ 0.82, 0.11],
+          [ 0.46, 0.00],
+          [ 0.26, 0.05],
+          [ 0.10, 0.02],
+          [ 0.00, 0.00]
+        ];
+      }
+
+      function buildPaths() {
+        const fullAnchors = buildFullAnchors();
+        const miniAnchors = buildMiniAnchors(batchSize);
+        const stochasticAnchors = buildStochasticAnchors();
+
+        return {
+          full: {
+            anchors: fullAnchors,
+            points: catmullRomPoints(fullAnchors, 22),
+            color: COLORS.full,
+            shadow: COLORS.shadowBlue
+          },
+          mini: {
+            anchors: miniAnchors,
+            points: catmullRomPoints(miniAnchors, 18),
+            color: COLORS.mini,
+            shadow: COLORS.shadowGreen
+          },
+          stochastic: {
+            anchors: stochasticAnchors,
+            points: stochasticAnchors,
+            color: COLORS.stochastic,
+            shadow: COLORS.shadowOrange
+          }
+        };
+      }
+
+      function getPartialHead(points, reveal) {
+        const n = points.length - 1;
+        const exact = clamp(reveal, 0, 1) * n;
+        const fullSeg = Math.floor(exact);
+        const frac = exact - fullSeg;
+
+        if (fullSeg >= n) {
+          return points[n];
+        }
+        const p0 = points[fullSeg];
+        const p1 = points[fullSeg + 1];
+        return [lerp(p0[0], p1[0], frac), lerp(p0[1], p1[1], frac)];
+      }
+
+      function drawBackground() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+
+        const bg = ctx.createLinearGradient(0, 0, 0, h);
+        bg.addColorStop(0, "#ffffff");
+        bg.addColorStop(1, "#f8fbff");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        const glow = ctx.createRadialGradient(w * 0.50, h * 0.42, 0, w * 0.50, h * 0.42, h * 0.55);
+        glow.addColorStop(0, "rgba(122,157,235,0.05)");
+        glow.addColorStop(1, "rgba(122,157,235,0.0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      function drawLandscapeContours() {
+        const fillLevels = [3.15, 2.42, 1.78, 1.27, 0.86, 0.53, 0.28];
+        fillLevels.forEach((level, idx) => {
+          ctx.beginPath();
+          for (let i = 0; i <= 260; i++) {
+            const t = i / 260 * Math.PI * 2;
+            const p = landscapePoint(level, t);
+            const [x, y] = worldToCanvas(p);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = idx % 2 === 0 ? COLORS.contourFill1 : COLORS.contourFill2;
+          ctx.fill();
+        });
+
+        ctx.strokeStyle = COLORS.contour;
+        ctx.lineWidth = 1.7;
+        [0.22, 0.38, 0.58, 0.84, 1.18, 1.62, 2.18, 2.88, 3.42].forEach(level => {
+          ctx.beginPath();
+          for (let i = 0; i <= 280; i++) {
+            const t = i / 280 * Math.PI * 2;
+            const p = landscapePoint(level, t);
+            const [x, y] = worldToCanvas(p);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        });
+      }
+
+      function drawMethodLabels() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+
+        ctx.font = '700 16px Inter, sans-serif';
+        ctx.fillStyle = COLORS.full;
+        ctx.fillText("full batch: few, steady updates", 78, 120);
+
+        ctx.fillStyle = COLORS.mini;
+        ctx.fillText("mini-batch: practical middle ground", 84, h - 70);
+
+        ctx.fillStyle = COLORS.stochastic;
+        ctx.fillText("stochastic: noisy but frequent updates", w - 418, 152);
+      }
+
+      function drawDot(x, y, r, color, alpha) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawPath(points, color, shadowColor, alpha, width, reveal) {
+        if (points.length < 2 || reveal <= 0) return;
+
+        const n = points.length - 1;
+        const exact = clamp(reveal, 0, 1) * n;
+        const fullSeg = Math.floor(exact);
+        const frac = exact - fullSeg;
+
+        ctx.save();
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = shadowColor;
+        ctx.shadowBlur = alpha > 0.85 ? 12 : 0;
+
+        ctx.beginPath();
+        ctx.moveTo(points[0][0], points[0][1]);
+
+        for (let i = 1; i <= Math.max(1, fullSeg); i++) {
+          const idx = Math.min(i, n);
+          ctx.lineTo(points[idx][0], points[idx][1]);
+        }
+
+        let hx, hy;
+        if (fullSeg < n) {
+          const p0 = points[fullSeg];
+          const p1 = points[fullSeg + 1];
+          hx = lerp(p0[0], p1[0], frac);
+          hy = lerp(p0[1], p1[1], frac);
+          ctx.lineTo(hx, hy);
+        } else {
+          hx = points[n][0];
+          hy = points[n][1];
+        }
+
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.arc(hx, hy, alpha > 0.90 ? 5.0 : 4.0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawStepMarkers(anchors, color, alpha, reveal) {
+        const count = anchors.length;
+        const visible = Math.max(1, Math.floor(clamp(reveal, 0, 1) * count));
+        for (let i = 0; i < visible; i++) {
+          const [x, y] = worldToCanvas(anchors[i]);
+          drawDot(x, y, 3.0, color, alpha * 0.56);
+        }
+      }
+
+      function drawMinimum(paths) {
+        const [mx, my] = worldToCanvas([0, 0]);
+
+        const halo1 = ctx.createRadialGradient(mx, my, 0, mx, my, 22);
+        halo1.addColorStop(0, "rgba(199,154,51,0.92)");
+        halo1.addColorStop(0.55, "rgba(199,154,51,0.28)");
+        halo1.addColorStop(1, "rgba(199,154,51,0.0)");
+
+        ctx.beginPath();
+        ctx.fillStyle = halo1;
+        ctx.arc(mx, my, 22, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = COLORS.minimum;
+        ctx.arc(mx, my, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = COLORS.minimumCore;
+        ctx.arc(mx, my, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (progress >= 0.995) {
+          drawDot(mx, my, 3.6, COLORS.full, selectedMethod === "full" ? 0.95 : 0.40);
+          drawDot(mx, my, 3.2, COLORS.mini, selectedMethod === "mini" ? 0.95 : 0.40);
+          drawDot(mx, my, 2.8, COLORS.stochastic, selectedMethod === "stochastic" ? 0.95 : 0.42);
+        }
+
+        ctx.fillStyle = "#b45309";
+        ctx.font = '700 18px Inter, sans-serif';
+        ctx.fillText("minimum", mx + 18, my + 28);
+      }
+
+      function drawPlot(paths) {
+        fitCanvasToDisplay();
+        drawBackground();
+        drawLandscapeContours();
+        drawMethodLabels();
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = COLORS.text;
+        ctx.font = '700 31px "STIX Two Text", Georgia, serif';
+        ctx.fillText("optimization landscape and update path", canvas.clientWidth / 2, 42);
+        ctx.textAlign = "left";
+
+        const fullPts = paths.full.points.map(worldToCanvas);
+        const miniPts = paths.mini.points.map(worldToCanvas);
+        const stochasticPts = paths.stochastic.points.map(worldToCanvas);
+
+        drawPath(fullPts, COLORS.full, COLORS.shadowBlue, selectedMethod === "full" ? 1.0 : 0.26, selectedMethod === "full" ? 3.2 : 1.8, progress);
+        drawPath(miniPts, COLORS.mini, COLORS.shadowGreen, selectedMethod === "mini" ? 1.0 : 0.28, selectedMethod === "mini" ? 3.2 : 1.8, progress);
+        drawPath(stochasticPts, COLORS.stochastic, COLORS.shadowOrange, selectedMethod === "stochastic" ? 1.0 : 0.30, selectedMethod === "stochastic" ? 3.0 : 1.75, progress);
+
+        drawStepMarkers(paths.full.anchors, COLORS.full, selectedMethod === "full" ? 1.0 : 0.22, progress);
+        drawStepMarkers(paths.mini.anchors, COLORS.mini, selectedMethod === "mini" ? 1.0 : 0.22, progress);
+        drawStepMarkers(paths.stochastic.anchors, COLORS.stochastic, selectedMethod === "stochastic" ? 1.0 : 0.22, progress);
+
+        drawMinimum(paths);
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = COLORS.sub;
+        ctx.font = '16px Inter, sans-serif';
+        ctx.fillText("all three methods target the same basin, but the visible teaching contrast comes from their different update rhythm", canvas.clientWidth / 2, canvas.clientHeight - 30);
+      }
+
+      function sampleBox(label, active=false) {
+        return `<div class="mbgd_sample_box_v2 ${active ? 'active' : ''}">${label}</div>`;
+      }
+
+      function updatePill(active=false) {
+        return `<div class="mbgd_update_pill_v2 ${active ? 'active' : ''}">update</div>`;
+      }
+
+      function renderFlows() {
+        const fullBoxes = [];
+        for (let i = 0; i < N; i++) {
+          const t = (i + 1) / (N + 1);
+          fullBoxes.push(sampleBox("x" + (i + 1), progress >= t));
+        }
+        fullFlow.innerHTML = `${fullBoxes.join("")}<div class="mbgd_arrow_token_v2">→</div>${updatePill(progress > 0.93)}`;
+
+        const groupCount = ceilDiv(N, batchSize);
+        const lines = [];
+        for (let g = 0; g < groupCount; g++) {
+          const start = g * batchSize;
+          const size = Math.min(batchSize, N - start);
+          const localStart = g / groupCount;
+          const localEnd = (g + 1) / groupCount;
+          const localProgress = Math.min(Math.max((progress - localStart) / (localEnd - localStart), 0), 1);
+
+          const boxes = [];
+          for (let j = 0; j < size; j++) {
+            const boxThreshold = (j + 1) / (size + 1);
+            boxes.push(sampleBox("x" + (start + j + 1), localProgress >= boxThreshold));
+          }
+
+          lines.push(`
+            <div class="mbgd_flow_line_v2">
+              ${boxes.join("")}
+              <div class="mbgd_arrow_token_v2">→</div>
+              ${updatePill(localProgress > 0.88)}
+            </div>
+          `);
+        }
+        miniFlow.innerHTML = lines.join("");
+
+        const stochasticLines = [];
+        for (let i = 0; i < Math.min(8, N); i++) {
+          const rowStart = i / N;
+          const rowEnd = (i + 1) / N;
+          const rowProgress = Math.min(Math.max((progress - rowStart) / (rowEnd - rowStart), 0), 1);
+          stochasticLines.push(`
+            <div class="mbgd_flow_line_v2">
+              ${sampleBox("x" + (i + 1), rowProgress > 0.42)}
+              <div class="mbgd_arrow_token_v2">→</div>
+              ${updatePill(rowProgress > 0.82)}
+            </div>
+          `);
+        }
+        stochasticFlow.innerHTML = stochasticLines.join("") + `<div style="font-size:14px;color:#64748b;margin-top:4px;">... one update per sample until the epoch finishes</div>`;
+
+        cardFull.classList.toggle("active", selectedMethod === "full");
+        cardMini.classList.toggle("active", selectedMethod === "mini");
+        cardStochastic.classList.toggle("active", selectedMethod === "stochastic");
+      }
+
+      function setActiveMethodUI() {
+        methodButtons.forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.method === selectedMethod);
+        });
+      }
+
+      function updatesPerEpoch(method) {
+        if (method === "full") return 1;
+        if (method === "mini") return ceilDiv(N, batchSize);
+        return N;
+      }
+
+      function updateMath(main, sub, note) {
+        const key = main + "||" + sub + "||" + note + "||" + selectedMethod + "||" + batchSize;
+        if (key !== lastMathKey) {
+          formulaMain.innerHTML = main;
+          formulaSub.innerHTML = sub;
+          formulaNote.textContent = note;
+          lastMathKey = key;
+          if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise([formulaMain, formulaSub]).catch(() => {});
+          }
+        }
+      }
+
+      function renderBottomText() {
+        const upMini = updatesPerEpoch("mini");
+
+        if (selectedMethod === "full") {
+          summaryLine.textContent = "Full batch should read as the smoothest curve: it waits for the whole dataset, so it changes direction the least often.";
+          intuitionText.textContent =
+            "Full batch gradient descent computes one average gradient over the entire dataset before each update. Because every step uses all samples, the direction is the steadiest, so the path is smoothest and easiest to predict.";
+
+          formulaBadge.textContent = "focus: few, steady updates";
+          const main = String.raw`\[
+          g=\frac{1}{N}\sum_{i=1}^{N}\nabla_\theta \ell_i(\theta)
+          \]`;
+          const sub = String.raw`\[
+          \text{updates per epoch}=1
+          \]`;
+          const note = "One epoch gives only one parameter update. Noise is lowest, but responsiveness is also lowest.";
+          updateMath(main, sub, note);
+        } else if (selectedMethod === "mini") {
+          summaryLine.textContent = `Mini-batch training sits in the middle: with batch size ${batchSize}, it makes ${upMini} update(s) per epoch, so the path is gently wavy rather than perfectly smooth or highly noisy.`;
+          intuitionText.textContent =
+            `Mini-batch training updates after each chunk of size ${batchSize}. It reacts more often than full batch, but each step still averages several samples together. That is why the trajectory looks moderately wavy instead of extremely jagged.`;
+
+          formulaBadge.textContent = "focus: practical compromise";
+          const main = String.raw`\[
+          g_{\mathcal{B}}=\frac{1}{B}\sum_{i\in\mathcal{B}}\nabla_\theta \ell_i(\theta)
+          \]`;
+          const sub = String.raw`\[
+          \text{updates per epoch}=\left\lceil\frac{N}{B}\right\rceil
+          =\left\lceil\frac{12}{${batchSize}}\right\rceil
+          =${upMini}
+          \]`;
+          const note = `Here B=${batchSize}. Smaller B makes the green path wigglier; larger B makes it calmer.`;
+          updateMath(main, sub, note);
+        } else {
+          summaryLine.textContent = "Stochastic gradient descent should read as the noisiest path: it updates after every sample, so the trajectory jitters the most on the way into the basin.";
+          intuitionText.textContent =
+            "Stochastic gradient descent uses one sample at a time. That makes every update immediate, but each step is based on very limited information, so the direction changes a lot. The result is a visibly jagged path even though it still heads toward the same minimum.";
+
+          formulaBadge.textContent = "focus: noisy but frequent";
+          const main = String.raw`\[
+          g_i=\nabla_\theta \ell_i(\theta)
+          \]`;
+          const sub = String.raw`\[
+          \text{updates per epoch}=N=12
+          \]`;
+          const note = "SGD responds most often, but each step has the most variance.";
+          updateMath(main, sub, note);
+        }
+      }
+
+      function renderAll() {
+        batchValue.textContent = String(batchSize);
+        timelineValue.textContent = Math.round(progress * 100) + "%";
+        playBtn.textContent = playing ? "⏸ Pause" : "▶ Play";
+
+        setActiveMethodUI();
+        drawPlot(buildPaths());
+        renderFlows();
+        renderBottomText();
+      }
+
+      function tick(ts) {
+        if (!playing) return;
+        if (lastTs === null) lastTs = ts;
+        const dt = ts - lastTs;
+        lastTs = ts;
+
+        progress += dt / 7200;
+        progress = clamp(progress, 0, 1);
+
+        if (progress >= 1) {
+          progress = 1;
+          playing = false;
+          lastTs = null;
+        }
+
+        timelineSlider.value = String(progress);
+        renderAll();
+
+        if (playing) raf = requestAnimationFrame(tick);
+      }
+
+      methodButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedMethod = btn.dataset.method;
+          renderAll();
+        });
+      });
+
+      [cardFull, cardMini, cardStochastic].forEach((card, idx) => {
+        const methods = ["full", "mini", "stochastic"];
+        card.addEventListener("click", () => {
+          selectedMethod = methods[idx];
+          renderAll();
+        });
+      });
+
+      batchSlider.addEventListener("input", () => {
+        batchSize = parseInt(batchSlider.value, 10);
+        renderAll();
+      });
+
+      playBtn.addEventListener("click", () => {
+        playing = !playing;
+        if (playing) {
+          lastTs = null;
+          raf = requestAnimationFrame(tick);
+        } else if (raf) {
+          cancelAnimationFrame(raf);
+        }
+        renderAll();
+      });
+
+      replayBtn.addEventListener("click", () => {
+        if (raf) cancelAnimationFrame(raf);
+        progress = 0;
+        timelineSlider.value = "0";
+        playing = true;
+        lastTs = null;
+        renderAll();
+        raf = requestAnimationFrame(tick);
+      });
+
+      timelineSlider.addEventListener("input", () => {
+        progress = parseFloat(timelineSlider.value);
+        playing = false;
+        if (raf) cancelAnimationFrame(raf);
+        lastTs = null;
+        renderAll();
+      });
+
+      window.addEventListener("resize", renderAll);
+      renderAll();
+    })();
+  </script>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>rnn_v4_label_fixed_requested_fix.html</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RNN Architectures — Deep Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{max-width:100%;overflow-x:hidden;}
+:root{
+  --bg:#fafaf8;--surface:#fff;--ink:#111110;--ink2:#6b6b63;--ink3:#a8a89e;
+  --line:#e8e8e0;--blue:#2563eb;--blue-soft:#eff4ff;--blue-mid:#bfcfff;
+  --green:#16a34a;--purple:#7c3aed;--red:#dc2626;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;padding:24px 20px;overflow-x:hidden;}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 0 20px;max-width:1200px;width:100%;min-width:0;margin:0 auto;}
+.nav-back{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--blue);font-weight:500;text-decoration:none;}
+.nav-mid{font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:.04em;text-transform:uppercase;}
+.nav-right{font-size:12px;color:var(--ink3);}
+
+/* HERO */
+.hero{max-width:1200px;width:100%;min-width:0;margin:0 auto 28px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:start;}
+.hero>div{min-width:0;}
+.eyebrow-pill{display:inline-block;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);background:var(--blue-soft);border:1px solid var(--blue-mid);padding:3px 10px;border-radius:999px;margin-bottom:12px;}
+.hero h1{font-family:'Newsreader',serif;font-size:clamp(30px,4vw,46px);font-weight:600;line-height:1.06;letter-spacing:-.02em;margin-bottom:12px;}
+.hero h1 em{font-style:italic;color:var(--blue);}
+.hero-sub{font-size:15px;color:var(--ink2);line-height:1.7;max-width:580px;margin-bottom:20px;}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.hero-tag{font-size:12px;font-weight:500;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 12px;color:var(--ink2);min-width:0;}
+.hero-tag .math{color:var(--blue);font-size:12px;}
+.hero-sub mjx-container,.hero-tag mjx-container,.key-panel mjx-container{display:inline-block!important;max-width:100%;vertical-align:-0.15em;}
+.hero-sub mjx-container svg,.hero-tag mjx-container svg,.key-panel mjx-container svg{max-width:100%;}
+
+/* KEY PANEL */
+.key-panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;min-width:260px;max-width:290px;}
+.key-panel-title{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px;}
+.key-item{display:flex;gap:11px;margin-bottom:13px;align-items:flex-start;min-width:0;}
+.key-item>div:last-child{min-width:0;}
+.key-item:last-child{margin-bottom:0}
+.key-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.key-item strong{display:block;font-size:13px;font-weight:600;margin-bottom:2px;}
+.key-item span{font-size:12px;color:var(--ink2);line-height:1.5;overflow-wrap:anywhere;}
+
+/* PANEL */
+.main{max-width:1200px;width:100%;min-width:0;margin:0 auto;}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;min-width:0;}
+
+/* TABS */
+.tabs-row{display:flex;border-bottom:1px solid var(--line);}
+.arch-tab{flex:1;min-width:0;padding:14px 10px;cursor:pointer;background:transparent;border:none;border-right:1px solid var(--line);transition:background .15s,color .15s;display:flex;flex-direction:column;gap:2px;text-align:left;}
+.arch-tab:last-child{border-right:none;}
+.arch-tab:hover{background:var(--bg);}
+.arch-tab.active{background:var(--blue);color:#fff;}
+.arch-tab .tl{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;opacity:.7;}
+.arch-tab .tn{font-size:13px;font-weight:600;}
+.arch-tab .ti{font-family:'DM Mono',monospace;font-size:11px;opacity:.6;}
+
+/* CANVAS SECTION */
+.canvas-section{background:#07091a;position:relative;}
+canvas{display:block;width:100%;}
+.formula-overlay{position:absolute;right:16px;top:14px;min-width:150px;max-width:min(420px,50%);padding:7px 14px;border-radius:8px;border:1px solid rgba(59,130,246,.55);background:rgba(15,36,94,.86);color:#bfdbfe;font-size:12px;font-weight:600;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25);pointer-events:none;}
+.formula-overlay mjx-container{margin:0!important;}
+
+/* VISUAL LEGEND */
+.visual-legend{background:#050711;border-top:1px solid #0f1628;padding:10px 18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.legend-item{display:flex;align-items:center;gap:8px;min-width:0;font-size:11px;font-weight:600;color:#b9c7df;}
+.legend-swatch{width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 10px currentColor;}
+.legend-swatch.input{color:#facc15;background:#facc15;}
+.legend-swatch.cell{color:#ef4444;background:#ef4444;}
+.legend-swatch.state{color:#60a5fa;background:#60a5fa;}
+.legend-swatch.output{color:#22c55e;background:#22c55e;}
+
+/* STEP PILL BAR */
+.pill-bar{background:#050711;border-top:1px solid #0f1628;padding:10px 18px;display:flex;gap:6px;flex-wrap:wrap;}
+.pill{padding:5px 13px;border-radius:999px;border:1px solid #1c2b47;background:transparent;color:#7f93b8;cursor:pointer;font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .14s;white-space:nowrap;}
+.pill:hover{border-color:#2563eb;color:#60a5fa;}
+.pill.on{background:#1d3a8a;color:#93c5fd;border-color:#2563eb;font-weight:600;}
+
+/* HIDDEN STATE BAR */
+.hs-bar{background:#05070f;border-top:1px solid #0f1628;padding:11px 18px 13px;}
+.hs-title{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7f93b8;margin-bottom:8px;}
+.hs-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.hsc{padding:4px 9px;border-radius:5px;border:1px solid #1c2b47;background:#0a0e1a;font-family:'DM Mono',monospace;font-size:10px;color:#7f93b8;transition:all .3s;}
+.hsc.mem{background:#0c1f3f;border-color:#1d3a8a;color:#60a5fa;}
+.hsc.now{background:#1d3a8a;border-color:#3b82f6;color:#bfdbfe;box-shadow:0 0 8px rgba(37,99,235,.4);}
+.hsc.enc{background:#150d38;border-color:#4c1d95;color:#8b5cf6;}
+.hsc.ctx{background:#2e0f5e;border-color:#7c3aed;color:#c4b5fd;box-shadow:0 0 8px rgba(124,58,237,.4);}
+.hsc.dec{background:#052e16;border-color:#14532d;color:#22c55e;}
+.hs-sep{color:#7f93b8;font-size:13px;}
+.hs-note{font-size:11px;color:#8ea3c7;margin-top:7px;font-style:italic;}
+
+/* CONTROLS */
+.controls{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--line);flex-wrap:wrap;gap:8px;}
+.ctrl-l{display:flex;align-items:center;gap:6px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;border:1px solid var(--line);cursor:pointer;background:var(--surface);color:var(--ink);transition:all .13s;font-family:'DM Sans',sans-serif;}
+.btn:hover:not(:disabled){background:var(--bg);}
+.btn.pri{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn.pri:hover:not(:disabled){background:#1d4ed8;}
+.btn:disabled{opacity:.32;cursor:not-allowed;pointer-events:none;}
+.ctrl-m{font-size:13px;font-weight:600;color:var(--ink);text-align:center;flex:1;padding:0 10px;}
+.dots-row{display:flex;gap:5px;align-items:center;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:all .2s;}
+.dot.done{background:var(--blue-mid);}
+.dot.now{background:var(--blue);transform:scale(1.6);}
+
+/* DESC ROW */
+.desc-row{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);}
+.desc-block{padding:16px 20px;border-right:1px solid var(--line);}
+.desc-block:last-child{border-right:none;}
+.db-label{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px;}
+.db-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px;line-height:1.4;}
+.db-body{font-size:12px;color:var(--ink2);line-height:1.65;}
+.db-body strong{color:var(--ink);}
+.insight{display:inline-block;margin-top:8px;font-size:12px;font-weight:500;color:var(--blue);background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:6px;padding:4px 10px;}
+
+/* BOTTOM 3-COL */
+.bot{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--line);}
+.bc{padding:20px 22px;border-right:1px solid var(--line);}
+.bc:last-child{border-right:none;}
+.bc-lbl{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;}
+.bc-title{font-size:14px;font-weight:600;margin-bottom:6px;}
+.bc-body{font-size:12px;color:var(--ink2);line-height:1.65;}
+.dark-card{background:#18181b;color:#e4e4e7;}
+.dark-card .bc-lbl{color:#52525b;}
+.fl{font-size:13px;line-height:2.4;display:block;}
+.ca{color:#93c5fd;}.cy{color:#86efac;}.cx{color:#fcd34d;}.cf{color:#d8b4fe;}.cw{color:#f9a8d4;}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;background:#27272a;color:#a1a1aa;border-radius:5px;padding:3px 9px;margin-top:9px;}
+.fn{font-size:11px;color:#a1a1aa;margin-top:9px;padding-top:9px;border-top:1px solid #27272a;font-family:'DM Sans',sans-serif;line-height:1.55;}
+.math-lines{display:grid;gap:8px;color:#dbeafe;}
+.math-line{font-size:13px;line-height:1.8;}
+.formula-card{background:#fbfbf8;}
+.formula-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.formula-body{display:grid;gap:9px;font-size:13px;color:var(--ink);}
+.formula-body mjx-container,.math-lines mjx-container{margin:0!important;}
+.formula-note{font-size:11px;color:var(--ink2);line-height:1.55;margin-top:10px;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.desc-row{animation:fadeUp .18s ease;}
+
+@media(max-width:800px){
+  body{padding:0;width:auto;max-width:100%;}
+  .nav,.hero,.main,.panel{width:100%;max-width:100%;min-width:0;overflow:hidden;}
+  .nav,.main{padding-left:0;padding-right:0;}
+  .nav{width:calc(100% - 28px);margin-left:14px;margin-right:14px;padding-top:20px;}
+  .hero{grid-template-columns:minmax(0,1fr);gap:18px;padding-left:14px;padding-right:14px;}
+  .hero>div{width:100%;margin-left:0;margin-right:0;}
+  .key-panel{display:block;width:100%;min-width:0;max-width:100%;padding:16px;overflow:hidden;}
+  .nav{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;}
+  .nav-mid{text-align:right;}
+  .nav-right{display:none;}
+  .hero-sub{width:100%;max-width:100%;overflow-wrap:anywhere;}
+  .hero-sub{font-size:14px;line-height:1.65;}
+  .hero-tags{display:grid;grid-template-columns:1fr;}
+  .hero-tag{overflow-wrap:anywhere;}
+  .key-item{margin-bottom:10px;}
+  .tabs-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .arch-tab{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 10px;}
+  .arch-tab:nth-child(2n){border-right:none;}
+  .arch-tab:nth-child(5){grid-column:1/-1;border-bottom:none;}
+  .arch-tab .tn{font-size:12px;line-height:1.15;}
+  .visual-legend{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px 16px;}
+  .legend-item{font-size:10px;}
+  .formula-overlay{left:12px;right:12px;top:10px;max-width:none;font-size:11px;}
+  .bot{grid-template-columns:1fr;}.bc{border-right:none;border-bottom:1px solid var(--line);}
+  .desc-row{grid-template-columns:1fr;}.desc-block{border-right:none;border-bottom:1px solid var(--line);}
+  .arch-tab .tl{display:none;}
+  .controls{align-items:flex-start;}
+  .ctrl-l{width:100%;overflow-x:auto;padding-bottom:2px;}
+  .ctrl-m{order:-1;flex:1 0 100%;text-align:left;padding:0;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-back" href="#">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Deep Learning
+  </a>
+  <div class="nav-mid">Module 4</div>
+  <div class="nav-right" id="nav-right">RNN Architectures</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="eyebrow-pill">Sequence Models</div>
+    <h1>Recurrent Neural<br>Networks — <em>RNNs</em></h1>
+    <p class="hero-sub">Unlike standard networks, RNNs pass a <strong>hidden state</strong> \(a^{\langle t\rangle}\) between every step — giving the network a form of memory that builds across the whole sequence.</p>
+    <div class="hero-tags">
+      <div class="hero-tag">Hidden state <span class="math">\(a^{\langle t\rangle}\)</span></div>
+      <div class="hero-tag">Shared weights <span class="math">\(W_{aa}, W_{ax}, W_{ya}\)</span></div>
+      <div class="hero-tag">Activation <span class="math">\(\tanh\)</span></div>
+      <div class="hero-tag">5 I/O structures</div>
+    </div>
+  </div>
+  <div class="key-panel">
+    <div class="key-panel-title">Core mechanisms</div>
+    <div class="key-item">
+      <div class="key-dot" style="background:var(--blue)"></div>
+      <div><strong>Hidden state carries memory</strong><span>\(a^{\langle t\rangle}\) summarises the past and guides future predictions.</span></div>
+    </div>
+    <div class="key-item">
+      <div class="key-dot" style="background:var(--green)"></div>
+      <div><strong>Parameter sharing</strong><span>Same \(W_{aa}, W_{ax}, W_{ya}\) at every step — works on any length sequence.</span></div>
+    </div>
+    <div class="key-item">
+      <div class="key-dot" style="background:var(--purple)"></div>
+      <div><strong>Flexible I/O</strong><span>Encoder-decoder lets input and output lengths differ freely.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN PANEL -->
+<div class="main"><div class="panel">
+
+  <!-- TABS -->
+  <div class="tabs-row" id="tabs-row">
+    <button class="arch-tab active" data-arch="one2one">
+      <span class="tl">Baseline</span><span class="tn">One-to-One</span><span class="ti">1 → 1</span>
+    </button>
+    <button class="arch-tab" data-arch="one2many">
+      <span class="tl">Generate</span><span class="tn">One-to-Many</span><span class="ti">1 → Ty</span>
+    </button>
+    <button class="arch-tab" data-arch="many2one">
+      <span class="tl">Classify</span><span class="tn">Many-to-One</span><span class="ti">Tx → 1</span>
+    </button>
+    <button class="arch-tab" data-arch="many2many_eq">
+      <span class="tl">Label</span><span class="tn">Many-to-Many</span><span class="ti">Tx = Ty</span>
+    </button>
+    <button class="arch-tab" data-arch="many2many_neq">
+      <span class="tl">Translate</span><span class="tn">Encoder–Decoder</span><span class="ti">Tx ≠ Ty</span>
+    </button>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-section">
+    <canvas id="cv" height="300"></canvas>
+    <div class="formula-overlay" id="formula-overlay"></div>
+  </div>
+
+  <!-- VISUAL LEGEND -->
+  <div class="visual-legend" aria-label="Animation color legend">
+    <div class="legend-item"><span class="legend-swatch input"></span><span>Input token</span></div>
+    <div class="legend-item"><span class="legend-swatch cell"></span><span>Active computation</span></div>
+    <div class="legend-item"><span class="legend-swatch state"></span><span>Hidden state flow</span></div>
+    <div class="legend-item"><span class="legend-swatch output"></span><span>Output prediction</span></div>
+  </div>
+
+  <!-- STEP PILLS -->
+  <div class="pill-bar" id="pill-bar"></div>
+
+  <!-- HIDDEN STATE -->
+  <div class="hs-bar">
+    <div class="hs-title">Hidden state memory — a⟨t⟩</div>
+    <div class="hs-row" id="hs-row"></div>
+    <div class="hs-note" id="hs-note"></div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="ctrl-l">
+      <button class="btn" id="btn-prev">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Prev
+      </button>
+      <button class="btn pri" id="btn-play">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path id="pi" d="M5 3l14 9-14 9V3z"/></svg>
+        <span id="pl">Play</span>
+      </button>
+      <button class="btn" id="btn-next">
+        Next<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <button class="btn" id="btn-reset" style="margin-left:2px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-3.26"/></svg>Reset
+      </button>
+    </div>
+    <div class="ctrl-m" id="ctrl-m"></div>
+    <div class="dots-row" id="dots-row"></div>
+  </div>
+
+  <!-- DESC ROW -->
+  <div class="desc-row" id="desc-row">
+    <div class="desc-block">
+      <div class="db-label">Current step</div>
+      <div class="db-title" id="step-title"></div>
+      <div class="db-body" id="step-body"></div>
+    </div>
+    <div class="desc-block">
+      <div class="db-label">Architecture</div>
+      <div class="db-body" id="arch-body"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bot">
+    <div class="bc dark-card">
+      <div class="bc-lbl">Core equations</div>
+      <div class="math-lines" id="core-equations">
+        <div class="math-line">\(a^{\langle t\rangle}=\tanh(W_{aa}a^{\langle t-1\rangle}+W_{ax}x^{\langle t\rangle}+b_a)\)</div>
+        <div class="math-line">\(\hat{y}^{\langle t\rangle}=\operatorname{softmax}(W_{ya}a^{\langle t\rangle}+b_y)\)</div>
+      </div>
+      <div class="badge">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12m0-10v10m-10 0h10M12 12h10"/></svg>
+        \(W_{aa}, W_{ax}, W_{ya}\) shared across all \(t\)
+      </div>
+      <div class="fn" id="fn-note"></div>
+    </div>
+    <div class="bc formula-card">
+      <div class="bc-lbl">Formula block</div>
+      <div class="formula-title" id="formula-title"></div>
+      <div class="formula-body" id="formula-body"></div>
+      <div class="formula-note" id="formula-note"></div>
+    </div>
+    <div class="bc">
+      <div class="bc-lbl">Application</div>
+      <div class="bc-title" id="app-title"></div>
+      <div class="bc-body" id="app-body"></div>
+    </div>
+  </div>
+
+</div></div>
+
+<script>
+/* ─────────────────────────────────────────────
+   CONFIG DATA
+───────────────────────────────────────────── */
+const DATA = {
+  one2one:{
+    name:'One-to-One', fn:'Single forward pass; no recurrent state \\(a^{\\langle t\\rangle}\\) is carried forward.',
+    app:['Image Classification','One image → one label. No memory, no sequence. This is the baseline that all RNN variants extend.'],
+    formulaTitle:'Feedforward baseline',
+    formulaNote:'No recurrent state is carried to a future step.',
+    formulas:[
+      '\\[z = W x + b\\]',
+      '\\[\\hat{y}=g(z)\\]'
+    ],
+    stepMath:[
+      '\\(\\text{No }a^{\\langle t-1\\rangle}\\text{ is used.}\\)',
+      '\\(x\\rightarrow z\\)',
+      '\\(z=W x+b\\)',
+      '\\(\\hat{y}=g(z)\\)'
+    ],
+    arch:`<strong>Standard feedforward baseline.</strong> A single input produces a single output with no recurrent hidden state carried forward. No sequence memory — just W·x + b then an activation.<div class="insight">↗ Every RNN variant below adds time and a carried hidden state on top of this baseline.</div>`,
+    hs:[], hsNote:'No hidden state — purely feedforward.',
+    steps:[
+      {pill:'① Ready',   title:'Feedforward baseline ready', body:'This baseline has one input and one output. There is no time loop and no carried memory state.'},
+      {pill:'② Input',   title:'x enters the network',        body:'A single feature vector is fed into the model. This is the only input for this prediction.'},
+      {pill:'③ Compute', title:'z = W·x + b computed',        body:'Weights scale the input, bias shifts the result, and an activation transforms the score.'},
+      {pill:'④ Output',  title:'ŷ produced',                  body:'One prediction is emitted. Nothing is passed to a future step because there is no recurrence.'},
+    ],
+  },
+  one2many:{
+    name:'One-to-Many', fn:'\\(\\hat{y}^{\\langle t\\rangle}\\) is fed back as the next input.',
+    app:['Music & Text Generation','A single seed generates an entire sequence. Each output feeds the next step, creating an autoregressive chain.'],
+    formulaTitle:'Generate a sequence from one seed',
+    formulaNote:'After the seed, the previous output becomes the next input.',
+    formulas:[
+      '\\[a^{\\langle t\\rangle}=\\tanh(W_{aa}a^{\\langle t-1\\rangle}+W_{ax}x^{\\langle t\\rangle}+b_a)\\]',
+      '\\[\\hat{y}^{\\langle t\\rangle}=\\operatorname{softmax}(W_{ya}a^{\\langle t\\rangle}+b_y)\\]',
+      '\\[x^{\\langle t+1\\rangle}=\\hat{y}^{\\langle t\\rangle}\\]'
+    ],
+    stepMath:[
+      '\\(a^{\\langle 0\\rangle}\\rightarrow\\text{first RNN cell}\\)',
+      '\\(\\hat{y}^{\\langle 1\\rangle}=\\operatorname{softmax}(W_{ya}a^{\\langle 1\\rangle}+b_y)\\)',
+      '\\(x^{\\langle 2\\rangle}=\\hat{y}^{\\langle 1\\rangle}\\)',
+      '\\(a^{\\langle 2\\rangle}=\\tanh(W_{aa}a^{\\langle 1\\rangle}+W_{ax}x^{\\langle 2\\rangle}+b_a)\\)',
+      '\\(\\hat{y}^{\\langle T_y\\rangle}\\text{ generated until stop}\\)'
+    ],
+    arch:`<strong>One-to-Many</strong> — a single seed input launches an autoregressive sequence. After step 1, each output <em>ŷ⟨t⟩</em> is fed back as the input for the next step. The hidden state carries the generation theme forward.`,
+    hs:['a⟨0⟩','a⟨1⟩','a⟨2⟩','…','a⟨Ty⟩'], hsNote:'Hidden state threads the generation theme through every output step.',
+    steps:[
+      {pill:'① Seed',    title:'x seeds the first cell',         body:'One seed vector — a genre tag, a starting pitch, or a topic word — initialises the generation chain.'},
+      {pill:'② ŷ⟨1⟩',   title:'First output ŷ⟨1⟩ generated',   body:'The first token is produced. Hidden state a⟨1⟩ now carries the seed\'s "theme" forward.'},
+      {pill:'③ Loop',    title:'ŷ⟨1⟩ fed back as next input',   body:'The output becomes the input at the next step — the autoregressive feedback loop that drives generation.'},
+      {pill:'④ ŷ⟨2⟩',   title:'ŷ⟨2⟩ generated, a⟨2⟩ updates', body:'The hidden state blends seed + step-1 context. Each new token is conditioned on everything before it.'},
+      {pill:'⑤ …ŷ⟨Ty⟩','title':'Sequence continues to ŷ⟨Ty⟩',  body:'The loop repeats until a stop token is produced or a fixed output length is reached.'},
+    ],
+  },
+  many2one:{
+    name:'Many-to-One', fn:'Only the final state \\(a^{\\langle T_x\\rangle}\\) produces \\(\\hat{y}\\).',
+    app:['Sentiment Analysis','Read a full sentence, classify it positive or negative. The final hidden state a⟨Tx⟩ is the compressed summary of the whole input.'],
+    formulaTitle:'Read a sequence, predict once',
+    formulaNote:'The model updates memory at every input step, then classifies from the final summary state.',
+    formulas:[
+      '\\[a^{\\langle t\\rangle}=\\tanh(W_{aa}a^{\\langle t-1\\rangle}+W_{ax}x^{\\langle t\\rangle}+b_a),\\quad t=1,\\ldots,T_x\\]',
+      '\\[\\hat{y}=\\operatorname{softmax}(W_{ya}a^{\\langle T_x\\rangle}+b_y)\\]'
+    ],
+    stepMath:[
+      '\\(a^{\\langle 1\\rangle}=\\tanh(W_{aa}a^{\\langle 0\\rangle}+W_{ax}x^{\\langle 1\\rangle}+b_a)\\)',
+      '\\(a^{\\langle 2\\rangle}=\\tanh(W_{aa}a^{\\langle 1\\rangle}+W_{ax}x^{\\langle 2\\rangle}+b_a)\\)',
+      '\\(a^{\\langle t\\rangle}\\text{ keeps accumulating context}\\)',
+      '\\(a^{\\langle T_x\\rangle}\\text{ is the sequence summary}\\)',
+      '\\(\\hat{y}=\\operatorname{softmax}(W_{ya}a^{\\langle T_x\\rangle}+b_y)\\)'
+    ],
+    arch:`<strong>Many-to-One</strong> — reads the entire sequence, accumulating meaning step by step. Only the <em>final</em> hidden state a⟨Tx⟩ is used to produce output — think of it as compressing the whole sequence into one vector.`,
+    hs:['a⟨0⟩','a⟨1⟩','a⟨2⟩','…','a⟨Tx⟩'], hsNote:'Each step refines the summary. Only a⟨Tx⟩ produces the final output.',
+    steps:[
+      {pill:'① x⟨1⟩',   title:'x⟨1⟩ enters — a⟨1⟩ stored',    body:'First token updates the hidden state. No output produced yet — only context building.'},
+      {pill:'② x⟨2⟩',   title:'x⟨2⟩ enters — a⟨2⟩ blends',    body:'Hidden state merges the new token with everything seen so far. The summary grows richer.'},
+      {pill:'③ …Tx',    title:'Processing continues through Tx', body:'Each step deepens the representation. The hidden state is a rolling compressed summary.'},
+      {pill:'④ a⟨Tx⟩',  title:'a⟨Tx⟩ summarises everything',    body:'After the last token, a⟨Tx⟩ holds a compressed representation of the entire sequence.'},
+      {pill:'⑤ Predict', title:'Single ŷ from a⟨Tx⟩',            body:'One classification decision — positive/negative, spam/ham — derived from the final summary vector.'},
+    ],
+  },
+  many2many_eq:{
+    name:'Many-to-Many', fn:'Each step produces \\(\\hat{y}^{\\langle t\\rangle}\\), with \\(T_x=T_y\\).',
+    app:['Named Entity Recognition','Each word gets its own label: "Harry Potter went to France" → [Person, Person, O, O, Location]. Aligned token-by-token.'],
+    formulaTitle:'Aligned input and output sequence',
+    formulaNote:'Every input position produces its own output while the hidden state moves left to right.',
+    formulas:[
+      '\\[a^{\\langle t\\rangle}=\\tanh(W_{aa}a^{\\langle t-1\\rangle}+W_{ax}x^{\\langle t\\rangle}+b_a)\\]',
+      '\\[\\hat{y}^{\\langle t\\rangle}=\\operatorname{softmax}(W_{ya}a^{\\langle t\\rangle}+b_y),\\quad T_x=T_y\\]'
+    ],
+    stepMath:[
+      '\\(x^{\\langle 1\\rangle}\\rightarrow a^{\\langle 1\\rangle}\\rightarrow\\hat{y}^{\\langle 1\\rangle}\\)',
+      '\\(x^{\\langle 2\\rangle}\\rightarrow a^{\\langle 2\\rangle}\\rightarrow\\hat{y}^{\\langle 2\\rangle}\\)',
+      '\\(x^{\\langle t\\rangle}\\rightarrow a^{\\langle t\\rangle}\\rightarrow\\hat{y}^{\\langle t\\rangle}\\)',
+      '\\(x^{\\langle T_x\\rangle}\\rightarrow a^{\\langle T_x\\rangle}\\rightarrow\\hat{y}^{\\langle T_y\\rangle}\\)'
+    ],
+    arch:`<strong>Many-to-Many (equal length)</strong> — every input position has a corresponding output. Hidden state flows left → right while each cell also emits a label. Input and output are aligned position-by-position.`,
+    hs:['a⟨0⟩','a⟨1⟩','a⟨2⟩','…','a⟨Tx⟩'], hsNote:'Hidden state carries left-context so each label benefits from prior tokens.',
+    steps:[
+      {pill:'① t=1', title:'x⟨1⟩ → a⟨1⟩ → ŷ⟨1⟩', body:'First token processed and immediately labelled. Hidden state starts accumulating context.'},
+      {pill:'② t=2', title:'x⟨2⟩ → a⟨2⟩ → ŷ⟨2⟩', body:'Step-1 context informs step-2 decision via the hidden state — neighbouring words matter.'},
+      {pill:'③ …',   title:'Continuing through all Tx', body:'Every position gets its own label. The hidden state grows richer at each step.'},
+      {pill:'④ Final', title:'x⟨Tx⟩ → a⟨Tx⟩ → ŷ⟨Tx⟩', body:'Last token labelled. Tx outputs for Tx inputs — lengths are always equal.'},
+    ],
+  },
+  many2many_neq:{
+    name:'Encoder–Decoder', fn:'Encoder builds \\(c=a_{enc}^{\\langle T_x\\rangle}\\); decoder feeds \\(\\hat{y}^{\\langle t\\rangle}\\) forward.',
+    app:['Machine Translation','Encode full English sentence → context vector. Decode to French: "The cat sat" (3 tokens) → "Le chat était assis" (4 tokens).'],
+    formulaTitle:'Encode first, decode after context',
+    formulaNote:'The encoder creates a context vector, then the decoder generates a different-length sequence.',
+    formulas:[
+      '\\[a_{enc}^{\\langle t\\rangle}=\\tanh(W_{aa}^{enc}a_{enc}^{\\langle t-1\\rangle}+W_{ax}^{enc}x^{\\langle t\\rangle}+b_a^{enc})\\]',
+      '\\[c=a_{enc}^{\\langle T_x\\rangle}\\]',
+      '\\[d^{\\langle t\\rangle}=\\tanh(W_{dd}d^{\\langle t-1\\rangle}+W_{dy}y^{\\langle t-1\\rangle}+b_d)\\]',
+      '\\[\\hat{y}^{\\langle t\\rangle}=\\operatorname{softmax}(W_{yd}d^{\\langle t\\rangle}+b_y)\\]'
+    ],
+    stepMath:[
+      '\\(a_{enc}^{\\langle t\\rangle}\\text{ reads }x^{\\langle 1\\rangle},\\ldots,x^{\\langle T_x\\rangle}\\)',
+      '\\(c=a_{enc}^{\\langle T_x\\rangle}\\)',
+      '\\(d^{\\langle 0\\rangle}=c,\\quad y^{\\langle 0\\rangle}=\\langle SOS\\rangle\\)',
+      '\\(\\hat{y}^{\\langle t\\rangle}\\rightarrow y^{\\langle t\\rangle}\\text{ for the next decoder step}\\)',
+      '\\(\\hat{y}^{\\langle T_y\\rangle}=\\langle EOS\\rangle\\)'
+    ],
+    arch:`<strong>Encoder–Decoder</strong> — two phases. The <em>encoder</em> reads the full source and compresses it into a context vector c. The <em>decoder</em> generates the target sequence from ⟨SOS⟩, primed by c. Input and output lengths can differ freely.`,
+    hs:['a⟨0⟩','a⟨1⟩','…','a⟨Tx⟩','c','→','d⟨0⟩','d⟨1⟩','…','d⟨Ty⟩'], hsNote:'Context vector c is the bridge between encoder state and decoder state.',
+    steps:[
+      {pill:'① Encode',  title:'Encoder reads x⟨1⟩ … x⟨Tx⟩',   body:'The encoder processes every source token. Hidden state updates at each step. No output yet.'},
+      {pill:'② Context', title:'Final encoder state → context c',  body:'a⟨Tx⟩ becomes the context vector c — a fixed-size summary of the entire source sequence.'},
+      {pill:'③ ⟨SOS⟩',  title:'Decoder starts from ⟨SOS⟩ + c',  body:'A start-of-sequence token triggers the decoder, which is initialised with c as its hidden state.'},
+      {pill:'④ Decode',  title:'ŷ⟨1⟩ generated, fed back',       body:'Each decoder output becomes the next input — autoregressive decoding, guided by the context.'},
+      {pill:'⑤ ⟨EOS⟩',  title:'Decoding until ⟨EOS⟩',            body:'Generation stops at the end-of-sequence token. Output length Ty can differ from source Tx.'},
+    ],
+  },
+};
+
+/* ─────────────────────────────────────────────
+   STATE
+───────────────────────────────────────────── */
+let arch = 'one2one', step = 0, playing = false, timer = null;
+// per-step animation: a rAF that runs for ~600ms on step entry
+let animT = 1; // 0→1
+let animRAF = null, animStart = null;
+const ANIM_DUR = 600;
+let currentFormula = '';
+let mathQueued = false;
+
+const DPR = Math.min(window.devicePixelRatio||1, 2);
+const cv  = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+
+/* ─────────────────────────────────────────────
+   RESIZE
+───────────────────────────────────────────── */
+function resize(){
+  const w = cv.parentElement.clientWidth;
+  const h = w < 520 ? 340 : 300;
+  cv.width  = w * DPR;
+  cv.height = h * DPR;
+  cv.style.width  = w + 'px';
+  cv.style.height = h + 'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  draw();
+}
+
+/* ─────────────────────────────────────────────
+   EASING
+───────────────────────────────────────────── */
+function eio(t){ return t<.5?2*t*t:-1+(4-2*t)*t; }
+function eout(t){ return 1-(1-t)*(1-t); }
+
+/* ─────────────────────────────────────────────
+   DRAWING PRIMITIVES
+───────────────────────────────────────────── */
+const K = {
+  bg:'#07091a', grid:'rgba(255,255,255,0.022)',
+  // cells
+  cellBlue:'#0c1f42',   cellBlueBdr:'#2563eb',
+  cellRed:'#3b0a0a',    cellRedBdr:'#ef4444',
+  cellPurp:'#160940',   cellPurpBdr:'#7c3aed',
+  cellGreen:'#03200f',  cellGreenBdr:'#16a34a',
+  cellDim:'#080c18',    cellDimBdr:'#1e293b',
+  // boxes
+  inp:'#1c0e02',   inpBdr:'#92400e',
+  out:'#021a0c',   outBdr:'#15803d',
+  sos:'#022016',   sosBdr:'#0d9488',
+  // arrows / text
+  arrOff:'#1a2540', arrOn:'#3b82f6',
+  txt:'#cbd5e1', txtDim:'#3d5070', txtPurp:'#a78bfa', txtGreen:'#4ade80',
+  // glows
+  gBlue:'rgba(37,99,235,.4)', gRed:'rgba(239,68,68,.4)',
+  gPurp:'rgba(124,58,237,.4)', gGreen:'rgba(22,163,74,.35)',
+};
+
+function grid(W,H){
+  ctx.strokeStyle=K.grid; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=44){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=44){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+
+function rr(x,y,w,h,r=10){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+}
+
+/* Cell square */
+function cell(cx,cy,sz,fill,bdr,label,sub,alpha,glow){
+  alpha=alpha??1;
+  ctx.save(); ctx.globalAlpha=alpha;
+  if(glow&&alpha>.4){ctx.shadowColor=glow;ctx.shadowBlur=20;}
+  rr(cx-sz/2,cy-sz/2,sz,sz,10);
+  ctx.fillStyle=fill; ctx.fill();
+  ctx.strokeStyle=bdr; ctx.lineWidth=alpha>.6?2:1; ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle=K.txt; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font=`600 13px 'DM Mono',monospace`; ctx.fillText(label,cx,cy+(sub?-6:0));
+  if(sub){ctx.fillStyle=K.txtDim;ctx.font=`400 10px 'DM Mono',monospace`;ctx.fillText(sub,cx,cy+7);}
+  ctx.restore();
+}
+
+/* Small box (input/output labels) */
+function box(cx,cy,w,h,fill,bdr,label,alpha,glow){
+  alpha=alpha??1;
+  ctx.save(); ctx.globalAlpha=alpha;
+  if(glow&&alpha>.5){ctx.shadowColor=glow;ctx.shadowBlur=14;}
+  rr(cx-w/2,cy-h/2,w,h,7);
+  ctx.fillStyle=fill; ctx.fill();
+  ctx.strokeStyle=bdr; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle=K.txt; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font=`500 12px 'DM Mono',monospace`; ctx.fillText(label,cx,cy);
+  ctx.restore();
+}
+
+/* Arrow with optional animated pulse dot */
+function arr(x1,y1,x2,y2,col,alpha,pulse){
+  alpha=alpha??1; pulse=pulse??0;
+  ctx.save(); ctx.globalAlpha=alpha;
+  ctx.strokeStyle=col; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  // arrowhead
+  const a=Math.atan2(y2-y1,x2-x1),L=7;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-L*Math.cos(a-.38),y2-L*Math.sin(a-.38));
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-L*Math.cos(a+.38),y2-L*Math.sin(a+.38));
+  ctx.stroke();
+  // travelling pulse dot
+  if(pulse>0&&pulse<1){
+    const p=eio(pulse);
+    ctx.globalAlpha=alpha*Math.sin(p*Math.PI);
+    ctx.beginPath();
+    ctx.arc(x1+(x2-x1)*p,y1+(y2-y1)*p,4,0,Math.PI*2);
+    ctx.fillStyle=K.arrOn; ctx.shadowColor=K.arrOn; ctx.shadowBlur=10;
+    ctx.fill(); ctx.shadowBlur=0;
+  }
+  ctx.restore();
+}
+
+/* Dashed curved arrow for feedback loops */
+function curveArr(x1,y1,cpx,cpy,x2,y2,col,alpha){
+  ctx.save(); ctx.globalAlpha=alpha??0.6;
+  ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.quadraticCurveTo(cpx,cpy,x2,y2); ctx.stroke();
+  ctx.setLineDash([]);
+  // arrowhead at end
+  const dx=x2-cpx,dy=y2-cpy,a=Math.atan2(dy,dx),L=7;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-L*Math.cos(a-.38),y2-L*Math.sin(a-.38));
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-L*Math.cos(a+.38),y2-L*Math.sin(a+.38));
+  ctx.stroke(); ctx.restore();
+}
+
+function mono(text,x,y,col,sz,alpha){
+  ctx.save(); ctx.globalAlpha=alpha??1;
+  ctx.fillStyle=col; ctx.font=`500 ${sz||11}px 'DM Mono',monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,x,y); ctx.restore();
+}
+
+function sans(text,x,y,col,sz,alpha){
+  ctx.save(); ctx.globalAlpha=alpha??1;
+  ctx.fillStyle=col; ctx.font=`500 ${sz||11}px 'DM Sans',sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,x,y); ctx.restore();
+}
+
+function ellipsis(x,y){
+  ctx.save(); ctx.fillStyle=K.txtDim;
+  [-8,0,8].forEach(dx=>{ctx.beginPath();ctx.arc(x+dx,y,2.2,0,Math.PI*2);ctx.fill();});
+  ctx.restore();
+}
+
+function sharedWeightsBar(x1,x2,y){
+  ctx.save();
+  ctx.strokeStyle='rgba(37,99,235,0.18)'; ctx.lineWidth=1; ctx.setLineDash([4,5]);
+  ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(x2,y); ctx.stroke();
+  ctx.setLineDash([]);
+  mono('Waa · Wax · Wya  reused at every step',(x1+x2)/2,y-9,'rgba(96,165,250,0.35)',9);
+  ctx.restore();
+}
+
+function stateLabel(text,x,y,alpha=0.85){
+  mono(text,x,y,'rgba(147,197,253,0.82)',11,alpha);
+}
+
+function queueMathTypeset(){
+  if(mathQueued) return;
+  mathQueued=true;
+  requestAnimationFrame(()=>{
+    mathQueued=false;
+    if(window.MathJax?.typesetPromise){
+      MathJax.typesetPromise([
+        document.getElementById('formula-overlay'),
+        document.getElementById('core-equations'),
+        document.getElementById('fn-note'),
+        document.getElementById('formula-body'),
+        document.querySelector('.badge')
+      ]).catch(()=>{});
+    }
+  });
+}
+
+/* Floating formula badge */
+function formulaBadge(text,W){
+  if(!text) return;
+  if(text===currentFormula) return;
+  currentFormula=text;
+  const el=document.getElementById('formula-overlay');
+  el.innerHTML=text;
+  queueMathTypeset();
+}
+
+/* ─────────────────────────────────────────────
+   ARCHITECTURE DRAW FUNCTIONS
+   Each: drawXxx(s, t, W, H)
+   s = current step (0-based), t = animT 0→1
+───────────────────────────────────────────── */
+
+/* helper: alpha for phase-based reveal */
+function a(phase,s,t){ return s>phase?1 : s===phase?eout(t) : 0.15; }
+/* pulse: active only during its own step */
+function pulse(phase,s,t){ return s===phase?t:0; }
+
+/* ── ONE TO ONE ── */
+function drawO2O(s,t,W,H){
+  const cx=W/2, cy=H/2, sz=70, bh=40, bw=76;
+  const inY=cy+110, outY=cy-110;
+
+  mono('no a⟨t-1⟩', cx-118, cy, K.txtDim, 12, a(0,s,t));
+  arr(cx-82, cy, cx-sz/2-4, cy, K.arrOff, a(0,s,t)*0.25);
+
+  const cFill=s===2?K.cellRed:K.cellBlue;
+  const cBdr=s===2?K.cellRedBdr:K.cellBlueBdr;
+  cell(cx, cy, sz, cFill, cBdr, 'NN', 'single', Math.max(0.4,a(0,s,t)), s===2?K.gRed:K.gBlue);
+
+  if(s===2){
+    ctx.save(); ctx.globalAlpha=eout(t)*0.75;
+    ctx.strokeStyle='#d8b4fe'; ctx.lineWidth=1.8;
+    ctx.beginPath();
+    for(let i=0;i<=32;i++){
+      const xi=i/32, xv=cx-20+xi*40, tv=(xi*2-1)*3.2;
+      i===0?ctx.moveTo(xv,cy-Math.tanh(tv)*14):ctx.lineTo(xv,cy-Math.tanh(tv)*14);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+
+  arr(cx, inY-20, cx, cy+sz/2+4, s>=1?K.arrOn:K.arrOff, a(1,s,t), pulse(1,s,t));
+  box(cx, inY, bw, bh, K.inp, K.inpBdr, 'x', a(1,s,t));
+  arr(cx, cy-sz/2-4, cx, outY+20, s>=3?K.arrOn:K.arrOff, a(3,s,t), pulse(3,s,t));
+  box(cx, outY, bw, bh, K.out, K.outBdr, 'ŷ', a(3,s,t), s>=3?K.gGreen:null);
+
+  if(s>=3){
+    ctx.save(); ctx.globalAlpha=eout(t)*0.9;
+    rr(cx+82, cy-24, 148, 48, 9);
+    ctx.fillStyle='rgba(59,7,7,0.6)'; ctx.fill();
+    ctx.strokeStyle='rgba(239,68,68,0.4)'; ctx.lineWidth=1;
+    ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#fca5a5'; ctx.font=`500 12px 'DM Sans',sans-serif`;
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText('No state flows forward', cx+96, cy-9);
+    ctx.fillText('— this is feedforward', cx+96, cy+9);
+    ctx.restore();
+  }
+  formulaBadge(DATA[arch].stepMath[s], W);
+}
+
+/* ── ONE TO MANY ── */
+function drawO2M(s,t,W,H){
+  const phase=s+1;
+  const N=3, sz=56, cy=H/2;
+  const sx=96, sp=(W-sx-40)/(N+0.8);
+  const inY=cy+108, outY=cy-108;
+
+  const firstX=sx;
+  arr(14, cy, firstX-sz/2-4, cy, K.arrOn, a(1,phase,t)*0.75, pulse(1,phase,t));
+
+  for(let i=0;i<N;i++){
+    const cx=sx+i*sp;
+    const done=phase>i+1, active=phase===i+1;
+    const al=done?1:active?eout(t):0.18;
+
+    if(i>0){
+      const px=sx+(i-1)*sp;
+      arr(px+sz/2+4, cy, cx-sz/2-4, cy, done||active?K.arrOn:K.arrOff, al, active?t:0);
+      stateLabel(`a⟨${i}⟩`, (px+cx)/2, cy-22, al);
+    }
+
+    if(i===0){
+      arr(cx, inY-20, cx, cy+sz/2+4, phase>=1?K.arrOn:K.arrOff, a(1,phase,t), pulse(1,phase,t));
+      box(cx, inY, 66, 38, K.inp, K.inpBdr, 'x seed', a(1,phase,t));
+    } else {
+      const px=sx+(i-1)*sp;
+      const fa=phase>i?1:phase===i?eout(t):0.1;
+      // output box above prev cell
+      arr(px, cy-sz/2-4, px, outY+20, phase>i?K.arrOn:K.arrOff, fa);
+      box(px, outY, 62, 36, K.out, K.outBdr, `ŷ⟨${i}⟩`, fa, phase>i?K.gGreen:null);
+      // feedback curve
+      curveArr(px, outY-18, (px+cx)/2, outY-55, cx-sz/2-4, cy, K.arrOn, fa);
+    }
+
+    const cF=active?K.cellRed:(done?K.cellBlue:K.cellDim);
+    const cB=active?K.cellRedBdr:(done?K.cellBlueBdr:K.cellDimBdr);
+    cell(cx, cy, sz, cF, cB, 'RNN', `t=${i+1}`, Math.max(0.18,al), active?K.gRed:done?K.gBlue:null);
+  }
+  stateLabel('a⟨0⟩', (14 + firstX-sz/2-4)/2, cy-22, a(1,phase,t));
+
+  // ellipsis + final
+  const ex=sx+N*sp-8, lcx=sx+N*sp+34;
+  ellipsis(ex, cy);
+  const finalFlowStart = sx+(N-1)*sp+sz/2+4;
+  const finalFlowEnd = ex-16;
+  arr(finalFlowStart, cy, finalFlowEnd, cy, phase>N?K.arrOn:K.arrOff, phase>N?0.7:0.25);
+  arr(ex+16, cy, lcx-sz/2-4, cy, phase>N?K.arrOn:K.arrOff, phase>N?0.7:0.25);
+  stateLabel('a⟨t⟩', (finalFlowStart + finalFlowEnd)/2, cy-26, phase>N?0.7:0.25);
+  const lA=phase>=N+1;
+  cell(lcx, cy, sz, lA?K.cellBlue:K.cellDim, lA?K.cellBlueBdr:K.cellDimBdr, 'RNN', 't=Ty', lA?1:0.18, lA?K.gBlue:null);
+  arr(lcx, cy-sz/2-4, lcx, outY+20, lA?K.arrOn:K.arrOff, lA?1:0.18);
+  box(lcx, outY, 62, 36, K.out, K.outBdr, 'ŷ⟨Ty⟩', lA?1:0.18, lA?K.gGreen:null);
+
+  sharedWeightsBar(sx-sz/2, lcx+sz/2, H-20);
+  formulaBadge(DATA[arch].stepMath[s], W);
+}
+
+/* ── MANY TO ONE ── */
+function drawM2O(s,t,W,H){
+  const phase=s+1;
+  const N=3, sz=56, cy=H/2;
+  const sx=96, sp=(W-sx-40)/(N+0.8);
+  const inY=cy+108, outY=cy-108;
+
+  const firstX=sx;
+  arr(14, cy, firstX-sz/2-4, cy, K.arrOn, a(1,phase,t)*0.75, pulse(1,phase,t));
+
+  for(let i=0;i<N;i++){
+    const cx=sx+i*sp;
+    const done=phase>i+1, active=phase===i+1, al=done?1:active?eout(t):0.18;
+    arr(cx, inY-20, cx, cy+sz/2+4, done||active?K.arrOn:K.arrOff, al, active?t:0);
+    box(cx, inY, 62, 36, K.inp, K.inpBdr, `x⟨${i+1}⟩`, al);
+    if(i>0){
+      const px=sx+(i-1)*sp;
+      arr(px+sz/2+4, cy, cx-sz/2-4, cy, done||active?K.arrOn:K.arrOff, al, active?t:0);
+      stateLabel(`a⟨${i}⟩`, (px+cx)/2, cy-22, al);
+    }
+    cell(cx, cy, sz, active?K.cellRed:done?K.cellBlue:K.cellDim,
+         active?K.cellRedBdr:done?K.cellBlueBdr:K.cellDimBdr,
+         'RNN', `t=${i+1}`, Math.max(0.18,al), active?K.gRed:null);
+    // dashed stub — no output here
+    if(done){
+      ctx.save(); ctx.globalAlpha=0.22; ctx.strokeStyle=K.arrOff;
+      ctx.lineWidth=1.2; ctx.setLineDash([3,5]);
+      ctx.beginPath(); ctx.moveTo(cx,cy-sz/2-4); ctx.lineTo(cx,outY+24); ctx.stroke();
+      ctx.setLineDash([]); ctx.restore();
+    }
+  }
+  stateLabel('a⟨0⟩', (14 + firstX-sz/2-4)/2, cy-22, a(1,phase,t));
+  if(phase>=2) sans('no output yet', sx+sp, outY+12, K.txtDim, 11, 0.5);
+
+  // ellipsis + final
+  const ex=sx+N*sp-8, lcx=sx+N*sp+34;
+  ellipsis(ex, cy);
+  const finalFlowStart = sx+(N-1)*sp+sz/2+4;
+  const finalFlowEnd = ex-16;
+  arr(finalFlowStart, cy, finalFlowEnd, cy, phase>=N?K.arrOn:K.arrOff, 0.4);
+  arr(ex+16, cy, lcx-sz/2-4, cy, phase>=N?K.arrOn:K.arrOff, phase>=N?0.7:0.25);
+  stateLabel('a⟨Tₓ−1⟩', (finalFlowStart + finalFlowEnd)/2, cy-26, phase>=N?0.65:0.25);
+  const lAct=phase===N+1, lDone=phase>N+1;
+  cell(lcx, cy, sz,
+       lAct?K.cellRed:(lDone?K.cellBlue:K.cellDim),
+       lAct?K.cellRedBdr:(lDone?K.cellBlueBdr:K.cellDimBdr),
+       'RNN','t=Tx', lAct||lDone?1:0.2, lAct?K.gRed:null);
+  arr(lcx, cy-sz/2-4, lcx, outY+20, phase>=5?K.arrOn:K.arrOff, phase>=5?1:0.18, phase===5?t:0);
+  box(lcx, outY, 72, 38, K.out, K.outBdr, 'ŷ (single)', phase>=5?1:0.18, phase>=5?K.gGreen:null);
+
+  sharedWeightsBar(sx-sz/2, lcx+sz/2, H-20);
+  formulaBadge(DATA[arch].stepMath[s], W);
+}
+
+/* ── MANY TO MANY EQ ── */
+function drawM2MEq(s,t,W,H){
+  const phase=s+1;
+  const N=3, sz=56, cy=H/2;
+  const sx=96, sp=(W-sx-40)/(N+0.8);
+  const inY=cy+108, outY=cy-108;
+
+  const firstX=sx;
+  arr(14, cy, firstX-sz/2-4, cy, K.arrOn, a(1,phase,t)*0.75, pulse(1,phase,t));
+
+  for(let i=0;i<N;i++){
+    const cx=sx+i*sp;
+    const done=phase>i+1, active=phase===i+1, al=done?1:active?eout(t):0.18;
+    arr(cx, inY-20, cx, cy+sz/2+4, done||active?K.arrOn:K.arrOff, al, active?t:0);
+    box(cx, inY, 62, 36, K.inp, K.inpBdr, `x⟨${i+1}⟩`, al);
+    if(i>0){
+      const px=sx+(i-1)*sp;
+      arr(px+sz/2+4, cy, cx-sz/2-4, cy, done||active?K.arrOn:K.arrOff, al, active?t:0);
+      stateLabel(`a⟨${i}⟩`, (px+cx)/2, cy-22, al);
+    }
+    cell(cx, cy, sz, active?K.cellRed:done?K.cellBlue:K.cellDim,
+         active?K.cellRedBdr:done?K.cellBlueBdr:K.cellDimBdr,
+         'RNN', `t=${i+1}`, Math.max(0.18,al), active?K.gRed:done?K.gBlue:null);
+    arr(cx, cy-sz/2-4, cx, outY+20, done||active?K.arrOn:K.arrOff, al, active?t:0);
+    box(cx, outY, 62, 36, K.out, K.outBdr, `ŷ⟨${i+1}⟩`, al, done?K.gGreen:null);
+  }
+  stateLabel('a⟨0⟩', (14 + firstX-sz/2-4)/2, cy-22, a(1,phase,t));
+
+  // ellipsis + final
+  const ex=sx+N*sp-8, lcx=sx+N*sp+34;
+  ellipsis(ex, cy);
+  const finalFlowStart = sx+(N-1)*sp+sz/2+4;
+  const finalFlowEnd = ex-16;
+  arr(finalFlowStart, cy, finalFlowEnd, cy, phase>=4?K.arrOn:K.arrOff, 0.4);
+  arr(ex+16, cy, lcx-sz/2-4, cy, phase>=4?K.arrOn:K.arrOff, phase>=4?0.7:0.25);
+  stateLabel('a⟨Tₓ−1⟩', (finalFlowStart + finalFlowEnd)/2, cy-26, phase>=4?0.65:0.25);
+  const lA=phase>=4;
+  cell(lcx, cy, sz, lA?K.cellBlue:K.cellDim, lA?K.cellBlueBdr:K.cellDimBdr, 'RNN','t=Tx', lA?1:0.18, lA?K.gBlue:null);
+  arr(lcx, inY-20, lcx, cy+sz/2+4, lA?K.arrOn:K.arrOff, lA?1:0.18);
+  box(lcx, inY, 62, 36, K.inp, K.inpBdr, 'x⟨Tx⟩', lA?1:0.18);
+  arr(lcx, cy-sz/2-4, lcx, outY+20, lA?K.arrOn:K.arrOff, lA?1:0.18);
+  box(lcx, outY, 62, 36, K.out, K.outBdr, 'ŷ⟨Tx⟩', lA?1:0.18, lA?K.gGreen:null);
+
+  sharedWeightsBar(sx-sz/2, lcx+sz/2, H-20);
+  formulaBadge(DATA[arch].stepMath[s], W);
+}
+
+/* ── ENCODER–DECODER ── */
+function drawEnc(s,t,W,H){
+  const phase=s+1;
+  const nE=2, nD=2, sz=52, cy=H/2;
+  const sx=88, sp=(W-sx-36)/(nE+nD+1.6);
+  const inY=cy+104, outY=cy-104;
+
+  const firstX=sx;
+  arr(14, cy, firstX-sz/2-4, cy, K.arrOn, a(1,phase,t)*0.75, pulse(1,phase,t));
+
+  // ENCODER
+  for(let i=0;i<nE;i++){
+    const cx=sx+i*sp;
+    const done=phase>i+1, active=phase===i+1, al=done?1:active?eout(t):0.18;
+    arr(cx, inY-18, cx, cy+sz/2+4, done||active?K.arrOn:K.arrOff, al, active?t:0);
+    box(cx, inY, 58, 34, K.inp, K.inpBdr, `x⟨${i+1}⟩`, al);
+    if(i>0){
+      const px=sx+(i-1)*sp;
+      arr(px+sz/2+4, cy, cx-sz/2-4, cy, done||active?K.arrOn:K.arrOff, al, active?t:0);
+      stateLabel(`a⟨${i}⟩`, (px+cx)/2, cy-22, al);
+    }
+    cell(cx, cy, sz, active?K.cellRed:(done?K.cellPurp:K.cellDim),
+         active?K.cellRedBdr:(done?K.cellPurpBdr:K.cellDimBdr),
+         'ENC', `t=${i+1}`, Math.max(0.18,al), active?K.gRed:done?K.gPurp:null);
+  }
+  stateLabel('a⟨0⟩', (14 + firstX-sz/2-4)/2, cy-22, a(1,phase,t));
+  // Last encoder
+  const lecx=sx+nE*sp;
+  const eA=phase===nE+1, eD=phase>nE+1;
+  const ea=eA||eD?1:phase===nE?eout(t):0.18;
+  arr(sx+(nE-1)*sp+sz/2+4, cy, lecx-sz/2-4, cy, eA||eD?K.arrOn:K.arrOff, ea, eA?t:0);
+  stateLabel('a⟨Tₓ−1⟩', (sx+(nE-1)*sp+lecx)/2, cy-24, ea);
+  arr(lecx, inY-18, lecx, cy+sz/2+4, eA||eD?K.arrOn:K.arrOff, ea);
+  box(lecx, inY, 62, 34, K.inp, K.inpBdr, 'x⟨Tx⟩', ea);
+  cell(lecx, cy, sz, eA?K.cellRed:(eD?K.cellPurp:K.cellDim),
+       eA?K.cellRedBdr:(eD?K.cellPurpBdr:K.cellDimBdr),
+       'ENC','t=Tx', Math.max(0.18,ea), eA?K.gRed:eD?K.gPurp:null);
+
+  // Context vector pill
+  if(phase>=nE+1){
+    const ca=phase===nE+1?eout(t):1;
+    ctx.save(); ctx.globalAlpha=ca;
+    rr(lecx-36, cy-58, 72, 28, 8);
+    ctx.fillStyle='rgba(60,20,120,0.65)'; ctx.fill();
+    ctx.strokeStyle='#7c3aed'; ctx.lineWidth=1.5;
+    ctx.shadowColor=K.gPurp; ctx.shadowBlur=16; ctx.stroke(); ctx.shadowBlur=0;
+    ctx.fillStyle='#c4b5fd'; ctx.font=`600 12px 'DM Mono',monospace`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('context  c', lecx, cy-44);
+    ctx.restore();
+  }
+
+  // Divider
+  const divX=lecx+sp*0.52;
+  ctx.save(); ctx.globalAlpha=0.45;
+  ctx.strokeStyle='rgba(124,58,237,.55)'; ctx.lineWidth=1; ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(divX,12); ctx.lineTo(divX,H-12); ctx.stroke();
+  ctx.setLineDash([]); ctx.restore();
+  sans('Encoder → Decoder', divX, 13, 'rgba(167,139,250,.75)', 10);
+
+  // Bridge arrow enc→dec
+  const decSt=divX+sp*0.3;
+  if(phase>=nE+1){
+    const bridgeStart = lecx+sz/2+4;
+    const bridgeEnd = decSt-sz/2-4;
+    arr(bridgeStart, cy, bridgeEnd, cy,
+        phase>=nE+2?K.arrOn:'rgba(167,139,250,.5)', phase>=nE+1?0.75:0.1, 0);
+    if(phase>=nE+2){
+      stateLabel('d⟨0⟩=c', (bridgeStart+bridgeEnd)/2, cy-24, 0.9);
+    }
+  }
+
+  // SOS
+  if(phase>=nE+2){
+    box(decSt, inY, 58, 34, K.sos, K.sosBdr, '⟨SOS⟩', 1);
+    arr(decSt, inY-18, decSt, cy+sz/2+4, K.arrOn, 1, 0);
+  }
+
+  // DECODER
+  for(let i=0;i<nD;i++){
+    const cx=divX+sp*(0.3+i);
+    const done=phase>nE+2+i, active=phase===nE+2+i, al=done?1:active?eout(t):0.18;
+    if(i>0){
+      const px=divX+sp*(0.3+i-1);
+      arr(px+sz/2+4, cy, cx-sz/2-4, cy, done||active?K.arrOn:K.arrOff, al, active?t:0);
+      stateLabel(`d⟨${i}⟩`, (px+cx)/2, cy-22, al);
+    }
+    cell(cx, cy, sz, active?K.cellRed:(done?K.cellGreen:K.cellDim),
+         active?K.cellRedBdr:(done?K.cellGreenBdr:K.cellDimBdr),
+         'DEC', `t=${i+1}`, Math.max(0.18,al), active?K.gRed:done?K.gGreen:null);
+    arr(cx, cy-sz/2-4, cx, outY+18, done||active?K.arrOn:K.arrOff, al, active?t:0);
+    box(cx, outY, 58, 34, K.out, K.outBdr, `ŷ⟨${i+1}⟩`, al, done?K.gGreen:null);
+  }
+
+  // Final decoder
+  const ldcx=divX+sp*(0.3+nD);
+  const ldA=phase>=nE+nD+1;
+  arr(divX+sp*(0.3+nD-1)+sz/2+4, cy, ldcx-sz/2-4, cy, ldA?K.arrOn:K.arrOff, ldA?0.9:0.18);
+  if(ldA) stateLabel('d⟨Ty−1⟩', (divX+sp*(0.3+nD-1)+ldcx)/2, cy-22, 0.9);
+  cell(ldcx, cy, sz, ldA?K.cellGreen:K.cellDim, ldA?K.cellGreenBdr:K.cellDimBdr, 'DEC','t=Ty', ldA?1:0.18, ldA?K.gGreen:null);
+  arr(ldcx, cy-sz/2-4, ldcx, outY+18, ldA?K.arrOn:K.arrOff, ldA?1:0.18);
+  box(ldcx, outY, 58, 34, K.out, K.outBdr, 'ŷ⟨Ty⟩', ldA?1:0.18, ldA?K.gGreen:null);
+  if(ldA) sans('⟨EOS⟩ → stop', ldcx, outY-22, K.txtGreen, 11, eout(t)*0.85);
+
+  formulaBadge(DATA[arch].stepMath[s], W);
+}
+
+const DRAWS = {
+  one2one:drawO2O, one2many:drawO2M, many2one:drawM2O,
+  many2many_eq:drawM2MEq, many2many_neq:drawEnc,
+};
+
+/* ─────────────────────────────────────────────
+   RENDER
+───────────────────────────────────────────── */
+function draw(){
+  const W=cv.width/DPR, H=cv.height/DPR;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=K.bg; ctx.fillRect(0,0,W,H);
+  grid(W,H);
+  DRAWS[arch](step, animT, W, H);
+}
+
+/* ─────────────────────────────────────────────
+   STEP ENTRY ANIMATION
+───────────────────────────────────────────── */
+function animateIn(){
+  if(animRAF) cancelAnimationFrame(animRAF);
+  animT=0; animStart=null;
+  function tick(ts){
+    if(!animStart) animStart=ts;
+    animT=Math.min((ts-animStart)/ANIM_DUR,1);
+    draw();
+    if(animT<1) animRAF=requestAnimationFrame(tick);
+    else{ animT=1; animRAF=null; updateDots(); }
+  }
+  animRAF=requestAnimationFrame(tick);
+}
+
+/* ─────────────────────────────────────────────
+   UI UPDATE
+───────────────────────────────────────────── */
+function updateUI(){
+  const cfg=DATA[arch], st=cfg.steps[step];
+  document.getElementById('nav-right').textContent=cfg.name;
+  document.getElementById('ctrl-m').textContent=st.title;
+  document.getElementById('step-title').textContent=st.title;
+  document.getElementById('step-body').textContent=st.body;
+  document.getElementById('arch-body').innerHTML=cfg.arch;
+  document.getElementById('app-title').textContent=cfg.app[0];
+  document.getElementById('app-body').textContent=cfg.app[1];
+  document.getElementById('fn-note').innerHTML=cfg.fn;
+  document.getElementById('formula-title').textContent=cfg.formulaTitle;
+  document.getElementById('formula-body').innerHTML=cfg.formulas.map(f=>`<div>${f}</div>`).join('');
+  document.getElementById('formula-note').textContent=cfg.formulaNote;
+
+  // pills
+  const pb=document.getElementById('pill-bar'); pb.innerHTML='';
+  cfg.steps.forEach((s2,i)=>{
+    const b=document.createElement('button');
+    b.className='pill'+(i===step?' on':'');
+    b.textContent=s2.pill;
+    b.onclick=()=>{ stopPlay(); goto(i); };
+    pb.appendChild(b);
+  });
+
+  // hidden state cells
+  const hr=document.getElementById('hs-row'); hr.innerHTML='';
+  document.getElementById('hs-note').textContent=cfg.hsNote;
+  if(!cfg.hs.length){
+    hr.innerHTML='<span style="font-size:11px;color:#8ea3c7;font-style:italic;">No hidden state — feedforward network</span>';
+  } else {
+    cfg.hs.forEach(lbl=>{
+      if(lbl==='→'){const sp=document.createElement('span');sp.className='hs-sep';sp.textContent='→';hr.appendChild(sp);return;}
+      const d=document.createElement('div'); d.className='hsc'; d.textContent=lbl;
+      const idx=lbl.match(/\d+/)?parseInt(lbl.match(/\d+/)[0])-1:-1;
+      if(lbl==='c'){
+        if(step>=2) d.classList.add('ctx');
+      }
+      else if(lbl.startsWith('d')){
+        if(step>=cfg.steps.length-1) d.classList.add('dec');
+      }
+      else if(lbl.includes('Tx')||lbl.includes('Ty')){
+        if(step>=cfg.steps.length-2) d.classList.add('enc');
+      }
+      else if(lbl.includes('…')){d.classList.add('mem');d.style.opacity='0.4';}
+      else if(idx>=0){
+        const activeIdx=arch==='one2many'?step-1:step;
+        if(idx<activeIdx) d.classList.add('mem');
+        if(idx===activeIdx) d.classList.add('now');
+      }
+      hr.appendChild(d);
+    });
+  }
+
+  document.getElementById('btn-prev').disabled=step===0;
+  document.getElementById('btn-next').disabled=step===cfg.steps.length-1;
+  updateDots();
+  queueMathTypeset();
+}
+
+function updateDots(){
+  const cfg=DATA[arch];
+  const dr=document.getElementById('dots-row'); dr.innerHTML='';
+  cfg.steps.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='dot'+(i<step?' done':i===step?' now':'');
+    dr.appendChild(d);
+  });
+}
+
+function syncActiveTab(){
+  document.querySelectorAll('.arch-tab').forEach(x=>x.classList.toggle('active', x.dataset.arch===arch));
+}
+
+function syncHash(){
+  history.replaceState(null,'',`#arch=${arch}&step=${step}`);
+}
+
+function applyHashState(){
+  const params=new URLSearchParams(location.hash.replace(/^#/,''));
+  const hashArch=params.get('arch');
+  if(DATA[hashArch]) arch=hashArch;
+  const n=parseInt(params.get('step'),10);
+  if(Number.isFinite(n)){
+    step=Math.max(0,Math.min(n,DATA[arch].steps.length-1));
+  }
+  syncActiveTab();
+}
+
+/* ─────────────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────────────── */
+function goto(n){
+  step=n; syncHash(); animateIn(); updateUI();
+}
+
+/* ─────────────────────────────────────────────
+   PLAYBACK
+───────────────────────────────────────────── */
+function stopPlay(){
+  playing=false;
+  if(timer){ clearTimeout(timer); clearInterval(timer); timer=null; }
+  document.getElementById('pi').setAttribute('d','M5 3l14 9-14 9V3z');
+  document.getElementById('pl').textContent='Play';
+}
+
+function setPlayButton(isPlaying){
+  document.getElementById('pi').setAttribute('d',isPlaying?'M6 19h4V5H6v14zm8-14v14h4V5h-4z':'M5 3l14 9-14 9V3z');
+  document.getElementById('pl').textContent=isPlaying?'Pause':'Play';
+}
+
+function scheduleNextStep(){
+  if(timer){ clearTimeout(timer); timer=null; }
+  timer=setTimeout(()=>{
+    if(!playing) return;
+    const cfg=DATA[arch];
+    if(step<cfg.steps.length-1){
+      goto(step+1);
+      scheduleNextStep();
+    } else {
+      stopPlay();
+    }
+  }, ANIM_DUR + 950);
+}
+
+document.getElementById('btn-play').addEventListener('click',()=>{
+  playing=!playing;
+  if(playing){
+    // if at end, reset first
+    if(step===DATA[arch].steps.length-1){ step=0; }
+    setPlayButton(true);
+    goto(step);
+    scheduleNextStep();
+  } else stopPlay();
+});
+
+document.getElementById('btn-prev').addEventListener('click',()=>{ stopPlay(); if(step>0) goto(step-1); });
+document.getElementById('btn-next').addEventListener('click',()=>{ stopPlay(); if(step<DATA[arch].steps.length-1) goto(step+1); });
+document.getElementById('btn-reset').addEventListener('click',()=>{ stopPlay(); goto(0); });
+
+/* ─────────────────────────────────────────────
+   TAB SWITCH
+───────────────────────────────────────────── */
+document.getElementById('tabs-row').addEventListener('click',e=>{
+  const t=e.target.closest('.arch-tab'); if(!t) return;
+  arch=t.dataset.arch; step=0; stopPlay();
+  syncActiveTab(); syncHash();
+  animT=1; draw(); updateUI();
+});
+
+/* ─────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────── */
+window.addEventListener('resize',resize);
+applyHashState();
+resize();
+animT=1;
+updateUI();
+draw();
+</script>
+</body>
+</html>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+.next/
+node_modules/
+out/
+dist/
+.vercel/
+.env*.local
+reference_materials/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+/*.png
+/*.log
+/*.tsbuildinfo
+/.codex-*

@@ -1,0 +1,995 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dropout.ipynb</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+
+<div id="dropout-page-87f74045">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    #dropout-page-87f74045 {
+      --white: #ffffff;
+      --black: #1d1d1f;
+      --gray1: #f5f5f7;
+      --gray2: #e8e8ed;
+      --gray3: #6e6e73;
+      --gray4: #aeaeb2;
+      --blue: #0071e3;
+      --blue2: #2b8cff;
+      --blueLight: #e8f0fe;
+      --blueSoft: #f3f7ff;
+      --line: rgba(0,0,0,0.08);
+      --shadow: 0 18px 40px rgba(0, 77, 163, 0.06);
+      --radius: 20px;
+      --radiusSm: 14px;
+      --panel: rgba(255,255,255,0.74);
+      --purple: #5b45d6;
+      --purpleSoft: #f1edff;
+      --red: #d84f47;
+      --redSoft: #fff1f0;
+      --darkBoard: #0d1124;
+      --darkBorder: #1f2a4d;
+      --textOnDark: #f8fafc;
+      --textSubOnDark: #cbd5e1;
+      --signal: #fff36a;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      color: var(--black);
+    }
+
+    #dropout-page-87f74045 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    #dropout-page-87f74045 .page {
+      max-width: 1380px;
+      margin: 18px auto;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(0,113,227,0.06), transparent 26%),
+        linear-gradient(to bottom, #ffffff 0%, #fbfcff 100%);
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 18px 44px rgba(34, 62, 132, 0.08);
+    }
+
+    #dropout-page-87f74045 .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 32px;
+      border-bottom: 0.5px solid var(--gray2);
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    #dropout-page-87f74045 .nav-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    #dropout-page-87f74045 .nav-brand { font-size: 13px; font-weight: 600; }
+    #dropout-page-87f74045 .nav-status { font-size: 13px; color: var(--gray4); }
+
+    #dropout-page-87f74045 .hero {
+      padding: 42px 32px 28px;
+      border-bottom: 0.5px solid var(--gray2);
+    }
+
+    #dropout-page-87f74045 .hero-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    #dropout-page-87f74045 .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blueLight);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+      letter-spacing: .01em;
+    }
+
+    #dropout-page-87f74045 h1 {
+      font-size: clamp(30px, 4vw, 42px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 10px;
+    }
+
+    #dropout-page-87f74045 h1 span {
+      background: linear-gradient(135deg, var(--blue), #58a6ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #dropout-page-87f74045 .desc {
+      font-size: 15px;
+      color: var(--gray3);
+      line-height: 1.65;
+      max-width: 760px;
+      margin-bottom: 22px;
+    }
+
+    #dropout-page-87f74045 .meta { display: flex; flex-wrap: wrap; gap: 20px; }
+    #dropout-page-87f74045 .meta-item { font-size: 12px; color: var(--gray4); }
+    #dropout-page-87f74045 .meta-item span { color: var(--black); font-weight: 600; }
+
+    #dropout-page-87f74045 .hero-panel {
+      background: linear-gradient(180deg,#fbfdff 0%, #f4f8ff 100%);
+      border: 1px solid rgba(0,113,227,0.08);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    #dropout-page-87f74045 .hero-panel-label {
+      font-size: 10px;
+      color: var(--gray4);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    #dropout-page-87f74045 .hero-panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -.02em;
+      margin-bottom: 14px;
+    }
+
+    #dropout-page-87f74045 .hero-points {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #dropout-page-87f74045 .hero-point {
+      display: flex;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    #dropout-page-87f74045 .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex: none;
+    }
+
+    #dropout-page-87f74045 .hero-point strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    #dropout-page-87f74045 .hero-point span {
+      font-size: 12px;
+      color: var(--gray3);
+      line-height: 1.5;
+    }
+
+    #dropout-page-87f74045 .main {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 30px 32px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #dropout-page-87f74045 .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray3);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    #dropout-page-87f74045 .panel {
+      background: var(--panel);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    #dropout-page-87f74045 .stage-panel {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #dropout-page-87f74045 .board {
+      background: var(--darkBoard);
+      border: 1px solid var(--darkBorder);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    #dropout-page-87f74045 .canvas-frame {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: #151a34;
+    }
+
+    #dropout-page-87f74045 canvas {
+      display: block;
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      border-radius: 14px;
+      background: #151a34;
+    }
+
+    #dropout-page-87f74045 .controls-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    #dropout-page-87f74045 .pill-btn,
+    #dropout-page-87f74045 .step-pill {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.08);
+      color: var(--textOnDark);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+      cursor: pointer;
+      transition: .16s ease;
+      font-family: inherit;
+    }
+
+    #dropout-page-87f74045 .pill-btn:hover,
+    #dropout-page-87f74045 .step-pill:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    }
+
+    #dropout-page-87f74045 .pill-btn.light {
+      background: #e5e7eb;
+      color: #111827;
+      border-color: transparent;
+    }
+
+    #dropout-page-87f74045 .pill-btn.primary {
+      background: #2563eb;
+      color: white;
+      border-color: transparent;
+    }
+
+    #dropout-page-87f74045 .pill-btn.danger {
+      background: #ef4444;
+      color: white;
+      border-color: transparent;
+    }
+
+    #dropout-page-87f74045 .pill-btn.purple {
+      background: #8b5cf6;
+      color: white;
+      border-color: transparent;
+    }
+
+    #dropout-page-87f74045 .pill-btn.playing {
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.18);
+    }
+
+    #dropout-page-87f74045 .control-label {
+      color: var(--textSubOnDark);
+      font-size: 14px;
+      margin-left: 6px;
+    }
+
+    #dropout-page-87f74045 select {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #e2e8f0;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    #dropout-page-87f74045 input[type="range"] {
+      width: 250px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    #dropout-page-87f74045 .time-label {
+      color: #d1d5db;
+      font-size: 13px;
+      min-width: 50px;
+      text-align: left;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #dropout-page-87f74045 .steps-wrap {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    #dropout-page-87f74045 .step-pill {
+      background: #0f172a;
+      color: #cbd5e1;
+      border: 1px solid #475569;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    #dropout-page-87f74045 .step-pill.active {
+      background: #dbeafe;
+      color: #1e3a8a;
+      font-weight: 700;
+      border-color: transparent;
+    }
+
+    #dropout-page-87f74045 .info-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 14px;
+      margin-top: 2px;
+    }
+
+    #dropout-page-87f74045 .stack {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 14px;
+    }
+
+    #dropout-page-87f74045 .card {
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 18px;
+      padding: 16px 18px;
+    }
+
+    #dropout-page-87f74045 .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    #dropout-page-87f74045 .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin: 0;
+    }
+
+    #dropout-page-87f74045 .status-badge {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1d4ed8;
+      background: #dbeafe;
+      padding: 4px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    #dropout-page-87f74045 .card-title-dark {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin-bottom: 8px;
+    }
+
+    #dropout-page-87f74045 .moment-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+
+    #dropout-page-87f74045 .moment-desc,
+    #dropout-page-87f74045 .context-text {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #475569;
+    }
+
+    #dropout-page-87f74045 .math-box {
+      font-size: 22px;
+      color: #111827;
+      line-height: 1.8;
+      margin-top: 12px;
+      overflow-x: auto;
+      min-height: 160px;
+    }
+
+    #dropout-page-87f74045 code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+      background: rgba(15, 23, 42, 0.05);
+      padding: 0.14em 0.34em;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 1080px) {
+      #dropout-page-87f74045 .hero-shell { grid-template-columns: 1fr; }
+      #dropout-page-87f74045 .info-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      #dropout-page-87f74045 .hero,
+      #dropout-page-87f74045 .main {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      #dropout-page-87f74045 .controls-row {
+        justify-content: flex-start;
+      }
+
+      #dropout-page-87f74045 input[type="range"] {
+        width: 100%;
+        max-width: 240px;
+      }
+    }
+  </style>
+
+  <div class="page">
+    <nav class="nav">
+      <div class="nav-back">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Neural Networks & Regularization
+      </div>
+      <div class="nav-brand">Interactive Lab</div>
+      <div class="nav-status">Dropout · train mode · inverted scaling</div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-shell">
+        <div>
+          <div class="badge">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+            Module 2 · Regularization
+          </div>
+          <h1>Inverted Dropout<br><span>(PyTorch model.train() Mode)</span></h1>
+          <p class="desc">Random masks per iteration → Prevents co-adaptation → Inverted scaling by 1/(1-p)</p>
+          <div class="meta">
+            <div class="meta-item">Masking <span>Random per iteration</span></div>
+            <div class="meta-item">Purpose <span>Prevents co-adaptation</span></div>
+            <div class="meta-item">Scaling <span>Multiply by 1/(1-p)</span></div>
+            <div class="meta-item">Context <span>model.train()</span></div>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <div class="hero-panel-label">Key concepts</div>
+          <div class="hero-panel-title">What to watch for</div>
+          <div class="hero-points">
+            <div class="hero-point">
+              <div class="dot" style="background:#0071e3"></div>
+              <div>
+                <strong>Random masks per iteration</strong>
+                <span>Each training pass samples a new Bernoulli mask, so different hidden units are dropped each time.</span>
+              </div>
+            </div>
+            <div class="hero-point">
+              <div class="dot" style="background:#0f6e56"></div>
+              <div>
+                <strong>Prevents co-adaptation</strong>
+                <span>The network cannot rely on one exact pathway staying available, so features become more robust.</span>
+              </div>
+            </div>
+            <div class="hero-point">
+              <div class="dot" style="background:#8a5410"></div>
+              <div>
+                <strong>Inverted scaling by 1/(1-p)</strong>
+                <span>Active units are scaled during training so the expected activation level stays consistent.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="main">
+      <div class="section-label">Interactive Playground</div>
+
+      <div class="panel stage-panel">
+        <div class="board">
+          <div class="canvas-frame">
+            <canvas id="doCanvas-87f74045" width="1240" height="660"></canvas>
+          </div>
+
+          <div class="controls-row">
+            <button id="doPrev-87f74045" class="pill-btn light">&larr; Prev</button>
+            <button id="doNext-87f74045" class="pill-btn light">Next &rarr;</button>
+            <button id="doPlay-87f74045" class="pill-btn primary">&#9654; Play</button>
+            <button id="doReset-87f74045" class="pill-btn danger">&#128260; Reset</button>
+            <button id="doRandom-87f74045" class="pill-btn purple">&#128256; Randomize Iteration</button>
+
+            <label for="doRate-87f74045" class="control-label">Dropout (p):</label>
+            <select id="doRate-87f74045">
+              <option value="0.0">p = 0.00 (No Dropout)</option>
+              <option value="0.2">p = 0.20 (Light)</option>
+              <option value="0.5" selected>p = 0.50 (Standard)</option>
+              <option value="0.7">p = 0.70 (Aggressive)</option>
+            </select>
+
+            <input id="doTime-87f74045" type="range" min="0" max="11.5" step="0.01" value="0">
+            <span id="doLabel-87f74045" class="time-label">0.00 s</span>
+          </div>
+
+          <div id="doSteps-87f74045" class="steps-wrap"></div>
+        </div>
+
+        <div class="info-grid">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">Live Math Area: Bernoulli Mask & Scaling</div>
+              <div id="doBadge-87f74045" class="status-badge">Awaiting Start</div>
+            </div>
+            <div id="doMath-87f74045" class="math-box"></div>
+          </div>
+
+          <div class="stack">
+            <div class="card">
+              <div class="card-title-dark">Current Action</div>
+              <div id="doTitle-87f74045" class="moment-title"></div>
+              <div id="doDesc-87f74045" class="moment-desc"></div>
+            </div>
+
+            <div class="card" style="background:#f5faff;border-color:#c7d2fe;">
+              <div class="card-title-dark" style="color:#3730a3;">PyTorch Context</div>
+              <div class="context-text">
+                This corresponds to <code>nn.Dropout(p=0.5)</code> in your <code>DropoutModel</code>. During <code>model.train()</code>, the nodes are randomly dropped and scaled.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+(function() {
+  if (!window.__mathjax_loaded__) {
+    const mj = document.createElement("script");
+    mj.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+    mj.async = true;
+    document.head.appendChild(mj);
+    window.__mathjax_loaded__ = true;
+  }
+
+  const canvas = document.getElementById("doCanvas-87f74045");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const playBtn = document.getElementById("doPlay-87f74045");
+  const resetBtn = document.getElementById("doReset-87f74045");
+  const randomBtn = document.getElementById("doRandom-87f74045");
+  const prevBtn = document.getElementById("doPrev-87f74045");
+  const nextBtn = document.getElementById("doNext-87f74045");
+  const rateSelect = document.getElementById("doRate-87f74045");
+  const timeSlider = document.getElementById("doTime-87f74045");
+  const timeLabel = document.getElementById("doLabel-87f74045");
+  const stepMarkersWrap = document.getElementById("doSteps-87f74045");
+
+  const formulaMain = document.getElementById("doMath-87f74045");
+  const momentTitle = document.getElementById("doTitle-87f74045");
+  const momentDesc = document.getElementById("doDesc-87f74045");
+  const posBadge = document.getElementById("doBadge-87f74045");
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const TOTAL_TIME = 11.5;
+
+  let currentP = 0.5;
+  let mask1 = [1, 0, 1, 0, 1];
+  let mask2 = [0, 1, 1, 1, 0];
+
+  function generateRandomMasks() {
+    if (currentP === 0.0) {
+      mask1 = [1,1,1,1,1]; mask2 = [1,1,1,1,1]; return;
+    }
+    mask1 = Array(5).fill(0).map(() => Math.random() >= currentP ? 1 : 0);
+    mask2 = Array(5).fill(0).map(() => Math.random() >= currentP ? 1 : 0);
+    if(mask1.every(m => m === 0)) mask1[Math.floor(Math.random()*5)] = 1;
+    if(mask2.every(m => m === 0)) mask2[Math.floor(Math.random()*5)] = 1;
+  }
+  generateRandomMasks();
+
+  const COLORS = {
+    bgTop: "#121735", bgBottom: "#171c38",
+    nodeStroke: "#58C4DD",
+    droppedFill: "#0f172a", droppedStroke: "#1e293b",
+    outFill: "#c084fc", outStroke: "#7e22ce",
+    text: "#F8FAFC"
+  };
+
+  const NODE_RADIUS = 32;
+  const POS = {
+    inputs: [ {x: 180, y: 230}, {x: 180, y: 330}, {x: 180, y: 430} ],
+    hidden1: [ {x: 480, y: 130}, {x: 480, y: 230}, {x: 480, y: 330}, {x: 480, y: 430}, {x: 480, y: 530} ],
+    hidden2: [ {x: 780, y: 130}, {x: 780, y: 230}, {x: 780, y: 330}, {x: 780, y: 430}, {x: 780, y: 530} ],
+    outputs:[ {x: 1080, y: 280}, {x: 1080, y: 380} ]
+  };
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeInOut(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t) * t; }
+
+  function state0() {
+    return { dropAnim: 0, fwdInpToH1: -1, scalePulse1: 0, fwdH1ToH2: -1, scalePulse2: 0, fwdH2ToOut: -1 };
+  }
+
+  class Animator {
+    constructor() { this.clips = []; this.t0 = null; this.elapsed = 0; this.playing = false; this.raf = null; }
+    add(start, duration, updateFn, easeFn=easeInOut) { this.clips.push({ start, duration, updateFn, easeFn }); }
+    buildState(t) {
+      const s = state0();
+      this.clips.forEach(clip => {
+        if (t < clip.start) return;
+        const raw = clamp((t - clip.start) / clip.duration, 0, 1);
+        clip.updateFn(clip.easeFn(raw), s);
+      });
+      return s;
+    }
+    applyAt(t) {
+      this.elapsed = t; const s = this.buildState(t);
+      render(s, t); updateText(s, t); syncControls(); updateStepUI();
+    }
+    run(fromSec=null) {
+      if (fromSec !== null) this.elapsed = fromSec;
+      this.playing = true; this.t0 = null;
+      const tick = (now) => {
+        if (!this.playing) return;
+        if (this.t0 === null) this.t0 = now - this.elapsed * 1000;
+        this.elapsed = (now - this.t0) / 1000;
+        if (this.elapsed >= TOTAL_TIME) { this.elapsed = TOTAL_TIME; this.playing = false; }
+        this.applyAt(this.elapsed);
+        if (this.playing) this.raf = requestAnimationFrame(tick);
+      };
+      this.raf = requestAnimationFrame(tick);
+    }
+    pause() { this.playing = false; if (this.raf) cancelAnimationFrame(this.raf); }
+    reset() { this.pause(); this.applyAt(0); }
+  }
+
+  const animator = new Animator();
+
+  const STEP_MARKERS = [
+    { t: 0.0, label: "1. Full Network" },
+    { t: 1.0, label: "2. Generate Masks" },
+    { t: 3.0, label: "3. Forward to H1" },
+    { t: 4.5, label: "4. Scale H1" },
+    { t: 6.0, label: "5. Forward to H2" },
+    { t: 7.5, label: "6. Scale H2" },
+    { t: 9.0, label: "7. Output" }
+  ];
+
+  animator.add(1.0, 1.2, (p, s) => { s.dropAnim = p; });
+  animator.add(2.5, 1.5, (p, s) => { s.fwdInpToH1 = p; });
+  animator.add(4.0, 1.0, (p, s) => { s.scalePulse1 = Math.sin(p * Math.PI); });
+  animator.add(5.5, 1.5, (p, s) => { s.fwdH1ToH2 = p; });
+  animator.add(7.0, 1.0, (p, s) => { s.scalePulse2 = Math.sin(p * Math.PI); });
+  animator.add(8.5, 1.5, (p, s) => { s.fwdH2ToOut = p; });
+
+  function text(txt, x, y, size=20, color=COLORS.text, align="center", weight="600") {
+    ctx.save(); ctx.fillStyle = color; ctx.font = `${weight} ${size}px Arial, sans-serif`;
+    ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillText(txt, x, y); ctx.restore();
+  }
+
+  function hexToRgb(hex) {
+    const h = hex.replace("#", "");
+    return { r: parseInt(h.substring(0, 2), 16), g: parseInt(h.substring(2, 4), 16), b: parseInt(h.substring(4, 6), 16) };
+  }
+
+  function colorLerp(c1, c2, t) {
+    const rgb1 = hexToRgb(c1); const rgb2 = hexToRgb(c2);
+    const r = Math.round(lerp(rgb1.r, rgb2.r, t));
+    const g = Math.round(lerp(rgb1.g, rgb2.g, t));
+    const b = Math.round(lerp(rgb1.b, rgb2.b, t));
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function drawNode(x, y, r, stroke, fill, glowAlpha, label) {
+    ctx.save();
+    if(glowAlpha > 0) { ctx.shadowColor = stroke; ctx.shadowBlur = 20 * glowAlpha; }
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = fill; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = stroke; ctx.stroke();
+    text(label, x, y, 18, COLORS.text, "center", "700");
+    ctx.restore();
+  }
+
+  function drawSignalLine(x1, y1, x2, y2, progress, baseAlpha) {
+    if(baseAlpha <= 0.01) return;
+    ctx.save();
+    ctx.strokeStyle = `rgba(51, 65, 85, ${baseAlpha})`;
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+    if(progress > 0 && progress < 1) {
+      const len = 45;
+      const dx = x2 - x1; const dy = y2 - y1;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      const ux = dx/d; const uy = dy/d;
+      const px = x1 + dx * progress; const py = y1 + dy * progress;
+
+      const grad = ctx.createLinearGradient(px - ux*len, py - uy*len, px, py);
+      grad.addColorStop(0, "rgba(255, 243, 106, 0)");
+      grad.addColorStop(1, `rgba(255, 243, 106, ${baseAlpha})`);
+
+      ctx.strokeStyle = grad; ctx.lineWidth = 3; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(px - ux*len, py - uy*len); ctx.lineTo(px, py); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function render(s, t) {
+    ctx.clearRect(0, 0, W, H);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, COLORS.bgTop); g.addColorStop(1, COLORS.bgBottom);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    text("Input", POS.inputs[0].x, 60, 22, COLORS.text, "center", "700");
+    text("Hidden 1 (Dropout)", POS.hidden1[0].x, 60, 22, COLORS.text, "center", "700");
+    text("Hidden 2 (Dropout)", POS.hidden2[0].x, 60, 22, COLORS.text, "center", "700");
+    text("Output", POS.outputs[0].x, 60, 22, COLORS.text, "center", "700");
+
+    const scaleFactor = currentP === 0 ? 1.0 : 1.0 / (1.0 - currentP);
+
+    POS.inputs.forEach((inp, i) => {
+      POS.hidden1.forEach((hid, j) => {
+        const lineAlpha = lerp(1.0, mask1[j] ? 1.0 : 0.05, s.dropAnim);
+        drawSignalLine(inp.x + NODE_RADIUS, inp.y, hid.x - NODE_RADIUS, hid.y, s.fwdInpToH1, lineAlpha);
+      });
+    });
+
+    POS.hidden1.forEach((h1, i) => {
+      POS.hidden2.forEach((h2, j) => {
+        const survives = mask1[i] && mask2[j];
+        const lineAlpha = lerp(1.0, survives ? 1.0 : 0.05, s.dropAnim);
+        drawSignalLine(h1.x + NODE_RADIUS, h1.y, h2.x - NODE_RADIUS, h2.y, s.fwdH1ToH2, lineAlpha);
+      });
+    });
+
+    POS.hidden2.forEach((h2, i) => {
+      POS.outputs.forEach((out, j) => {
+        const lineAlpha = lerp(1.0, mask2[i] ? 1.0 : 0.05, s.dropAnim);
+        drawSignalLine(h2.x + NODE_RADIUS, h2.y, out.x - NODE_RADIUS, out.y, s.fwdH2ToOut, lineAlpha);
+      });
+    });
+
+    POS.inputs.forEach((inp, i) => {
+      drawNode(inp.x, inp.y, NODE_RADIUS, COLORS.nodeStroke, "rgba(57, 255, 20, 0.2)", 0.6, `x${i+1}`);
+    });
+
+    POS.hidden1.forEach((hid, i) => {
+      const isActive = mask1[i] === 1;
+      const targetFill = isActive ? "rgba(57, 255, 20, 0.4)" : COLORS.droppedFill;
+      const targetStroke = isActive ? COLORS.nodeStroke : COLORS.droppedStroke;
+      const curFill = colorLerp("rgba(57, 255, 20, 0.4)", targetFill, s.dropAnim);
+      const curStroke = colorLerp(COLORS.nodeStroke, targetStroke, s.dropAnim);
+
+      let glow = isActive ? 0.6 : lerp(0.6, 0.0, s.dropAnim);
+      if (isActive && s.scalePulse1 > 0) glow += s.scalePulse1 * 1.5;
+
+      drawNode(hid.x, hid.y, NODE_RADIUS, curStroke, curFill, glow, `h1_${i+1}`);
+      if (!isActive && s.dropAnim > 0.8) text("X", hid.x, hid.y, 24, "rgba(255, 255, 255, 0.2)", "center", "700");
+
+      if (isActive && s.scalePulse1 > 0.1 && currentP !== 0) {
+         ctx.save(); ctx.globalAlpha = s.scalePulse1;
+         text(`× ${scaleFactor.toFixed(2)}`, hid.x, hid.y - 50, 18, "#FFF36A", "center", "700");
+         ctx.restore();
+      }
+    });
+
+    POS.hidden2.forEach((hid, i) => {
+      const isActive = mask2[i] === 1;
+      const targetFill = isActive ? "rgba(57, 255, 20, 0.4)" : COLORS.droppedFill;
+      const targetStroke = isActive ? COLORS.nodeStroke : COLORS.droppedStroke;
+      const curFill = colorLerp("rgba(57, 255, 20, 0.4)", targetFill, s.dropAnim);
+      const curStroke = colorLerp(COLORS.nodeStroke, targetStroke, s.dropAnim);
+
+      let glow = isActive ? 0.6 : lerp(0.6, 0.0, s.dropAnim);
+      if (isActive && s.scalePulse2 > 0) glow += s.scalePulse2 * 1.5;
+
+      drawNode(hid.x, hid.y, NODE_RADIUS, curStroke, curFill, glow, `h2_${i+1}`);
+      if (!isActive && s.dropAnim > 0.8) text("X", hid.x, hid.y, 24, "rgba(255, 255, 255, 0.2)", "center", "700");
+
+      if (isActive && s.scalePulse2 > 0.1 && currentP !== 0) {
+         ctx.save(); ctx.globalAlpha = s.scalePulse2;
+         text(`× ${scaleFactor.toFixed(2)}`, hid.x, hid.y - 50, 18, "#FFF36A", "center", "700");
+         ctx.restore();
+      }
+    });
+
+    POS.outputs.forEach((out, i) => {
+      let glow = s.fwdH2ToOut > 0.8 ? 1.0 : 0.2;
+      drawNode(out.x, out.y, NODE_RADIUS, COLORS.outStroke, "rgba(192, 132, 252, 0.3)", glow, `y${i+1}`);
+    });
+  }
+
+  let lastLatex = "";
+  function updateText(s, t) {
+    const scale = currentP === 0 ? "1.00" : (1.0 / (1.0 - currentP)).toFixed(2);
+
+    let title = "Setup Phase";
+    let desc = "The network is fully connected. During training, we select a dropout probability (p).";
+    let badgeTxt = "Initialization";
+    let latex = String.raw`p = ${currentP.toFixed(2)} \quad \text{(Probability of dropping a node)}`;
+
+    if (t >= 1.0 && t < 2.5) {
+      title = "Apply Random Dropout Masks";
+      desc = `We generate independent Bernoulli masks for Hidden 1 and Hidden 2. Nodes assigned '0' are dropped. Click "Randomize Iteration" to sample a new pattern.`;
+      badgeTxt = "Mask Generation";
+      latex = String.raw`
+        \begin{aligned}
+        \mathbf{r}^{(1)} &\sim \text{Bernoulli}(1 - p) \rightarrow \mathbf{r}^{(1)} = [${mask1.join(', ')}]^T \\
+        \mathbf{r}^{(2)} &\sim \text{Bernoulli}(1 - p) \rightarrow \mathbf{r}^{(2)} = [${mask2.join(', ')}]^T
+        \end{aligned}
+      `;
+    } else if (t >= 2.5 && t < 4.0) {
+      title = "Forward Pass to Hidden 1";
+      desc = "Input signals only propagate to the surviving nodes in Hidden 1.";
+      badgeTxt = "Forward Pass (H1)";
+      latex = String.raw`
+        \mathbf{a}^{(1)} = \sigma(W^{(1)} \mathbf{x} + \mathbf{b}^{(1)}) \odot \mathbf{r}^{(1)}
+      `;
+    } else if (t >= 4.0 && t < 5.5) {
+      title = "Inverted Scaling (Hidden 1)";
+      desc = `Because roughly ${Math.round(currentP*100)}% of nodes are dead, the expected sum drops. We scale the active nodes by 1/(1-p) to compensate.`;
+      badgeTxt = "Scaling (H1)";
+      latex = String.raw`
+        \tilde{\mathbf{a}}^{(1)} = \frac{\mathbf{a}^{(1)}}{1 - p} = \mathbf{a}^{(1)} \times \mathbf{${scale}}
+      `;
+    } else if (t >= 5.5 && t < 7.0) {
+      title = "Forward Pass to Hidden 2";
+      desc = "The scaled signals from H1 propagate to the surviving nodes in H2.";
+      badgeTxt = "Forward Pass (H2)";
+      latex = String.raw`
+        \mathbf{a}^{(2)} = \sigma(W^{(2)} \tilde{\mathbf{a}}^{(1)} + \mathbf{b}^{(2)}) \odot \mathbf{r}^{(2)}
+      `;
+    } else if (t >= 7.0 && t < 8.5) {
+      title = "Inverted Scaling (Hidden 2)";
+      desc = "We apply the same inverted dropout scaling to the surviving nodes in Hidden 2.";
+      badgeTxt = "Scaling (H2)";
+      latex = String.raw`
+        \tilde{\mathbf{a}}^{(2)} = \frac{\mathbf{a}^{(2)}}{1 - p} = \mathbf{a}^{(2)} \times \mathbf{${scale}}
+      `;
+    } else if (t >= 8.5) {
+      title = "Final Output Calculation";
+      desc = "The final scaled activations pass forward to compute the network's prediction.";
+      badgeTxt = "Compute Output";
+      latex = String.raw`
+        \hat{\mathbf{y}} = \sigma(W^{(3)} \tilde{\mathbf{a}}^{(2)} + \mathbf{b}^{(3)})
+      `;
+    }
+
+    momentTitle.innerText = title;
+    momentDesc.innerText = desc;
+    posBadge.innerText = badgeTxt;
+
+    if (latex !== lastLatex) {
+      lastLatex = latex;
+      formulaMain.textContent = `\\[ ${latex} \\]`;
+
+      const renderMath = () => {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise([formulaMain]).catch(err => console.log('MathJax Error:', err));
+        } else {
+          setTimeout(renderMath, 50);
+        }
+      };
+      renderMath();
+    }
+  }
+
+  function syncControls() {
+    timeSlider.value = animator.elapsed.toFixed(2);
+    timeLabel.textContent = animator.elapsed.toFixed(2) + " s";
+    playBtn.innerHTML = animator.playing ? "&#10074;&#10074; Pause" : "&#9654; Play";
+    playBtn.classList.toggle("playing", animator.playing);
+  }
+
+  function updateStepUI() {
+    const buttons = stepMarkersWrap.querySelectorAll("button");
+    let activeIdx = 0;
+    for(let i=0; i<STEP_MARKERS.length; i++) {
+       if(animator.elapsed >= STEP_MARKERS[i].t) activeIdx = i;
+    }
+    buttons.forEach((btn, i) => {
+      btn.classList.toggle("active", i === activeIdx);
+    });
+  }
+
+  playBtn.onclick = () => { animator.playing ? animator.pause() : animator.run(animator.elapsed); syncControls(); };
+
+  resetBtn.onclick = () => {
+    animator.reset();
+    syncControls();
+  };
+
+  randomBtn.onclick = () => {
+    generateRandomMasks();
+    animator.pause();
+    animator.applyAt(1.0);
+    animator.run(1.0);
+  };
+
+  prevBtn.onclick = () => {
+    let activeIdx = 0;
+    for(let i=0; i<STEP_MARKERS.length; i++) if(animator.elapsed >= STEP_MARKERS[i].t) activeIdx = i;
+    const target = Math.max(0, activeIdx - 1);
+    animator.pause(); animator.applyAt(STEP_MARKERS[target].t);
+  };
+
+  nextBtn.onclick = () => {
+    let activeIdx = 0;
+    for(let i=0; i<STEP_MARKERS.length; i++) if(animator.elapsed >= STEP_MARKERS[i].t) activeIdx = i;
+    const target = Math.min(STEP_MARKERS.length - 1, activeIdx + 1);
+    animator.pause(); animator.applyAt(STEP_MARKERS[target].t);
+  };
+
+  timeSlider.oninput = (e) => { animator.pause(); animator.applyAt(parseFloat(e.target.value)); };
+
+  rateSelect.onchange = (e) => {
+    currentP = parseFloat(e.target.value);
+    generateRandomMasks();
+    animator.applyAt(animator.elapsed);
+  };
+
+  STEP_MARKERS.forEach((step, idx) => {
+    const btn = document.createElement("button");
+    btn.textContent = step.label;
+    btn.className = "step-pill";
+    btn.onclick = () => { animator.pause(); animator.applyAt(step.t); };
+    stepMarkersWrap.appendChild(btn);
+  });
+
+  animator.applyAt(0);
+})();
+</script>
+</div>
+
+</body>
+</html>

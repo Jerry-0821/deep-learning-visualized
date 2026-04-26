@@ -1,0 +1,1823 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>transfomer.ipynb</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+
+<div id="tf-page-7d8d5759">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    #tf-page-7d8d5759 {
+      --white: #ffffff;
+      --black: #1d1d1f;
+      --gray1: #f5f5f7;
+      --gray2: #e8e8ed;
+      --gray3: #6e6e73;
+      --gray4: #aeaeb2;
+      --blue: #0071e3;
+      --blue2: #2b8cff;
+      --blueLight: #e8f0fe;
+      --blueSoft: #f3f7ff;
+      --green: #2d7c46;
+      --greenSoft: #eaf3de;
+      --orange: #b25a17;
+      --orangeSoft: #faeeda;
+      --purple: #5d4fc4;
+      --purpleSoft: #efedff;
+      --teal: #0f6e56;
+      --tealSoft: #e9f7f2;
+      --red: #a33c1f;
+      --redSoft: #faece7;
+      --shadow: 0 18px 40px rgba(0, 77, 163, 0.06);
+      --radius: 20px;
+      --panel: rgba(255,255,255,0.74);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      color: var(--black);
+    }
+
+    #tf-page-7d8d5759 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    #tf-page-7d8d5759 .page {
+      max-width: 1380px;
+      margin: 18px auto;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(0,113,227,0.06), transparent 26%),
+        linear-gradient(to bottom, #ffffff 0%, #fbfcff 100%);
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 18px 44px rgba(34, 62, 132, 0.08);
+    }
+
+    #tf-page-7d8d5759 .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 32px;
+      border-bottom: 0.5px solid var(--gray2);
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    #tf-page-7d8d5759 .nav-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    #tf-page-7d8d5759 .nav-brand { font-size: 13px; font-weight: 600; }
+    #tf-page-7d8d5759 .nav-status { font-size: 13px; color: var(--gray4); }
+
+    #tf-page-7d8d5759 .hero {
+      padding: 42px 32px 28px;
+      border-bottom: 0.5px solid var(--gray2);
+    }
+
+    #tf-page-7d8d5759 .hero-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.22fr) minmax(320px, 0.78fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    #tf-page-7d8d5759 .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blueLight);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+      letter-spacing: .01em;
+    }
+
+    #tf-page-7d8d5759 h1 {
+      font-size: clamp(30px, 4vw, 42px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 10px;
+    }
+
+    #tf-page-7d8d5759 h1 span {
+      background: linear-gradient(135deg, var(--blue), #58a6ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #tf-page-7d8d5759 .desc {
+      font-size: 15px;
+      color: var(--gray3);
+      line-height: 1.65;
+      max-width: 760px;
+      margin-bottom: 22px;
+    }
+
+    #tf-page-7d8d5759 .meta { display: flex; flex-wrap: wrap; gap: 20px; }
+    #tf-page-7d8d5759 .meta-item { font-size: 12px; color: var(--gray4); }
+    #tf-page-7d8d5759 .meta-item span { color: var(--black); font-weight: 600; }
+
+    #tf-page-7d8d5759 .hero-panel {
+      background: linear-gradient(180deg,#fbfdff 0%, #f4f8ff 100%);
+      border: 1px solid rgba(0,113,227,0.08);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    #tf-page-7d8d5759 .hero-panel-label {
+      font-size: 10px;
+      color: var(--gray4);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    #tf-page-7d8d5759 .hero-panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -.02em;
+      margin-bottom: 14px;
+    }
+
+    #tf-page-7d8d5759 .hero-points { display: flex; flex-direction: column; gap: 12px; }
+
+    #tf-page-7d8d5759 .hero-point {
+      display: flex;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    #tf-page-7d8d5759 .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex: none;
+    }
+
+    #tf-page-7d8d5759 .hero-point strong { display: block; font-size: 12px; margin-bottom: 2px; }
+    #tf-page-7d8d5759 .hero-point span { font-size: 12px; color: var(--gray3); line-height: 1.5; }
+
+    #tf-page-7d8d5759 .main {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 30px 32px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #tf-page-7d8d5759 .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray3);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    #tf-page-7d8d5759 .panel {
+      background: var(--panel);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    #tf-page-7d8d5759 .controls-shell {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #tf-page-7d8d5759 .controls-head h2 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 2px;
+    }
+
+    #tf-page-7d8d5759 .controls-head .sub {
+      font-size: 13px;
+      color: var(--gray3);
+      line-height: 1.55;
+    }
+
+    #tf-page-7d8d5759 .controls-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1.15fr 1fr 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    #tf-page-7d8d5759 .control-block {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    #tf-page-7d8d5759 .control-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    #tf-page-7d8d5759 .control-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--black);
+      letter-spacing: -0.01em;
+    }
+
+    #tf-page-7d8d5759 .control-value {
+      font-size: 12px;
+      color: var(--gray4);
+      font-weight: 600;
+    }
+
+    #tf-page-7d8d5759 .control-help {
+      font-size: 12px;
+      color: var(--gray3);
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
+    #tf-page-7d8d5759 input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    #tf-page-7d8d5759 .chip-row,
+    #tf-page-7d8d5759 .seg-row,
+    #tf-page-7d8d5759 .play-row,
+    #tf-page-7d8d5759 .focus-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    #tf-page-7d8d5759 .chip,
+    #tf-page-7d8d5759 .seg-btn,
+    #tf-page-7d8d5759 .play-btn,
+    #tf-page-7d8d5759 .focus-chip,
+    #tf-page-7d8d5759 .step-chip {
+      border: 1px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.82);
+      color: var(--black);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .16s ease;
+      font-family: inherit;
+    }
+
+    #tf-page-7d8d5759 .chip:hover,
+    #tf-page-7d8d5759 .seg-btn:hover,
+    #tf-page-7d8d5759 .play-btn:hover,
+    #tf-page-7d8d5759 .focus-chip:hover,
+    #tf-page-7d8d5759 .step-chip:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    #tf-page-7d8d5759 .chip.active,
+    #tf-page-7d8d5759 .seg-btn.active,
+    #tf-page-7d8d5759 .focus-chip.active,
+    #tf-page-7d8d5759 .step-chip.active,
+    #tf-page-7d8d5759 .play-btn.playing {
+      background: var(--blue);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    #tf-page-7d8d5759 .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.22fr) minmax(320px, 0.78fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    #tf-page-7d8d5759 .viz-shell,
+    #tf-page-7d8d5759 .side-shell {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #tf-page-7d8d5759 .card {
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 18px;
+      padding: 14px;
+      transition: box-shadow .18s ease, border-color .18s ease, transform .18s ease, opacity .18s ease;
+    }
+
+    #tf-page-7d8d5759 .card.active {
+      border-color: rgba(0,113,227,0.18);
+      box-shadow: 0 8px 22px rgba(0,113,227,0.08);
+    }
+
+    #tf-page-7d8d5759 .card.future {
+      opacity: 0.58;
+    }
+
+    #tf-page-7d8d5759 .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    #tf-page-7d8d5759 .card-title { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+    #tf-page-7d8d5759 .card-sub { font-size: 11px; color: var(--gray4); }
+
+    #tf-page-7d8d5759 .process-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    #tf-page-7d8d5759 .process-card {
+      border-radius: 14px;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(0,0,0,0.05);
+      padding: 12px;
+      min-height: 102px;
+      transition: .16s ease;
+      opacity: .58;
+      transform: translateY(0);
+    }
+
+    #tf-page-7d8d5759 .process-card.active {
+      opacity: 1;
+      border-color: rgba(0,113,227,0.18);
+      box-shadow: 0 8px 20px rgba(0,113,227,0.06);
+      transform: translateY(-1px);
+    }
+
+    #tf-page-7d8d5759 .process-label {
+      font-size: 10px;
+      color: var(--gray4);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    #tf-page-7d8d5759 .process-value {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    #tf-page-7d8d5759 .process-note {
+      font-size: 12px;
+      color: var(--gray3);
+      line-height: 1.45;
+    }
+
+    #tf-page-7d8d5759 .token-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    #tf-page-7d8d5759 .token-pill {
+      border-radius: 999px;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.88);
+      border: 1px solid rgba(0,0,0,0.05);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--black);
+      transition: .16s ease;
+    }
+
+    #tf-page-7d8d5759 .token-pill.focus {
+      background: var(--blue);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 8px 18px rgba(0,113,227,0.15);
+    }
+
+    #tf-page-7d8d5759 .token-pill.anchor {
+      outline: 2px solid rgba(15, 110, 86, 0.18);
+      outline-offset: 1px;
+    }
+
+    #tf-page-7d8d5759 .token-pill.strong-link {
+      background: var(--tealSoft);
+      border-color: rgba(15,110,86,0.12);
+      color: var(--teal);
+    }
+
+    #tf-page-7d8d5759 .layout-mini {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 14px;
+    }
+
+    #tf-page-7d8d5759 .vector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    #tf-page-7d8d5759 .vector-card {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 16px;
+      padding: 10px;
+    }
+
+    #tf-page-7d8d5759 .vector-title {
+      font-size: 11px;
+      color: var(--gray4);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    #tf-page-7d8d5759 .mini-vector {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 88px;
+      padding: 8px 6px 2px;
+      border-radius: 14px;
+      background: linear-gradient(to bottom, rgba(243,247,255,0.7), rgba(255,255,255,0.96));
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    #tf-page-7d8d5759 .vec-bar-wrap {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #tf-page-7d8d5759 .vec-bar-track {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      background:
+        linear-gradient(to top, rgba(29,29,31,0.04), rgba(29,29,31,0.01));
+      overflow: hidden;
+    }
+
+    #tf-page-7d8d5759 .vec-zero {
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%;
+      height: 1px;
+      background: rgba(0,0,0,0.08);
+    }
+
+    #tf-page-7d8d5759 .vec-bar {
+      position: absolute;
+      width: 72%;
+      border-radius: 10px;
+      transition: height .25s ease, top .25s ease, bottom .25s ease;
+    }
+
+    #tf-page-7d8d5759 .vec-bar.pos { background: linear-gradient(180deg, #8ec3ff, var(--blue)); }
+    #tf-page-7d8d5759 .vec-bar.neg { background: linear-gradient(180deg, #f3b58a, #d85a30); }
+
+    #tf-page-7d8d5759 .mini-caption {
+      font-size: 12px;
+      color: var(--gray3);
+      line-height: 1.55;
+      margin-top: 10px;
+    }
+
+    #tf-page-7d8d5759 .heatmap-board {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    #tf-page-7d8d5759 .heatmap-label-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 34px;
+    }
+
+    #tf-page-7d8d5759 .heatmap-row-label,
+    #tf-page-7d8d5759 .heatmap-col-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray3);
+      line-height: 1.15;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      text-align: right;
+    }
+
+    #tf-page-7d8d5759 .heatmap-col-label {
+      justify-content: center;
+      text-align: center;
+      min-height: auto;
+      height: 28px;
+    }
+
+    #tf-page-7d8d5759 .heatmap-main { display: flex; flex-direction: column; gap: 6px; }
+    #tf-page-7d8d5759 .heatmap-col-head {
+      display: grid;
+      gap: 6px;
+    }
+    #tf-page-7d8d5759 .heatmap-grid {
+      display: grid;
+      gap: 6px;
+    }
+
+    #tf-page-7d8d5759 .cell {
+      min-height: 28px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--black);
+      transition: .16s ease;
+    }
+
+    #tf-page-7d8d5759 .cell.masked {
+      background: repeating-linear-gradient(
+        -45deg,
+        rgba(174,174,178,0.14),
+        rgba(174,174,178,0.14) 6px,
+        rgba(255,255,255,0.8) 6px,
+        rgba(255,255,255,0.8) 12px
+      );
+      color: var(--gray4);
+    }
+
+    #tf-page-7d8d5759 .cell.row-focus {
+      outline: 2px solid rgba(0,113,227,0.12);
+      outline-offset: 1px;
+    }
+
+    #tf-page-7d8d5759 .cell.max-cell {
+      box-shadow: inset 0 0 0 2px rgba(15,110,86,0.16);
+    }
+
+    #tf-page-7d8d5759 .weight-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    #tf-page-7d8d5759 .weight-pill {
+      padding: 8px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(0,0,0,0.05);
+      min-width: 84px;
+    }
+
+    #tf-page-7d8d5759 .weight-name {
+      font-size: 11px;
+      color: var(--gray4);
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    #tf-page-7d8d5759 .weight-value {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    #tf-page-7d8d5759 .weight-pill.top-link {
+      background: var(--tealSoft);
+      border-color: rgba(15,110,86,0.12);
+    }
+
+    #tf-page-7d8d5759 .context-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    #tf-page-7d8d5759 .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    #tf-page-7d8d5759 .metric {
+      border-radius: 14px;
+      padding: 12px;
+      background: var(--gray1);
+    }
+
+    #tf-page-7d8d5759 .metric-label {
+      font-size: 11px;
+      color: var(--gray4);
+      margin-bottom: 4px;
+    }
+
+    #tf-page-7d8d5759 .metric-value {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    #tf-page-7d8d5759 .metric-note {
+      font-size: 12px;
+      color: var(--gray3);
+      line-height: 1.45;
+    }
+
+    #tf-page-7d8d5759 .prediction-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-top: 2px;
+    }
+
+    #tf-page-7d8d5759 .pred-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr) 44px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #tf-page-7d8d5759 .pred-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    #tf-page-7d8d5759 .pred-track {
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.05);
+      overflow: hidden;
+      position: relative;
+    }
+
+    #tf-page-7d8d5759 .pred-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #8ec3ff, var(--blue));
+      transition: width .3s ease;
+    }
+
+    #tf-page-7d8d5759 .pred-value {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray3);
+      text-align: right;
+    }
+
+    #tf-page-7d8d5759 .pred-row.top .pred-fill {
+      background: linear-gradient(90deg, #7bd7c0, var(--teal));
+    }
+
+    #tf-page-7d8d5759 .formula-box {
+      font-size: 12.5px;
+      color: var(--black);
+      background: var(--gray1);
+      border-radius: 14px;
+      padding: 14px 16px;
+      line-height: 1.85;
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    #tf-page-7d8d5759 .formula-box strong { color: var(--blue); }
+    #tf-page-7d8d5759 .formula-line {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      display: block;
+      font-size: 12px;
+      margin-top: 6px;
+      color: var(--black);
+      word-break: break-word;
+    }
+
+    #tf-page-7d8d5759 .note-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #tf-page-7d8d5759 .note-item {
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    #tf-page-7d8d5759 .note-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    #tf-page-7d8d5759 .note-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--blue);
+    }
+
+    #tf-page-7d8d5759 .note-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    #tf-page-7d8d5759 .note-body {
+      font-size: 12px;
+      color: var(--gray3);
+      line-height: 1.55;
+    }
+
+    #tf-page-7d8d5759 .footer-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 18px 32px 24px;
+      border-top: 0.5px solid var(--gray2);
+      font-size: 12px;
+      color: var(--gray4);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    #tf-page-7d8d5759 .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    @media (max-width: 1180px) {
+      #tf-page-7d8d5759 .controls-grid { grid-template-columns: 1fr 1fr; }
+      #tf-page-7d8d5759 .layout,
+      #tf-page-7d8d5759 .hero-shell,
+      #tf-page-7d8d5759 .layout-mini,
+      #tf-page-7d8d5759 .context-wrap { grid-template-columns: 1fr; }
+      #tf-page-7d8d5759 .process-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      #tf-page-7d8d5759 .main,
+      #tf-page-7d8d5759 .hero { padding-left: 18px; padding-right: 18px; }
+      #tf-page-7d8d5759 .controls-grid,
+      #tf-page-7d8d5759 .summary-grid,
+      #tf-page-7d8d5759 .process-grid { grid-template-columns: 1fr; }
+      #tf-page-7d8d5759 .nav { padding-left: 18px; padding-right: 18px; }
+      #tf-page-7d8d5759 .pred-row { grid-template-columns: 70px minmax(0, 1fr) 42px; }
+      #tf-page-7d8d5759 .heatmap-board { grid-template-columns: 1fr; }
+      #tf-page-7d8d5759 .heatmap-label-col { display: none; }
+      #tf-page-7d8d5759 .page { margin: 8px auto; }
+    }
+  </style>
+
+  <div class="page">
+    <nav class="nav">
+      <div class="nav-back">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Deep Learning
+      </div>
+      <div class="nav-brand">Interactive Lab</div>
+      <div class="nav-status" id="navStatus-7d8d5759">Transformer · Step 1</div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-shell">
+        <div>
+          <div class="badge">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+            Module 5 · Transformer Intuition
+          </div>
+          <h1>Transformer<br><span>Visualization</span></h1>
+          <p class="desc">
+            A Colab-friendly, beginner-first visualization of how a transformer turns tokens into embeddings, projects them into Query / Key / Value space, forms an attention pattern, builds a context vector, and finally pushes the last position toward a next-token prediction.
+          </p>
+          <div class="meta">
+            <div class="meta-item">Input <span>Tokens in a prompt</span></div>
+            <div class="meta-item">Attention <span>Q · K similarity</span></div>
+            <div class="meta-item">Context <span>Weighted sum of V</span></div>
+            <div class="meta-item">Output <span>Next-token distribution</span></div>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="hero-panel-label">What to watch for</div>
+          <div class="hero-panel-title">Core beginner intuition</div>
+          <div class="hero-points">
+            <div class="hero-point">
+              <div class="dot" style="background:#0071e3"></div>
+              <div>
+                <strong>Tokens become vectors</strong>
+                <span>Words are not processed as raw text. Each token is turned into a compact numeric representation that the model can manipulate.</span>
+              </div>
+            </div>
+            <div class="hero-point">
+              <div class="dot" style="background:#0f6e56"></div>
+              <div>
+                <strong>Attention is selective lookup</strong>
+                <span>The focus token compares its query with earlier keys, then turns those scores into normalized weights with softmax.</span>
+              </div>
+            </div>
+            <div class="hero-point">
+              <div class="dot" style="background:#5d4fc4"></div>
+              <div>
+                <strong>Prediction uses updated context</strong>
+                <span>The final position combines what it already knows with what attention retrieved, then pushes that richer state toward likely next tokens.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <main class="main">
+      <div class="section-label">Interactive controls</div>
+      <section class="panel controls-shell">
+        <div class="controls-head">
+          <h2>Explore one transformer pass</h2>
+          <div class="sub">Choose a prompt, inspect one token’s attention row, and step through the pipeline from tokenization to next-token prediction.</div>
+        </div>
+
+        <div class="controls-grid">
+          <div class="control-block">
+            <div class="control-top">
+              <div class="control-label">Sentence preset</div>
+              <div class="control-value" id="presetLabel-7d8d5759">Descriptive phrase</div>
+            </div>
+            <div class="chip-row" id="presetRow-7d8d5759"></div>
+            <div class="control-help">Each preset gives you a different attention story: descriptive language, factual retrieval, or pronoun resolution.</div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-top">
+              <div class="control-label">Inspect token</div>
+              <div class="control-value" id="focusLabel-7d8d5759">Current focus</div>
+            </div>
+            <div class="focus-row" id="focusRow-7d8d5759"></div>
+            <div class="control-help">The selected token produces the active query row. Stronger weights mean this token is borrowing more information from earlier positions.</div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-top">
+              <div class="control-label">Step navigation</div>
+              <div class="control-value" id="stepValue-7d8d5759">Step 1 / 6</div>
+            </div>
+            <div class="play-row" style="margin-bottom:8px;">
+              <button class="play-btn" id="playBtn-7d8d5759">Play</button>
+              <button class="play-btn" id="nextBtn-7d8d5759">Next</button>
+              <button class="play-btn" id="resetBtn-7d8d5759">Reset</button>
+            </div>
+            <div class="chip-row" id="stepRow-7d8d5759"></div>
+            <div class="control-help">Autoplay cycles through the six conceptual stages. You can also jump directly to any stage.</div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-top">
+              <div class="control-label">Animation speed</div>
+              <div class="control-value"><span id="speedValue-7d8d5759">1.2</span>s</div>
+            </div>
+            <input type="range" min="0.7" max="2.4" step="0.1" value="1.2" id="speedSlider-7d8d5759">
+            <div class="control-help">Controls how quickly autoplay advances through the stages. Slower is better when you want to narrate each panel by hand.</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-label">Transformer pass</div>
+      <section class="panel viz-shell">
+        <div class="card" id="processCardWrap-7d8d5759">
+          <div class="card-head">
+            <div class="card-title">Pipeline at a glance</div>
+            <div class="card-sub">One layer, one head, one beginner-friendly view</div>
+          </div>
+          <div class="process-grid" id="processGrid-7d8d5759"></div>
+        </div>
+
+        <div class="layout-mini">
+          <div class="card" id="tokensCard-7d8d5759">
+            <div class="card-head">
+              <div class="card-title">Prompt tokens</div>
+              <div class="card-sub">The last position is the prediction anchor</div>
+            </div>
+            <div class="token-strip" id="tokenStrip-7d8d5759"></div>
+            <div class="mini-caption" id="tokenCaption-7d8d5759"></div>
+          </div>
+
+          <div class="card" id="qkvCard-7d8d5759">
+            <div class="card-head">
+              <div class="card-title">Selected token vectors</div>
+              <div class="card-sub">Embedding → Query / Key / Value</div>
+            </div>
+            <div class="vector-grid">
+              <div class="vector-card">
+                <div class="vector-title">Embedding</div>
+                <div id="embeddingVec-7d8d5759"></div>
+              </div>
+              <div class="vector-card">
+                <div class="vector-title">Query / Key</div>
+                <div id="qkVecs-7d8d5759"></div>
+              </div>
+              <div class="vector-card">
+                <div class="vector-title">Value / Updated</div>
+                <div id="vUpdatedVecs-7d8d5759"></div>
+              </div>
+            </div>
+            <div class="mini-caption" id="qkvCaption-7d8d5759"></div>
+          </div>
+        </div>
+
+        <div class="layout">
+          <div>
+            <div class="card" id="attCard-7d8d5759" style="margin-bottom:14px;">
+              <div class="card-head">
+                <div class="card-title">Causal attention heatmap</div>
+                <div class="card-sub">Only current and earlier tokens are visible</div>
+              </div>
+              <div class="heatmap-board">
+                <div class="heatmap-label-col" id="heatmapLabelCol-7d8d5759"></div>
+                <div class="heatmap-main">
+                  <div class="heatmap-col-head" id="heatmapCols-7d8d5759"></div>
+                  <div class="heatmap-grid" id="heatmapGrid-7d8d5759"></div>
+                </div>
+              </div>
+              <div class="weight-row" id="weightRow-7d8d5759"></div>
+            </div>
+
+            <div class="card" id="contextCard-7d8d5759">
+              <div class="card-head">
+                <div class="card-title">Context building</div>
+                <div class="card-sub">Softmax weights choose how much of each value vector to keep</div>
+              </div>
+              <div class="context-wrap">
+                <div>
+                  <div class="formula-box" id="contextFormula-7d8d5759"></div>
+                  <div class="summary-grid" id="summaryGrid-7d8d5759"></div>
+                </div>
+                <div>
+                  <div class="vector-card" style="height:100%;">
+                    <div class="vector-title">Weighted-sum context vector</div>
+                    <div id="contextVec-7d8d5759"></div>
+                    <div class="mini-caption" id="contextCaption-7d8d5759"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="side-shell" style="padding:0;">
+            <div class="card" id="explainCard-7d8d5759">
+              <div class="card-head">
+                <div class="card-title">Step explanation</div>
+                <div class="card-sub">What the model is doing right now</div>
+              </div>
+              <div class="formula-box" id="formulaBox-7d8d5759"></div>
+              <div class="note-list" id="noteList-7d8d5759" style="margin-top:12px;"></div>
+            </div>
+
+            <div class="card" id="predCard-7d8d5759">
+              <div class="card-head">
+                <div class="card-title">Next-token prediction</div>
+                <div class="card-sub">A simplified distribution after the updated final state</div>
+              </div>
+              <div class="prediction-bars" id="predictionBars-7d8d5759"></div>
+              <div class="mini-caption" id="predictionCaption-7d8d5759"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="footer-strip">
+      This Colab page keeps the white, glass-panel design language from your uploaded topic demos, while compressing the transformer flow into a beginner-friendly sequence: tokens → embeddings → Q/K/V → scores → softmax → weighted sum → prediction.
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const ROOT = document.getElementById("tf-page-7d8d5759");
+
+      const PRESETS = [
+        {
+          id: "descriptive",
+          name: "Descriptive phrase",
+          shortName: "Descriptive",
+          tokens: ["The", "fluffy", "blue", "creature", "roamed", "the", "verdant", "forest"],
+          tags:   ["det", "adj",   "adj",  "noun",     "verb",  "det", "adj",     "noun"],
+          defaultFocus: 3,
+          anchorIndex: 7,
+          relations: {
+            1: {3: 2.0},
+            2: {3: 1.8},
+            3: {1: 1.9, 2: 1.7},
+            4: {3: 1.4, 7: 0.9},
+            6: {7: 2.0},
+            7: {6: 2.1, 4: 0.5}
+          },
+          predictions: [
+            ["near", 0.34],
+            ["quietly", 0.23],
+            ["today", 0.14],
+            [".", 0.11],
+            ["again", 0.08],
+            ["outside", 0.05]
+          ],
+          note: "Adjectives feed meaning into the nouns they modify, while the verb connects subject and scene."
+        },
+        {
+          id: "factual",
+          name: "Factual retrieval",
+          shortName: "Factual",
+          tokens: ["The", "capital", "of", "France", "is"],
+          tags:   ["det", "noun",    "prep", "proper", "aux"],
+          defaultFocus: 3,
+          anchorIndex: 4,
+          relations: {
+            1: {3: 0.9},
+            2: {3: 1.1},
+            3: {1: 1.3, 2: 0.7},
+            4: {1: 1.7, 3: 2.1}
+          },
+          predictions: [
+            ["Paris", 0.62],
+            ["the", 0.11],
+            ["a", 0.08],
+            ["located", 0.06],
+            ["not", 0.05],
+            ["known", 0.04]
+          ],
+          note: "The final token leans heavily on the country token and the concept token 'capital' to retrieve the missing city."
+        },
+        {
+          id: "pronoun",
+          name: "Pronoun resolution",
+          shortName: "Pronoun",
+          tokens: ["The", "cat", "chased", "the", "mouse", "because", "it", "was"],
+          tags:   ["det", "noun","verb",   "det", "noun",  "link",    "pron", "aux"],
+          defaultFocus: 6,
+          anchorIndex: 7,
+          relations: {
+            1: {2: 0.5},
+            2: {1: 0.8, 4: 0.7},
+            4: {3: 0.4},
+            5: {1: 0.6, 4: 1.1},
+            6: {1: 1.8, 4: 1.2, 5: 0.6},
+            7: {6: 1.6, 1: 1.1, 4: 0.9}
+          },
+          predictions: [
+            ["hungry", 0.31],
+            ["tired", 0.18],
+            ["scared", 0.16],
+            ["small", 0.13],
+            ["fast", 0.10],
+            ["angry", 0.07]
+          ],
+          note: "Pronouns often look backward for a plausible antecedent. The ambiguity is part of what makes the pattern interesting."
+        }
+      ];
+
+      const STEP_INFO = [
+        {
+          title: "1. Tokenization",
+          cardTitle: "Tokens",
+          header: "Current step: Tokenization",
+          summary: ({ focusToken, anchorToken }) =>
+            `The model first breaks the sentence into ordered token pieces. Before any attention happens, it needs a clean sequence of positions to work with.`,
+
+          lookAt: ({ focusToken, anchorToken }) =>
+            `Start with the <strong>Prompt tokens</strong> card. The blue pill is your selected token <strong>${focusToken}</strong>, and the outlined token <strong>${anchorToken}</strong> is the simplified prediction anchor.`,
+
+          example: ({ focusToken }) =>
+            `You are currently inspecting <strong>${focusToken}</strong>. At this step, nothing has been compared yet; the page is only establishing where each token sits in the sequence.`,
+
+          read: () =>
+            `This panel is about order, not meaning. The tokens are still text pieces here; attention weights and predictions come later.`,
+
+          takeaway: () =>
+            `Tokenization decides <strong>what the model will process as units</strong>. Once the sequence is fixed, later steps know which positions they are allowed to reference.`,
+
+          preset: ({ focusToken, anchorToken }) =>
+            `This prompt is now ready for later attention. The selected token is <strong>${focusToken}</strong>, and the simplified prediction anchor is <strong>${anchorToken}</strong>.`
+        },
+
+        {
+          title: "2. Embedding lookup",
+          cardTitle: "Embedding",
+          header: "Current step: Embedding",
+          summary: ({ focusToken }) =>
+            `Each token is turned into a compact numeric vector. That vector carries token identity plus position information.`,
+
+          lookAt: ({ focusToken }) =>
+            `Check the <strong>Embedding</strong> mini-bars for <strong>${focusToken}</strong>. Those blue bars are the selected token's vector, not prediction probabilities.`,
+
+          example: ({ focusToken }) =>
+            `Right now, <strong>${focusToken}</strong> has been converted from text into numbers. This is the base state that will later be projected into query, key, and value.`,
+
+          read: () =>
+            `Each blue bar is one vector dimension. Taller bars mean larger values in that dimension; they do <strong>not</strong> mean the token is more likely.`,
+
+          takeaway: () =>
+            `Embedding is the bridge from <strong>words</strong> to <strong>model-readable numbers</strong>. Without this step, attention has nothing numeric to compare.`,
+
+          preset: ({ focusToken }) =>
+            `The selected token <strong>${focusToken}</strong> is now represented as a vector, so the model can start doing math on it in later steps.`
+        },
+
+        {
+          title: "3. Q / K / V projection",
+          cardTitle: "QKV",
+          header: "Current step: Q / K / V projection",
+          summary: ({ focusToken }) =>
+            `The selected embedding is projected into three views: query, key, and value. These three views separate matching from content.`,
+
+          lookAt: ({ focusToken }) =>
+            `Focus on the <strong>Query / Key / Value</strong> panel for <strong>${focusToken}</strong>. Query asks what to look for, key says what a token offers, and value carries the content that can be copied forward.`,
+
+          example: ({ focusToken }) =>
+            `The same token <strong>${focusToken}</strong> is being transformed three ways. The model is preparing a search signal, a matching signal, and a content signal before attention begins.`,
+
+          read: () =>
+            `The blue bars can look similar because they all come from the same embedding, but they serve different roles. Q and K help form attention scores; V is what gets mixed into context.`,
+
+          takeaway: () =>
+            `Q/K/V lets the model separate <strong>where to look</strong> from <strong>what to take</strong>. That separation is what makes attention flexible.`,
+
+          preset: ({ focusToken }) =>
+            `The selected token <strong>${focusToken}</strong> now has three different views, so the next step can compare it against earlier tokens.`
+        },
+
+        {
+          title: "4. Score matrix",
+          cardTitle: "Scores",
+          header: "Current step: Raw attention scores",
+          summary: ({ focusToken }) =>
+            `The selected query is compared with earlier keys to produce raw attention scores. Higher scores mean a stronger pre-softmax match.`,
+
+          lookAt: ({ focusToken }) =>
+            `Read the <strong>${focusToken}</strong> row in the heatmap. Darker cells in that row mean stronger raw relevance before normalization.`,
+
+          example: ({ focusToken, topToken }) =>
+            `At this step, the model is asking which earlier tokens look most relevant to <strong>${focusToken}</strong>. The strongest raw source is currently <strong>${topToken}</strong>, but these are still scores, not final attention weights.`,
+
+          read: () =>
+            `Rows represent the token doing the asking. Columns represent earlier tokens that might provide information. Future cells are masked, so the model cannot look ahead.`,
+
+          takeaway: () =>
+            `This step decides <strong>who looks relevant</strong>. The next step will turn these raw scores into normalized attention weights.`,
+
+          preset: ({ focusToken, topToken }) =>
+            `For this example, <strong>${focusToken}</strong> is already leaning toward <strong>${topToken}</strong>, but the weights have not been normalized yet.`
+        },
+
+        {
+          title: "5. Softmax and weighted sum",
+          cardTitle: "Softmax",
+          header: "Current step: Softmax and context building",
+          summary: ({ focusToken }) =>
+            `The raw score row is normalized with softmax, so the weights add up to 1. The model then uses those weights to build a context vector.`,
+
+          lookAt: ({ focusToken }) =>
+            `Check three places together: the <strong>${focusToken}</strong> heatmap row, the weight pills below it, and the <strong>Context building</strong> card.`,
+
+          example: ({ focusToken, topToken, topWeight }) =>
+            `You selected <strong>${focusToken}</strong>. Its strongest source is <strong>${topToken}</strong> at <strong>${topWeight}</strong>, so the context vector is pulled most strongly from that token's value vector.`,
+
+          read: () =>
+            `These percentages are <strong>attention weights over earlier positions</strong>, not vocabulary probabilities. They tell you where the model is looking, not what word it will output.`,
+
+          takeaway: () =>
+            `Softmax turns matching into <strong>attention allocation</strong>. The context vector is the retrieved summary the model will carry forward.`,
+
+          preset: ({ preset, topToken }) =>
+            `${preset.note} Right now the strongest attended source is <strong>${topToken}</strong>.`
+        },
+
+        {
+          title: "6. Prediction push",
+          cardTitle: "Prediction",
+          header: "Current step: Prediction",
+          summary: ({ focusToken }) =>
+            `The model combines the selected token's state with its retrieved context, then converts that updated state into next-token scores.`,
+
+          lookAt: () =>
+            `Compare the <strong>Context building</strong> card with the <strong>Next-token prediction</strong> bars. This is the handoff from retrieved information to final word prediction.`,
+
+          example: ({ focusToken, topToken, topWeight, predictionTop, predictionTopPct }) =>
+            `You selected <strong>${focusToken}</strong>. After using context dominated by <strong>${topToken}</strong> (${topWeight}), this simplified pass now leans most strongly toward <strong>${predictionTop}</strong> (${predictionTopPct}).`,
+
+          read: () =>
+            `The bars here are <strong>next-token probabilities</strong>, not attention weights. A longer bar means the model thinks that candidate token is more likely to come next.`,
+
+          takeaway: () =>
+            `Attention decides <strong>where to look</strong>. Prediction decides <strong>what word comes next</strong>.`,
+
+          preset: ({ preset, predictionTop }) =>
+            `${preset.note} This pass ends with <strong>${predictionTop}</strong> as the top next-token guess.`
+        }
+      ];
+
+      const STATE = {
+        presetIndex: 0,
+        focusIndex: PRESETS[0].defaultFocus,
+        step: 0,
+        autoplay: false,
+        speed: 1.2,
+        timer: null
+      };
+
+      function tokenHash(token) {
+        let h = 0;
+        for (let i = 0; i < token.length; i++) {
+          h = (h * 131 + token.charCodeAt(i) * (i + 3)) % 1000003;
+        }
+        return h;
+      }
+
+      const TAG_BASE = {
+        det:    [0.15, 0.85, -0.15, -0.45, -0.25, 0.10],
+        adj:    [0.82, 0.18, 0.92, -0.08, 0.38, -0.18],
+        noun:   [0.96, 0.35, 0.08, 0.82, 0.24, 0.42],
+        verb:   [0.22, 1.00, -0.32, 0.58, 0.94, 0.12],
+        prep:   [-0.12, 0.68, 0.18, 0.32, 0.08, 0.74],
+        aux:    [0.04, 0.96, -0.26, 0.22, 0.72, 0.28],
+        pron:   [0.58, 0.52, 0.20, 0.36, 0.10, 0.70],
+        link:   [0.18, 0.78, 0.12, 0.22, 0.18, 0.62],
+        proper: [1.00, 0.46, 0.02, 0.92, 0.30, 0.20],
+        punct:  [0.02, 0.08, 0.00, 0.06, 0.00, 0.10]
+      };
+
+      const WQ = [
+        [ 0.72, -0.18,  0.34,  0.22,  0.08,  0.10],
+        [ 0.10,  0.66, -0.24,  0.12,  0.44,  0.08],
+        [ 0.38,  0.08,  0.60, -0.16,  0.18, -0.06],
+        [ 0.12,  0.26,  0.06,  0.54,  0.18,  0.34]
+      ];
+      const WK = [
+        [ 0.65,  0.06,  0.28,  0.18,  0.04,  0.12],
+        [ 0.06,  0.52, -0.10,  0.16,  0.52,  0.06],
+        [ 0.26,  0.14,  0.72, -0.08,  0.06,  0.08],
+        [ 0.20,  0.20,  0.02,  0.50,  0.16,  0.36]
+      ];
+      const WV = [
+        [ 0.56,  0.14,  0.18,  0.42,  0.08,  0.18],
+        [ 0.12,  0.46, -0.08,  0.20,  0.54,  0.08],
+        [ 0.18,  0.08,  0.50,  0.12,  0.14,  0.22],
+        [ 0.20,  0.12,  0.06,  0.34,  0.22,  0.50]
+      ];
+
+      function clamp(v, lo, hi) {
+        return Math.max(lo, Math.min(hi, v));
+      }
+
+      function softmax(arr) {
+        const maxVal = Math.max(...arr);
+        const exps = arr.map(v => Math.exp(v - maxVal));
+        const sum = exps.reduce((a, b) => a + b, 0);
+        return exps.map(v => v / sum);
+      }
+
+      function mulMatVec(M, v) {
+        return M.map(row => row.reduce((acc, x, i) => acc + x * v[i], 0));
+      }
+
+      function vecAdd(a, b, scaleB = 1.0) {
+        return a.map((v, i) => v + scaleB * b[i]);
+      }
+
+      function vecDot(a, b) {
+        return a.reduce((acc, v, i) => acc + v * b[i], 0);
+      }
+
+      function vecNorm(arr) {
+        const maxAbs = Math.max(...arr.map(x => Math.abs(x)), 1e-6);
+        return arr.map(v => v / maxAbs);
+      }
+
+      function generateEmbedding(token, tag, index, total) {
+        const base = (TAG_BASE[tag] || TAG_BASE.noun).slice();
+        const h = tokenHash(token);
+        const pos = index / Math.max(total - 1, 1);
+        return base.map((v, d) => {
+          const wobble = (((h >> (d * 3)) % 17) - 8) / 35;
+          const posShift = (d % 2 === 0 ? 1 : -1) * (pos - 0.5) * 0.28;
+          return clamp(v + wobble + posShift, -1.25, 1.25);
+        });
+      }
+
+      function buildAttention(preset, qList, kList) {
+        const n = preset.tokens.length;
+        const result = [];
+        for (let i = 0; i < n; i++) {
+          const raw = [];
+          for (let j = 0; j < n; j++) {
+            if (j > i) {
+              raw.push(-12);
+              continue;
+            }
+            let score = vecDot(qList[i], kList[j]) / Math.sqrt(qList[i].length);
+            score += (i === j ? 0.75 : 0);
+            score += (-0.22 * Math.abs(i - j));
+            if (preset.relations[i] && typeof preset.relations[i][j] !== "undefined") {
+              score += preset.relations[i][j];
+            }
+            raw.push(score);
+          }
+          const masked = raw.map((v, j) => j > i ? -99 : v);
+          const weights = softmax(masked);
+          result.push({raw, weights});
+        }
+        return result;
+      }
+
+      function getCurrentPreset() {
+        return PRESETS[STATE.presetIndex];
+      }
+
+      function getPresetData() {
+        const preset = getCurrentPreset();
+        const emb = preset.tokens.map((token, i) => generateEmbedding(token, preset.tags[i], i, preset.tokens.length));
+        const q = emb.map(v => vecNorm(mulMatVec(WQ, v)));
+        const k = emb.map(v => vecNorm(mulMatVec(WK, v)));
+        const val = emb.map(v => vecNorm(mulMatVec(WV, v)));
+        const attention = buildAttention(preset, q, k);
+        const focusRow = attention[STATE.focusIndex].weights;
+        const context = val[0].map((_, d) => focusRow.reduce((acc, w, idx) => acc + w * val[idx][d], 0));
+        const updated = vecNorm(vecAdd(emb[STATE.focusIndex], context, 0.85));
+        const topIdx = focusRow.reduce((best, x, idx, arr) => x > arr[best] ? idx : best, 0);
+        return {preset, emb, q, k, val, attention, focusRow, context, updated, topIdx};
+      }
+
+      function formatPct(x) {
+        return Math.round(x * 100) + "%";
+      }
+
+      function formatSigned(x) {
+        return (x >= 0 ? "+" : "") + x.toFixed(2);
+      }
+
+      function mixColor(weight, masked=false) {
+        if (masked) return "rgba(174,174,178,0.12)";
+        const t = clamp(weight, 0, 1);
+        const r = Math.round(232 - t * 115);
+        const g = Math.round(240 - t * 94);
+        const b = Math.round(254 - t * 12);
+        return "rgb(" + r + "," + g + "," + b + ")";
+      }
+
+      function vectorHTML(values) {
+        const bars = values.map(v => {
+          const mag = Math.abs(v);
+          const height = 50 * mag;
+          const positive = v >= 0;
+          const style = positive
+            ? `height:${height}%; bottom:50%;`
+            : `height:${height}%; top:50%;`;
+          return `
+            <div class="vec-bar-wrap">
+              <div class="vec-bar-track">
+                <div class="vec-zero"></div>
+                <div class="vec-bar ${positive ? "pos" : "neg"}" style="${style}"></div>
+              </div>
+            </div>
+          `;
+        }).join("");
+        return `<div class="mini-vector">${bars}</div>`;
+      }
+
+      function setActiveCard(cardId, stepStart, stepEnd = 99) {
+        const el = document.getElementById(cardId + "-7d8d5759");
+        if (!el) return;
+        el.classList.toggle("active", STATE.step >= stepStart && STATE.step <= stepEnd);
+        el.classList.toggle("future", STATE.step < stepStart);
+      }
+
+      function renderPresetButtons() {
+        const row = document.getElementById("presetRow-7d8d5759");
+        row.innerHTML = PRESETS.map((p, idx) => `
+          <button class="chip ${idx === STATE.presetIndex ? "active" : ""}" data-preset="${idx}">${p.shortName}</button>
+        `).join("");
+        row.querySelectorAll("[data-preset]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            STATE.presetIndex = Number(btn.dataset.preset);
+            STATE.focusIndex = PRESETS[STATE.presetIndex].defaultFocus;
+            STATE.step = 0;
+            stopAutoplay();
+            renderAll();
+          });
+        });
+      }
+
+      function renderFocusButtons() {
+        const {preset} = getPresetData();
+        const row = document.getElementById("focusRow-7d8d5759");
+        row.innerHTML = preset.tokens.map((token, idx) => `
+          <button class="focus-chip ${idx === STATE.focusIndex ? "active" : ""}" data-focus="${idx}">${token}</button>
+        `).join("");
+        row.querySelectorAll("[data-focus]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            STATE.focusIndex = Number(btn.dataset.focus);
+            stopAutoplay();
+            renderAll();
+          });
+        });
+      }
+
+      function renderStepButtons() {
+        const row = document.getElementById("stepRow-7d8d5759");
+        row.innerHTML = STEP_INFO.map((step, idx) => `
+          <button class="step-chip ${idx === STATE.step ? "active" : ""}" data-step="${idx}">${idx + 1}</button>
+        `).join("");
+        row.querySelectorAll("[data-step]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            STATE.step = Number(btn.dataset.step);
+            stopAutoplay();
+            renderAll();
+          });
+        });
+      }
+
+      function renderProcessCards() {
+        const grid = document.getElementById("processGrid-7d8d5759");
+        const hints = [
+          "Break the sentence into token units the model can process.",
+          "Turn each token into a numeric vector with position information.",
+          "Create query, key, and value views from that token state.",
+          "Measure how strongly the selected token matches earlier tokens.",
+          "Normalize the scores into attention weights and build context.",
+          "Use the updated state to score possible next tokens."
+        ];
+
+        grid.innerHTML = STEP_INFO.map((step, idx) => `
+          <div class="process-card ${STATE.step === idx ? "active" : ""}">
+            <div class="process-label">Step ${idx + 1}</div>
+            <div class="process-value">${step.cardTitle}</div>
+            <div class="process-note">${hints[idx]}</div>
+          </div>
+        `).join("");
+      }
+
+      function renderTokens(data) {
+        const strip = document.getElementById("tokenStrip-7d8d5759");
+        const caption = document.getElementById("tokenCaption-7d8d5759");
+        const {preset, topIdx} = data;
+        strip.innerHTML = preset.tokens.map((token, idx) => {
+          const classes = [
+            "token-pill",
+            idx === STATE.focusIndex ? "focus" : "",
+            idx === preset.anchorIndex ? "anchor" : "",
+            idx === topIdx && STATE.step >= 4 ? "strong-link" : ""
+          ].filter(Boolean).join(" ");
+          return `<div class="${classes}">${token}</div>`;
+        }).join("");
+        caption.innerHTML = STATE.step < 4
+          ? `Selected token <strong>${preset.tokens[STATE.focusIndex]}</strong> will produce the active attention row. The outlined token <strong>${preset.tokens[preset.anchorIndex]}</strong> is the simplified prediction anchor.`
+          : `After softmax, the focus token <strong>${preset.tokens[STATE.focusIndex]}</strong> pays the most attention to <strong>${preset.tokens[topIdx]}</strong>.`;
+      }
+
+      function renderVectors(data) {
+        const {preset, emb, q, k, val, updated} = data;
+        const idx = STATE.focusIndex;
+        document.getElementById("embeddingVec-7d8d5759").innerHTML = vectorHTML(emb[idx]) +
+          `<div class="mini-caption">Token <strong>${preset.tokens[idx]}</strong> as a base embedding with position mixed in.</div>`;
+        document.getElementById("qkVecs-7d8d5759").innerHTML =
+          `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+             <div>${vectorHTML(q[idx])}<div class="mini-caption"><strong>Q</strong> asks what to look for.</div></div>
+             <div>${vectorHTML(k[idx])}<div class="mini-caption"><strong>K</strong> advertises what this token offers.</div></div>
+           </div>`;
+        document.getElementById("vUpdatedVecs-7d8d5759").innerHTML =
+          `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+             <div>${vectorHTML(val[idx])}<div class="mini-caption"><strong>V</strong> is the content that can be copied forward.</div></div>
+             <div>${vectorHTML(updated)}<div class="mini-caption"><strong>Updated</strong> = original token state + retrieved context.</div></div>
+           </div>`;
+        document.getElementById("qkvCaption-7d8d5759").innerHTML =
+          STATE.step < 2
+          ? `These vector panels are shown early so beginners can connect the token to a numeric state before attention starts.`
+          : `The highlighted token <strong>${preset.tokens[idx]}</strong> is projected three ways. Query / key handle matching, while value supplies the information being mixed.`;
+      }
+
+      function renderHeatmap(data) {
+        const {preset, attention, topIdx} = data;
+        const n = preset.tokens.length;
+        const labelCol = document.getElementById("heatmapLabelCol-7d8d5759");
+        const cols = document.getElementById("heatmapCols-7d8d5759");
+        const grid = document.getElementById("heatmapGrid-7d8d5759");
+        const weightRow = document.getElementById("weightRow-7d8d5759");
+
+        labelCol.innerHTML = preset.tokens.map((t, i) =>
+          `<div class="heatmap-row-label" style="${i===STATE.focusIndex ? "color:#0071e3;font-weight:700;" : ""}">${t}</div>`
+        ).join("");
+        cols.style.gridTemplateColumns = `repeat(${n}, minmax(0, 1fr))`;
+        cols.innerHTML = preset.tokens.map((t, i) =>
+          `<div class="heatmap-col-label" style="${i===topIdx && STATE.step>=4 ? "color:#0f6e56;font-weight:700;" : ""}">${t}</div>`
+        ).join("");
+
+        grid.style.gridTemplateColumns = `repeat(${n}, minmax(0, 1fr))`;
+        const cells = [];
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j < n; j++) {
+            const masked = j > i;
+            const weight = attention[i].weights[j];
+            const val = masked ? "×" : formatPct(weight);
+            const bg = mixColor(weight, masked);
+            const classes = [
+              "cell",
+              masked ? "masked" : "",
+              i === STATE.focusIndex ? "row-focus" : "",
+              (i === STATE.focusIndex && j === topIdx && STATE.step >= 4) ? "max-cell" : ""
+            ].filter(Boolean).join(" ");
+            cells.push(`<div class="${classes}" style="background:${bg};">${val}</div>`);
+          }
+        }
+        grid.innerHTML = cells.join("");
+
+        weightRow.innerHTML = data.focusRow.map((w, idx) => `
+          <div class="weight-pill ${idx === topIdx ? "top-link" : ""}">
+            <div class="weight-name">${preset.tokens[idx]}</div>
+            <div class="weight-value">${formatPct(w)}</div>
+          </div>
+        `).join("");
+      }
+
+      function renderContext(data) {
+        const {preset, context, topIdx, focusRow} = data;
+        const summary = document.getElementById("summaryGrid-7d8d5759");
+        const formula = document.getElementById("contextFormula-7d8d5759");
+        const caption = document.getElementById("contextCaption-7d8d5759");
+        const focusToken = preset.tokens[STATE.focusIndex];
+        const topToken = preset.tokens[topIdx];
+        formula.innerHTML = `
+          <strong>Selected row</strong>
+          <span class="formula-line">focus token = ${focusToken}</span>
+          <span class="formula-line">top source = ${topToken}</span>
+          <span class="formula-line">context = Σ attention_weight × value_vector</span>
+        `;
+        summary.innerHTML = `
+          <div class="metric">
+            <div class="metric-label">Strongest link</div>
+            <div class="metric-value">${topToken}</div>
+            <div class="metric-note">${formatPct(focusRow[topIdx])} of the selected token’s attention mass goes here.</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Focus token</div>
+            <div class="metric-value">${focusToken}</div>
+            <div class="metric-note">This is the row currently being explained in detail.</div>
+          </div>
+        `;
+        document.getElementById("contextVec-7d8d5759").innerHTML = vectorHTML(context);
+        caption.innerHTML = `The context vector is a mixture of earlier value vectors. In this preset, the retrieved signal reflects the strongest dependency pattern for <strong>${focusToken}</strong>.`;
+      }
+
+      function renderExplanation(data) {
+        const { preset, topIdx, focusRow } = data;
+        const info = STEP_INFO[STATE.step];
+
+        const focusToken = preset.tokens[STATE.focusIndex];
+        const topToken = preset.tokens[topIdx];
+        const topWeight = formatPct(focusRow[topIdx]);
+        const anchorToken = preset.tokens[preset.anchorIndex];
+        const predictionTop = preset.predictions[0][0];
+        const predictionTopPct = formatPct(preset.predictions[0][1]);
+
+        const ctx = {
+          preset,
+          focusToken,
+          topToken,
+          topWeight,
+          anchorToken,
+          predictionTop,
+          predictionTopPct
+        };
+
+        document.getElementById("formulaBox-7d8d5759").innerHTML = `
+          <strong>${info.header}</strong>
+          <div style="margin-top:8px; color:var(--gray3); line-height:1.6;">
+            ${info.summary(ctx)}
+          </div>
+
+          <div style="
+            margin-top:12px;
+            padding:10px 12px;
+            border-radius:12px;
+            background:rgba(255,255,255,0.68);
+            border:1px solid rgba(0,0,0,0.04);
+          ">
+            <div style="
+              font-size:10px;
+              color:var(--gray4);
+              letter-spacing:.08em;
+              text-transform:uppercase;
+              font-weight:700;
+              margin-bottom:6px;
+            ">
+              Look here first
+            </div>
+            <div style="font-size:12px; color:var(--black); line-height:1.55;">
+              ${info.lookAt(ctx)}
+            </div>
+          </div>
+        `;
+
+        const cards = [
+          {
+            chip: "A",
+            chipStyle: "",
+            title: "What happened here",
+            body: info.example(ctx)
+          },
+          {
+            chip: "B",
+            chipStyle: "",
+            title: "How to read this panel",
+            body: info.read(ctx)
+          },
+          {
+            chip: "C",
+            chipStyle: "",
+            title: "Why it matters",
+            body: info.takeaway(ctx)
+          },
+          {
+            chip: "★",
+            chipStyle: "background:#0f6e56;",
+            title: "Preset-specific reading",
+            body: info.preset(ctx)
+          }
+        ];
+
+        document.getElementById("noteList-7d8d5759").innerHTML = cards.map(card => `
+          <div class="note-item">
+            <div class="note-head">
+              <div class="note-chip" style="${card.chipStyle}">${card.chip}</div>
+              <div class="note-title">${card.title}</div>
+            </div>
+            <div class="note-body">${card.body}</div>
+          </div>
+        `).join("");
+      }
+
+      function renderPredictions(data) {
+        const {preset} = data;
+        const bars = document.getElementById("predictionBars-7d8d5759");
+        bars.innerHTML = preset.predictions.map((item, idx) => `
+          <div class="pred-row ${idx === 0 ? "top" : ""}">
+            <div class="pred-label">${item[0]}</div>
+            <div class="pred-track"><div class="pred-fill" style="width:${item[1] * 100}%;"></div></div>
+            <div class="pred-value">${formatPct(item[1])}</div>
+          </div>
+        `).join("");
+        document.getElementById("predictionCaption-7d8d5759").innerHTML =
+          STATE.step < 5
+          ? `The bar chart is preloaded so you can compare it with the earlier attention story, but the conceptual explanation reaches this panel at Step 6.`
+          : `After one simplified transformer pass, the model leans most strongly toward <strong>${preset.predictions[0][0]}</strong> for this prompt.`;
+      }
+
+      function updateLabels(data) {
+        const {preset} = data;
+        document.getElementById("presetLabel-7d8d5759").textContent = preset.name;
+        document.getElementById("focusLabel-7d8d5759").textContent = preset.tokens[STATE.focusIndex];
+        document.getElementById("stepValue-7d8d5759").textContent = `Step ${STATE.step + 1} / 6`;
+        document.getElementById("navStatus-7d8d5759").textContent = `${preset.shortName} · ${STEP_INFO[STATE.step].title}`;
+      }
+
+      function refreshCardStates() {
+        setActiveCard("tokensCard", 0);
+        setActiveCard("qkvCard", 1);
+        setActiveCard("attCard", 3);
+        setActiveCard("contextCard", 4);
+        setActiveCard("explainCard", 0);
+        setActiveCard("predCard", 5);
+      }
+
+      function renderAll() {
+        const data = getPresetData();
+        renderPresetButtons();
+        renderFocusButtons();
+        renderStepButtons();
+        renderProcessCards();
+        renderTokens(data);
+        renderVectors(data);
+        renderHeatmap(data);
+        renderContext(data);
+        renderExplanation(data);
+        renderPredictions(data);
+        updateLabels(data);
+        refreshCardStates();
+        document.getElementById("playBtn-7d8d5759").textContent = STATE.autoplay ? "Pause" : "Play";
+        document.getElementById("playBtn-7d8d5759").classList.toggle("playing", STATE.autoplay);
+      }
+
+      function stopAutoplay() {
+        STATE.autoplay = false;
+        if (STATE.timer) {
+          clearInterval(STATE.timer);
+          STATE.timer = null;
+        }
+      }
+
+      function startAutoplay() {
+        stopAutoplay();
+        STATE.autoplay = true;
+        STATE.timer = setInterval(() => {
+          STATE.step = (STATE.step + 1) % STEP_INFO.length;
+          renderAll();
+        }, STATE.speed * 1000);
+      }
+
+      document.getElementById("playBtn-7d8d5759").addEventListener("click", () => {
+        if (STATE.autoplay) {
+          stopAutoplay();
+          renderAll();
+        } else {
+          startAutoplay();
+          renderAll();
+        }
+      });
+
+      document.getElementById("nextBtn-7d8d5759").addEventListener("click", () => {
+        stopAutoplay();
+        STATE.step = (STATE.step + 1) % STEP_INFO.length;
+        renderAll();
+      });
+
+      document.getElementById("resetBtn-7d8d5759").addEventListener("click", () => {
+        stopAutoplay();
+        STATE.step = 0;
+        STATE.focusIndex = PRESETS[STATE.presetIndex].defaultFocus;
+        renderAll();
+      });
+
+      document.getElementById("speedSlider-7d8d5759").addEventListener("input", (e) => {
+        STATE.speed = Number(e.target.value);
+        document.getElementById("speedValue-7d8d5759").textContent = STATE.speed.toFixed(1);
+        if (STATE.autoplay) {
+          startAutoplay();
+          renderAll();
+        }
+      });
+
+      renderAll();
+    })();
+  </script>
+</div>
+
+</body>
+</html>

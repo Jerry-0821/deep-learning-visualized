@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>bias_variance_diagnosis_dashboard.py</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bias vs Variance Diagnosis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #ffffff;
+      --black: #1d1d1f;
+      --gray1: #f5f5f7;
+      --gray2: #e8e8ed;
+      --gray3: #6e6e73;
+      --gray4: #aeaeb2;
+      --blue: #0071e3;
+      --blueSoft: #edf5ff;
+      --green: #2d7c46;
+      --greenSoft: #eaf4ed;
+      --orange: #b86b19;
+      --orangeSoft: #fbf0e3;
+      --red: #c04d2d;
+      --redSoft: #fcedea;
+      --purple: #5d4fc4;
+      --purpleSoft: #efedff;
+      --shadow: 0 18px 44px rgba(34, 62, 132, 0.08);
+      --panel: rgba(255,255,255,0.78);
+      --line: rgba(0,0,0,0.06);
+      --radius: 22px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: #ffffff;
+      color: var(--black);
+      padding: 24px;
+    }
+
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(0,113,227,0.06), transparent 28%),
+        linear-gradient(to bottom, #ffffff 0%, #fbfcff 100%);
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 32px;
+      border-bottom: 0.5px solid var(--gray2);
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .nav-brand { font-size: 13px; font-weight: 600; }
+    .nav-status { font-size: 13px; color: var(--gray4); }
+
+    .hero {
+      padding: 42px 32px 28px;
+      border-bottom: 0.5px solid var(--gray2);
+    }
+    .hero-shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.82fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blueSoft);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+      letter-spacing: 0.01em;
+    }
+    h1 {
+      font-size: clamp(32px, 4.5vw, 52px);
+      font-weight: 750;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+      margin-bottom: 12px;
+    }
+    h1 span {
+      background: linear-gradient(135deg, var(--blue), #58a6ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .desc {
+      font-size: 16px;
+      color: var(--gray3);
+      line-height: 1.72;
+      max-width: 780px;
+      margin-bottom: 22px;
+    }
+    .meta { display: flex; flex-wrap: wrap; gap: 20px; }
+    .meta-item { font-size: 12px; color: var(--gray4); }
+    .meta-item span { color: var(--black); font-weight: 600; }
+
+    .hero-panel {
+      background: linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%);
+      border: 1px solid rgba(0,113,227,0.08);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 14px 32px rgba(15,23,42,0.05);
+    }
+    .hero-panel-label {
+      font-size: 10px;
+      color: var(--gray4);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .hero-panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    .hero-points { display: flex; flex-direction: column; gap: 12px; }
+    .hero-point {
+      display: flex;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.75);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      margin-top: 5px; flex: none;
+    }
+    .hero-point strong { display: block; font-size: 12px; margin-bottom: 2px; }
+    .hero-point span { font-size: 12px; color: var(--gray3); line-height: 1.45; }
+
+    .main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 30px 32px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray3);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .controls-shell {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .controls-head h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 2px;
+    }
+    .controls-head .sub {
+      font-size: 13px;
+      color: var(--gray3);
+      line-height: 1.55;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr 1fr 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+    .control-block {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .control-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .control-label { font-size: 12px; font-weight: 700; color: var(--black); letter-spacing: -0.01em; }
+    .control-value { font-size: 12px; color: var(--gray4); font-weight: 700; }
+    .control-help { font-size: 12px; color: var(--gray3); line-height: 1.45; margin-top: 8px; }
+    input[type="range"] { width: 100%; accent-color: var(--blue); cursor: pointer; }
+
+    .chip-row, .toggle-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip, .toggle-chip {
+      border: 1px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.9);
+      color: var(--black);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .16s ease;
+      font-family: inherit;
+    }
+    .chip:hover, .toggle-chip:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .chip.active, .toggle-chip.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: transparent;
+    }
+    .chip.bias.active { background: var(--red); }
+    .chip.var.active { background: var(--orange); }
+    .chip.good.active { background: var(--green); }
+    .chip.mm.active { background: var(--purple); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .viz-shell, .side-shell {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .viz-shell .intuition-card { order: -1; }
+
+    .card {
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 18px;
+      padding: 14px;
+    }
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .card-title { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; }
+    .card-sub { font-size: 11px; color: var(--gray4); }
+
+    .diag-wrap {
+      background: linear-gradient(to bottom, rgba(243,247,255,0.75), rgba(255,255,255,0.94));
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.04);
+      padding: 16px;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .error-row {
+      display: grid;
+      grid-template-columns: 140px minmax(0,1fr) 74px;
+      gap: 12px;
+      align-items: center;
+    }
+    .error-label {
+      font-size: 12px;
+      color: var(--black);
+      font-weight: 700;
+    }
+    .bar-track {
+      position: relative;
+      height: 14px;
+      border-radius: 999px;
+      background: #eef2f8;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .bar-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      transition: width .35s cubic-bezier(.4,0,.2,1), background .25s ease;
+      background: linear-gradient(90deg, #58a6ff, #0071e3);
+    }
+    .bar-fill.gray { background: linear-gradient(90deg, #d7dde8, #bfc7d7); }
+    .bar-fill.train { background: linear-gradient(90deg, #58a6ff, #0071e3); }
+    .bar-fill.traindev { background: linear-gradient(90deg, #8fa5ff, #5d4fc4); }
+    .bar-fill.dev { background: linear-gradient(90deg, #ffb86b, #b86b19); }
+    .bar-fill.test { background: linear-gradient(90deg, #73d19c, #2d7c46); }
+
+    .bar-value {
+      font-size: 12px;
+      color: var(--gray3);
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .gap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .gap-card {
+      border-radius: 16px;
+      padding: 12px;
+      background: var(--gray1);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .gap-name {
+      font-size: 11px;
+      color: var(--gray4);
+      margin-bottom: 4px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .gap-val {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+    .gap-note {
+      font-size: 12px;
+      color: var(--gray3);
+      line-height: 1.45;
+      min-height: 34px;
+    }
+
+    .formula-box, .takeaway-box {
+      font-size: 12.5px;
+      color: var(--black);
+      background: var(--gray1);
+      border-radius: 14px;
+      padding: 14px 16px;
+      line-height: 1.75;
+    }
+    .formula-box strong, .takeaway-box strong { color: var(--blue); }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      margin-bottom: 10px;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .status-bias { background: var(--redSoft); color: var(--red); border-color: rgba(192,77,45,0.15); }
+    .status-bias .status-dot { background: var(--red); }
+    .status-var { background: var(--orangeSoft); color: var(--orange); border-color: rgba(184,107,25,0.15); }
+    .status-var .status-dot { background: var(--orange); }
+    .status-good { background: var(--greenSoft); color: var(--green); border-color: rgba(45,124,70,0.15); }
+    .status-good .status-dot { background: var(--green); }
+    .status-mm { background: var(--purpleSoft); color: var(--purple); border-color: rgba(93,79,196,0.15); }
+    .status-mm .status-dot { background: var(--purple); }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .metric {
+      border-radius: 14px;
+      padding: 12px;
+      background: var(--gray1);
+    }
+    .metric-label { font-size: 11px; color: var(--gray4); margin-bottom: 4px; }
+    .metric-value { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
+
+    .list-rows { display: flex; flex-direction: column; gap: 10px; }
+    .list-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--gray1);
+      font-size: 12px;
+    }
+    .list-row strong { color: var(--black); }
+    .list-row span { color: var(--gray3); line-height: 1.5; text-align: right; }
+
+    .mini-curve-wrap {
+      width: 100%;
+      height: 240px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(to bottom, rgba(243,247,255,0.75), rgba(255,255,255,0.94));
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    svg { width: 100%; height: 100%; display: block; }
+
+    .footer-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 18px 32px 24px;
+      border-top: 0.5px solid var(--gray2);
+      font-size: 12px;
+      color: var(--gray4);
+    }
+
+    @media (max-width: 1120px) {
+      .controls-grid { grid-template-columns: 1fr 1fr; }
+      .layout { grid-template-columns: 1fr; }
+      .hero-shell { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      body { padding: 12px; }
+      .main, .hero { padding-left: 18px; padding-right: 18px; }
+      .controls-grid, .gap-grid, .metric-grid { grid-template-columns: 1fr; }
+      .error-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav">
+    <div class="nav-back">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Machine Learning Strategy
+    </div>
+    <div class="nav-brand">Interactive Lab</div>
+    <div class="nav-status" id="navStatus">Diagnosis follows the error gaps</div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-shell">
+      <div>
+        <div class="badge">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+          Module 3 · Error Diagnosis
+        </div>
+        <h1>Bias vs. Variance<br><span>Diagnosis</span></h1>
+        <p class="desc">
+          This page is not just about seeing underfit or overfit curves. It teaches how to <strong>read the error gaps</strong>: compare human-level performance, training error, training-dev error, dev error, and test error, then decide whether the real bottleneck is bias, variance, data mismatch, or overfitting to the dev set.
+        </p>
+        <div class="meta">
+          <div class="meta-item">Human-level <span>Bayes proxy</span></div>
+          <div class="meta-item">Train gap <span>Avoidable bias</span></div>
+          <div class="meta-item">Train-dev gap <span>Variance</span></div>
+          <div class="meta-item">Dev gap <span>Mismatch</span></div>
+        </div>
+      </div>
+      <div class="hero-panel">
+        <div class="hero-panel-label">Key concepts</div>
+        <div class="hero-panel-title">What to watch for</div>
+        <div class="hero-points">
+          <div class="hero-point">
+            <div class="dot" style="background:#c04d2d"></div>
+            <div>
+              <strong>Bias</strong>
+              <span>If human-level → training gap is the largest, the model still cannot fit the training distribution well.</span>
+            </div>
+          </div>
+          <div class="hero-point">
+            <div class="dot" style="background:#b86b19"></div>
+            <div>
+              <strong>Variance</strong>
+              <span>If training → training-dev or training → dev gap grows, the model does not generalize well to unseen examples.</span>
+            </div>
+          </div>
+          <div class="hero-point">
+            <div class="dot" style="background:#5d4fc4"></div>
+            <div>
+              <strong>Mismatch</strong>
+              <span>If training-dev is much better than dev, the issue is not only generalization, but also distribution shift.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="main">
+    <div class="section-label">Interactive Playground</div>
+
+    <section class="panel controls-shell">
+      <div class="controls-head">
+        <h2>Controls</h2>
+        <p class="sub">Use presets first, then edit the numbers manually. The dashboard will diagnose the dominant issue and recommend what to do next.</p>
+      </div>
+
+      <div class="controls-grid">
+        <div class="control-block">
+          <div class="control-label" style="margin-bottom:10px;">Quick scenarios</div>
+          <div class="chip-row">
+            <button class="chip bias" data-preset="high_bias">High bias</button>
+            <button class="chip var active" data-preset="high_variance">High variance</button>
+            <button class="chip good" data-preset="good_fit">Good fit</button>
+            <button class="chip mm" data-preset="mismatch">Mismatch</button>
+            <button class="chip mm" data-preset="dev_overfit">Dev overfit</button>
+          </div>
+          <div class="control-help">Preset scenarios mirror the diagnostic patterns you are supposed to recognize quickly in practice.</div>
+        </div>
+
+        <div class="control-block">
+          <div class="control-top">
+            <div class="control-label">Human-level error</div>
+            <div class="control-value" id="humanVal">0.5%</div>
+          </div>
+          <input id="humanSlider" type="range" min="0" max="15" step="0.1" value="0.5">
+          <div class="control-help">Use this as a proxy for Bayes error. It changes how you interpret the same train/dev numbers.</div>
+        </div>
+
+        <div class="control-block">
+          <div class="control-top">
+            <div class="control-label">Training error</div>
+            <div class="control-value" id="trainVal">7.0%</div>
+          </div>
+          <input id="trainSlider" type="range" min="0" max="30" step="0.1" value="7.0">
+          <div class="control-help">This measures how well the model fits the training distribution it actually saw.</div>
+        </div>
+
+        <div class="control-block">
+          <div class="control-top">
+            <div class="control-label">Training-dev error</div>
+            <div class="control-value" id="traindevVal">10.0%</div>
+          </div>
+          <input id="trainDevSlider" type="range" min="0" max="30" step="0.1" value="10.0">
+          <div class="control-help">Same distribution as training, but not used for training. This isolates variance from mismatch.</div>
+        </div>
+
+        <div class="control-block">
+          <div class="control-top">
+            <div class="control-label">Dev error</div>
+            <div class="control-value" id="devVal">12.0%</div>
+          </div>
+          <input id="devSlider" type="range" min="0" max="35" step="0.1" value="12.0">
+          <div class="control-help">This is the number you optimize against while iterating on your model.</div>
+        </div>
+
+        <div class="control-block">
+          <div class="control-top">
+            <div class="control-label">Test error</div>
+            <div class="control-value" id="testVal">12.0%</div>
+          </div>
+          <input id="testSlider" type="range" min="0" max="35" step="0.1" value="12.0">
+          <div class="control-help">The final honest check. If it is much worse than dev, you may be overfitting to the dev set.</div>
+        </div>
+
+        <div class="control-block">
+          <div class="control-label" style="margin-bottom:10px;">View mode</div>
+          <div class="toggle-row">
+            <button class="toggle-chip active" id="standardBtn" type="button">Standard</button>
+            <button class="toggle-chip active" id="mismatchBtn" type="button">Mismatch mode</button>
+          </div>
+          <div class="control-help">Turn mismatch mode off to collapse the logic back to the simpler human → train → dev diagnosis flow.</div>
+        </div>
+
+        <div class="control-block">
+          <div class="control-label" style="margin-bottom:10px;">Human baseline presets</div>
+          <div class="chip-row">
+            <button class="chip" data-human="3.0">Typical human</button>
+            <button class="chip" data-human="1.0">Doctor</button>
+            <button class="chip" data-human="0.7">Expert</button>
+            <button class="chip active" data-human="0.5">Team</button>
+          </div>
+          <div class="control-help">This helps explain why diagnosis depends on what baseline you compare against.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="panel viz-shell">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Diagnostic error stack</div>
+              <div class="card-sub">Read the gaps from top to bottom</div>
+            </div>
+          </div>
+
+          <div class="diag-wrap">
+            <div class="stack">
+              <div class="error-row" id="rowHuman">
+                <div class="error-label">Human-level</div>
+                <div class="bar-track"><div class="bar-fill gray" id="barHuman"></div></div>
+                <div class="bar-value" id="readHuman">0.5%</div>
+              </div>
+
+              <div class="error-row" id="rowTrain">
+                <div class="error-label">Training error</div>
+                <div class="bar-track"><div class="bar-fill train" id="barTrain"></div></div>
+                <div class="bar-value" id="readTrain">7.0%</div>
+              </div>
+
+              <div class="error-row" id="rowTrainDev">
+                <div class="error-label">Training-dev error</div>
+                <div class="bar-track"><div class="bar-fill traindev" id="barTrainDev"></div></div>
+                <div class="bar-value" id="readTrainDev">10.0%</div>
+              </div>
+
+              <div class="error-row" id="rowDev">
+                <div class="error-label">Dev error</div>
+                <div class="bar-track"><div class="bar-fill dev" id="barDev"></div></div>
+                <div class="bar-value" id="readDev">12.0%</div>
+              </div>
+
+              <div class="error-row" id="rowTest">
+                <div class="error-label">Test error</div>
+                <div class="bar-track"><div class="bar-fill test" id="barTest"></div></div>
+                <div class="bar-value" id="readTest">12.0%</div>
+              </div>
+            </div>
+
+            <div class="gap-grid">
+              <div class="gap-card">
+                <div class="gap-name">Avoidable bias</div>
+                <div class="gap-val" id="gapBias">6.5%</div>
+                <div class="gap-note" id="gapBiasNote">Human-level → train gap</div>
+              </div>
+              <div class="gap-card">
+                <div class="gap-name">Variance</div>
+                <div class="gap-val" id="gapVar">3.0%</div>
+                <div class="gap-note" id="gapVarNote">Train → training-dev gap</div>
+              </div>
+              <div class="gap-card" id="mismatchCard">
+                <div class="gap-name">Data mismatch</div>
+                <div class="gap-val" id="gapMismatch">2.0%</div>
+                <div class="gap-note" id="gapMismatchNote">Training-dev → dev gap</div>
+              </div>
+              <div class="gap-card">
+                <div class="gap-name">Dev overfit</div>
+                <div class="gap-val" id="gapDevOverfit">0.0%</div>
+                <div class="gap-note" id="gapDevOverfitNote">Dev → test gap</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card intuition-card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Small visual intuition</div>
+              <div class="card-sub">Only a helper, not the main diagnosis</div>
+            </div>
+          </div>
+          <div class="mini-curve-wrap">
+            <svg id="curveSvg" viewBox="0 0 760 240" preserveAspectRatio="none"></svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Core logic</div>
+              <div class="card-sub">How to interpret the numbers</div>
+            </div>
+          </div>
+          <div class="formula-box" id="logicBox">
+            <strong>Bias diagnosis</strong><br>
+            If the gap from human-level error to training error is the largest, the model still cannot fit the training set well.<br><br>
+            <strong>Variance diagnosis</strong><br>
+            If the training → training-dev or training → dev gap is large, the model is not generalizing well.<br><br>
+            <strong>Mismatch diagnosis</strong><br>
+            If training-dev stays much better than dev, distribution shift is a major issue.<br><br>
+            <strong>Dev overfitting</strong><br>
+            If test becomes worse than dev, you may be tuning too hard to the dev set.
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel side-shell">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Diagnosis result</div>
+              <div class="card-sub">Dominant bottleneck right now</div>
+            </div>
+          </div>
+
+          <div id="statusPill" class="status-pill status-var">
+            <span class="status-dot"></span><span id="statusText">High variance</span>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric">
+              <div class="metric-label">Main issue</div>
+              <div class="metric-value" id="metricIssue">Variance</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Confidence</div>
+              <div class="metric-value" id="metricConfidence">Clear</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Largest gap</div>
+              <div class="metric-value" id="metricLargest">3.0%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Suggested focus</div>
+              <div class="metric-value" id="metricFocus">Generalize</div>
+            </div>
+          </div>
+
+          <div class="list-rows">
+            <div class="list-row">
+              <strong>Reasoning</strong>
+              <span id="reasonText">Training is much better than training-dev / dev, so the main bottleneck is generalization rather than fitting the training set.</span>
+            </div>
+            <div class="list-row">
+              <strong>Next actions</strong>
+              <span id="actionsText">Add regularization, collect more data, and search architecture or hyperparameters for better generalization.</span>
+            </div>
+            <div class="list-row">
+              <strong>What not to assume</strong>
+              <span id="warningText">Do not call everything variance. When mismatch mode is on, a big dev jump after training-dev can mean distribution shift instead.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Takeaway</div>
+              <div class="card-sub">Teaching summary</div>
+            </div>
+          </div>
+          <div class="takeaway-box" id="takeawayBox">
+            Diagnosis is not about one pretty curve. It is about comparing <strong>where each gap appears</strong>. Human → train tells you about bias. Train → training-dev tells you about variance. Training-dev → dev tells you about mismatch. Dev → test tells you whether you are starting to overfit the dev set.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="footer-strip">Bias · Variance · Human-level baseline · Data mismatch · Dev overfitting</div>
+</div>
+
+<script>
+(function() {
+  const state = {
+    human: 0.5,
+    train: 7.0,
+    trainDev: 10.0,
+    dev: 12.0,
+    test: 12.0,
+    mismatchMode: true
+  };
+
+  const els = {
+    humanSlider: document.getElementById('humanSlider'),
+    trainSlider: document.getElementById('trainSlider'),
+    trainDevSlider: document.getElementById('trainDevSlider'),
+    devSlider: document.getElementById('devSlider'),
+    testSlider: document.getElementById('testSlider'),
+
+    humanVal: document.getElementById('humanVal'),
+    trainVal: document.getElementById('trainVal'),
+    traindevVal: document.getElementById('traindevVal'),
+    devVal: document.getElementById('devVal'),
+    testVal: document.getElementById('testVal'),
+
+    readHuman: document.getElementById('readHuman'),
+    readTrain: document.getElementById('readTrain'),
+    readTrainDev: document.getElementById('readTrainDev'),
+    readDev: document.getElementById('readDev'),
+    readTest: document.getElementById('readTest'),
+
+    barHuman: document.getElementById('barHuman'),
+    barTrain: document.getElementById('barTrain'),
+    barTrainDev: document.getElementById('barTrainDev'),
+    barDev: document.getElementById('barDev'),
+    barTest: document.getElementById('barTest'),
+
+    gapBias: document.getElementById('gapBias'),
+    gapVar: document.getElementById('gapVar'),
+    gapMismatch: document.getElementById('gapMismatch'),
+    gapDevOverfit: document.getElementById('gapDevOverfit'),
+    gapVarNote: document.getElementById('gapVarNote'),
+    mismatchCard: document.getElementById('mismatchCard'),
+
+    statusPill: document.getElementById('statusPill'),
+    statusText: document.getElementById('statusText'),
+    metricIssue: document.getElementById('metricIssue'),
+    metricConfidence: document.getElementById('metricConfidence'),
+    metricLargest: document.getElementById('metricLargest'),
+    metricFocus: document.getElementById('metricFocus'),
+    reasonText: document.getElementById('reasonText'),
+    actionsText: document.getElementById('actionsText'),
+    warningText: document.getElementById('warningText'),
+    navStatus: document.getElementById('navStatus'),
+    rowTrainDev: document.getElementById('rowTrainDev'),
+    curveSvg: document.getElementById('curveSvg')
+  };
+
+  function fmt(v) { return Number(v).toFixed(1) + '%'; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  function syncStateFromSliders() {
+    state.human = parseFloat(els.humanSlider.value);
+    state.train = parseFloat(els.trainSlider.value);
+    state.trainDev = parseFloat(els.trainDevSlider.value);
+    state.dev = parseFloat(els.devSlider.value);
+    state.test = parseFloat(els.testSlider.value);
+  }
+
+  function applyScenario(name) {
+    const scenarios = {
+      high_bias:  { human: 0.5, train: 11.5, trainDev: 12.2, dev: 13.1, test: 13.2 },
+      high_variance: { human: 0.5, train: 3.0, trainDev: 8.5, dev: 9.0, test: 9.1 },
+      good_fit:   { human: 0.5, train: 1.4, trainDev: 1.8, dev: 2.0, test: 2.1 },
+      mismatch:   { human: 0.5, train: 1.3, trainDev: 1.8, dev: 8.6, test: 8.7 },
+      dev_overfit:{ human: 0.5, train: 1.8, trainDev: 2.6, dev: 3.0, test: 5.5 }
+    };
+    Object.assign(state, scenarios[name]);
+    updateSliders();
+    render();
+  }
+
+  function updateSliders() {
+    els.humanSlider.value = state.human;
+    els.trainSlider.value = state.train;
+    els.trainDevSlider.value = state.trainDev;
+    els.devSlider.value = state.dev;
+    els.testSlider.value = state.test;
+  }
+
+  function setHumanPreset(v) {
+    state.human = parseFloat(v);
+    updateSliders();
+    render();
+  }
+
+  function computeGaps() {
+    const bias = Math.max(0, state.train - state.human);
+    const variance = state.mismatchMode ? Math.max(0, state.trainDev - state.train) : Math.max(0, state.dev - state.train);
+    const mismatch = state.mismatchMode ? Math.max(0, state.dev - state.trainDev) : 0;
+    const devOverfit = Math.max(0, state.test - state.dev);
+    return { bias, variance, mismatch, devOverfit };
+  }
+
+  function diagnose() {
+    const gaps = computeGaps();
+    const candidates = [
+      { key: 'bias', label: 'High bias', value: gaps.bias },
+      { key: 'variance', label: 'High variance', value: gaps.variance },
+      { key: 'mismatch', label: 'Data mismatch', value: state.mismatchMode ? gaps.mismatch : -1 },
+      { key: 'dev_overfit', label: 'Dev overfitting', value: gaps.devOverfit }
+    ].sort((a, b) => b.value - a.value);
+
+    const top = candidates[0];
+    const second = candidates[1];
+    const clear = top.value - second.value > 1.0 ? 'Clear' : (top.value - second.value > 0.3 ? 'Moderate' : 'Mixed');
+
+    if (top.value < 1.0 && state.dev <= Math.max(state.human + 2.0, 3.0)) {
+      return {
+        type: 'good',
+        status: 'Good fit',
+        issue: 'Balanced',
+        confidence: 'Healthy',
+        largest: Math.max(gaps.bias, gaps.variance, gaps.mismatch, gaps.devOverfit),
+        focus: 'Maintain',
+        reason: 'No gap dominates strongly, and the overall error levels are reasonably close to the human-level baseline.',
+        actions: 'Keep iterating carefully, but the current numbers do not point to a severe single bottleneck.',
+        warning: 'Do not keep changing the dev set or the metric unless they no longer reflect the real application.'
+      };
+    }
+
+    if (top.key === 'bias') {
+      return {
+        type: 'bias',
+        status: 'High bias',
+        issue: 'Bias',
+        confidence: clear,
+        largest: gaps.bias,
+        focus: 'Fit training',
+        reason: 'The human-level → training gap is the dominant one, so the model still struggles to fit the training distribution well.',
+        actions: 'Train a bigger model, train longer, improve optimization, and search architecture or hyperparameters aimed at lowering training error.',
+        warning: 'Adding regularization alone will not fix a model that already cannot fit the training set well.'
+      };
+    }
+
+    if (top.key === 'variance') {
+      return {
+        type: 'variance',
+        status: 'High variance',
+        issue: 'Variance',
+        confidence: clear,
+        largest: gaps.variance,
+        focus: 'Generalize',
+        reason: state.mismatchMode
+          ? 'Training is much better than training-dev, so the model is not generalizing well even to unseen examples from the same distribution.'
+          : 'Training is much better than dev, so the dominant issue is generalization rather than fitting.',
+        actions: 'Add regularization, collect more data, and try architecture or hyperparameter choices that improve generalization.',
+        warning: 'Without a training-dev set, a big dev jump can hide mismatch. Variance is the right diagnosis only when the same-distribution gap is large.'
+      };
+    }
+
+    if (top.key === 'mismatch') {
+      return {
+        type: 'mismatch',
+        status: 'Data mismatch',
+        issue: 'Mismatch',
+        confidence: clear,
+        largest: gaps.mismatch,
+        focus: 'Match data',
+        reason: 'Training-dev remains much better than dev, so distribution shift is a major part of the performance drop.',
+        actions: 'Collect data closer to the dev/test distribution, make training data more realistic, and run manual error analysis to understand the shift.',
+        warning: 'Do not mistake every dev gap for variance. If the same-distribution training-dev gap is small, distribution mismatch is likely the bigger story.'
+      };
+    }
+
+    return {
+      type: 'dev_overfit',
+      status: 'Dev overfitting',
+      issue: 'Dev overfit',
+      confidence: clear,
+      largest: gaps.devOverfit,
+      focus: 'Be honest',
+      reason: 'Test error is notably worse than dev error, which suggests repeated iteration may be overfitting to the dev set.',
+      actions: 'Reduce repeated dev-driven tweaking, keep the test set sealed, and consider refreshing or enlarging the dev/test protocol.',
+      warning: 'A dev set is for iteration, but it should not become a hidden second training set through too much repeated tuning.'
+    };
+  }
+
+  function renderBars() {
+    const maxErr = Math.max(15, state.human, state.train, state.trainDev, state.dev, state.test) + 2;
+    const pct = v => (100 * v / maxErr).toFixed(1) + '%';
+
+    const values = [
+      ['human', state.human, els.barHuman, els.readHuman],
+      ['train', state.train, els.barTrain, els.readTrain],
+      ['traindev', state.trainDev, els.barTrainDev, els.readTrainDev],
+      ['dev', state.dev, els.barDev, els.readDev],
+      ['test', state.test, els.barTest, els.readTest]
+    ];
+
+    values.forEach(([k, v, bar, read]) => {
+      bar.style.width = pct(v);
+      read.textContent = fmt(v);
+    });
+
+    els.rowTrainDev.style.display = state.mismatchMode ? 'grid' : 'none';
+    els.mismatchCard.style.display = state.mismatchMode ? 'block' : 'none';
+
+    els.humanVal.textContent = fmt(state.human);
+    els.trainVal.textContent = fmt(state.train);
+    els.traindevVal.textContent = fmt(state.trainDev);
+    els.devVal.textContent = fmt(state.dev);
+    els.testVal.textContent = fmt(state.test);
+  }
+
+  function renderGaps(diag) {
+    const gaps = computeGaps();
+    els.gapBias.textContent = fmt(gaps.bias);
+    els.gapVar.textContent = fmt(gaps.variance);
+    els.gapMismatch.textContent = fmt(gaps.mismatch);
+    els.gapDevOverfit.textContent = fmt(gaps.devOverfit);
+    els.gapVarNote.textContent = state.mismatchMode ? 'Train → training-dev gap' : 'Train → dev gap';
+  }
+
+  function renderDiag() {
+    const d = diagnose();
+
+    els.statusPill.className = 'status-pill ' + ({
+      bias: 'status-bias',
+      variance: 'status-var',
+      good: 'status-good',
+      mismatch: 'status-mm',
+      dev_overfit: 'status-mm'
+    }[d.type]);
+    els.statusText.textContent = d.status;
+
+    els.metricIssue.textContent = d.issue;
+    els.metricConfidence.textContent = d.confidence;
+    els.metricLargest.textContent = fmt(d.largest);
+    els.metricFocus.textContent = d.focus;
+
+    els.reasonText.textContent = d.reason;
+    els.actionsText.textContent = d.actions;
+    els.warningText.textContent = d.warning;
+
+    els.navStatus.textContent =
+      d.type === 'good' ? 'The major gaps are controlled'
+      : d.type === 'bias' ? 'Largest gap appears before training fits well'
+      : d.type === 'variance' ? 'Largest gap appears when generalization starts'
+      : d.type === 'mismatch' ? 'Largest jump appears after the distribution shift'
+      : 'Test begins to drift above dev';
+  }
+
+  function renderCurve() {
+    const svg = els.curveSvg;
+    const w = 760, h = 240, pad = {l: 46, r: 18, t: 18, b: 34};
+    const innerW = w - pad.l - pad.r;
+    const innerH = h - pad.t - pad.b;
+
+    const lines = [];
+    for (let i = 1; i <= 12; i++) {
+      const x = i;
+      let trainY, valY;
+      const hb = Math.max(0, state.train - state.human);
+      const noiseAdj = Math.max(0, (state.dev - state.train) * 0.15);
+      trainY = 12 / (x + 1.8) + hb * 0.18 + 0.3;
+      valY = 11 / (x + 0.8) + 0.33 * x + 0.012 * Math.pow(x - 5.5, 2) + noiseAdj;
+      if (state.mismatchMode) {
+        valY += Math.max(0, state.dev - state.trainDev) * 0.18;
+      }
+      lines.push({x, trainY, valY});
+    }
+
+    const yMax = Math.max(...lines.flatMap(d => [d.trainY, d.valY])) + 1.0;
+    const sx = x => pad.l + (x - 1) / 11 * innerW;
+    const sy = y => pad.t + innerH - (y / yMax) * innerH;
+
+    let trainPath = '';
+    let valPath = '';
+    lines.forEach((d, i) => {
+      trainPath += (i === 0 ? 'M' : ' L') + sx(d.x).toFixed(1) + ' ' + sy(d.trainY).toFixed(1);
+      valPath += (i === 0 ? 'M' : ' L') + sx(d.x).toFixed(1) + ' ' + sy(d.valY).toFixed(1);
+    });
+
+    const currentX = clamp(Math.round((state.train + state.dev) / 4.0), 1, 12);
+    const current = lines[currentX - 1];
+
+    svg.innerHTML = `
+      <rect x="0" y="0" width="${w}" height="${h}" fill="transparent"></rect>
+      ${Array.from({length: 5}).map((_, i) => {
+        const y = pad.t + innerH * i / 4;
+        return `<line x1="${pad.l}" y1="${y}" x2="${w - pad.r}" y2="${y}" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>`;
+      }).join('')}
+      <line x1="${pad.l}" y1="${pad.t + innerH}" x2="${w - pad.r}" y2="${pad.t + innerH}" stroke="rgba(110,110,115,0.55)" stroke-width="1.2"/>
+      <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${pad.t + innerH}" stroke="rgba(110,110,115,0.55)" stroke-width="1.2"/>
+      ${Array.from({length: 12}).map((_, i) => {
+        const x = sx(i + 1);
+        return `<text x="${x}" y="${h - 10}" fill="#8b9098" font-size="11" text-anchor="middle">${i + 1}</text>`;
+      }).join('')}
+      <path d="${trainPath}" fill="none" stroke="#0071e3" stroke-width="3" stroke-linecap="round"/>
+      <path d="${valPath}" fill="none" stroke="#b86b19" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="${sx(currentX)}" cy="${sy(current.trainY)}" r="5.2" fill="#0071e3"/>
+      <circle cx="${sx(currentX)}" cy="${sy(current.valY)}" r="5.2" fill="#b86b19"/>
+      <text x="${pad.l}" y="14" fill="#6e6e73" font-size="11">error</text>
+      <text x="${w - pad.r}" y="${h - 10}" fill="#6e6e73" font-size="11" text-anchor="end">model complexity</text>
+    `;
+  }
+
+  function bind() {
+    [els.humanSlider, els.trainSlider, els.trainDevSlider, els.devSlider, els.testSlider].forEach(sl => {
+      sl.addEventListener('input', () => {
+        syncStateFromSliders();
+        render();
+      });
+    });
+
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyScenario(btn.dataset.preset);
+      });
+    });
+
+    document.querySelectorAll('[data-human]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-human]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        setHumanPreset(btn.dataset.human);
+      });
+    });
+
+    document.getElementById('standardBtn').addEventListener('click', () => {
+      state.mismatchMode = false;
+      document.getElementById('standardBtn').classList.add('active');
+      document.getElementById('mismatchBtn').classList.remove('active');
+      render();
+    });
+
+    document.getElementById('mismatchBtn').addEventListener('click', () => {
+      state.mismatchMode = true;
+      document.getElementById('mismatchBtn').classList.add('active');
+      document.getElementById('standardBtn').classList.add('active');
+      render();
+    });
+  }
+
+  function render() {
+    renderBars();
+    renderGaps();
+    renderDiag();
+    renderCurve();
+  }
+
+  bind();
+  updateSliders();
+  render();
+})();
+</script>
+</body>
+</html>
+
+</body>
+</html>

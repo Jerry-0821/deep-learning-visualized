@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evaluation Metrics _ Confusion Matrix Intuition.ipynb</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+
+<div id="metrics-demo-wrap" style="max-width:1400px;margin:18px auto;background:#f7fbff;padding:18px;border-radius:24px;font-family:Arial,sans-serif;">
+  <div style="font-size:30px;font-weight:700;color:#0f172a;margin-bottom:6px;">Evaluation Metrics / Confusion Matrix Intuition</div>
+  <div style="font-size:14px;color:#64748b;margin-bottom:14px;">
+    threshold + confusion matrix + metric intuition
+  </div>
+
+  <div style="background:#ffffff;border:1px solid #dbeafe;border-radius:24px;padding:18px;box-shadow:0 10px 30px rgba(59,130,246,0.06);">
+    <!-- top controls -->
+    <div style="display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="metric-focus-btn" data-metric="accuracy">Accuracy</button>
+        <button class="metric-focus-btn" data-metric="precision">Precision</button>
+        <button class="metric-focus-btn" data-metric="recall">Recall</button>
+        <button class="metric-focus-btn" data-metric="f1">F1</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <label for="thresholdSliderM" style="font-size:14px;color:#334155;font-weight:600;">Threshold</label>
+        <input id="thresholdSliderM" type="range" min="0.05" max="0.95" step="0.01" value="0.55" style="width:260px;">
+        <span id="thresholdValueM" style="font-size:14px;color:#0f172a;font-weight:700;min-width:56px;">0.55</span>
+      </div>
+    </div>
+
+    <!-- legend -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+      <div class="legend-chip"><span class="legend-dot" style="background:#4fa88f;"></span>CORRECT POSITIVE</div>
+      <div class="legend-chip"><span class="legend-dot" style="background:#df875f;"></span>FALSE POSITIVE</div>
+      <div class="legend-chip"><span class="legend-dot" style="background:#c79a33;"></span>MISSED POSITIVE</div>
+      <div class="legend-chip"><span class="legend-dot" style="background:#6b82d8;"></span>CORRECT NEGATIVE</div>
+    </div>
+
+    <!-- whole top graphic -->
+    <div style="background:#fbfcff;border:1px solid #dbeafe;border-radius:24px;padding:20px;">
+      <div style="font-size:18px;font-weight:700;color:#334155;margin-bottom:12px;">score distribution and threshold intuition</div>
+      <svg id="scoreStripSvg" viewBox="0 0 1180 160" width="100%" style="display:block;border-radius:14px;background:#fff;"></svg>
+
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748b;margin-top:8px;padding:0 8px 8px 8px;">
+        <span>lower score → more likely negative</span>
+        <span>higher score → more likely positive</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start;margin-top:18px;">
+        <!-- confusion matrix -->
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#334155;margin-bottom:16px;text-align:center;">confusion matrix</div>
+
+          <div style="display:grid;grid-template-columns:120px 1fr 1fr;grid-template-rows:44px 92px 92px;gap:10px;align-items:center;justify-items:center;max-width:520px;margin:0 auto;">
+            <div></div>
+            <div class="axis-label">PREDICTED +</div>
+            <div class="axis-label">PREDICTED -</div>
+
+            <div class="row-label">ACTUAL +</div>
+            <div id="cellTP" class="matrix-cell tp-cell">
+              <div class="cell-code">TP</div>
+              <div id="tpCount" class="cell-count">0</div>
+            </div>
+            <div id="cellFN" class="matrix-cell fn-cell">
+              <div class="cell-code">FN</div>
+              <div id="fnCount" class="cell-count">0</div>
+            </div>
+
+            <div class="row-label">ACTUAL -</div>
+            <div id="cellFP" class="matrix-cell fp-cell">
+              <div class="cell-code">FP</div>
+              <div id="fpCount" class="cell-count">0</div>
+            </div>
+            <div id="cellTN" class="matrix-cell tn-cell">
+              <div class="cell-code">TN</div>
+              <div id="tnCount" class="cell-count">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- metric formulas summary -->
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#334155;margin-bottom:16px;text-align:center;">metric formulas</div>
+
+          <div id="formulaCardAccuracy" class="metric-formula-card">
+            <div class="formula-latex" id="formulaAccuracyMini"></div>
+            <div id="accuracyValue" class="formula-card-value">0%</div>
+          </div>
+
+          <div id="formulaCardPrecision" class="metric-formula-card">
+            <div class="formula-latex" id="formulaPrecisionMini"></div>
+            <div id="precisionValue" class="formula-card-value">0%</div>
+          </div>
+
+          <div id="formulaCardRecall" class="metric-formula-card">
+            <div class="formula-latex" id="formulaRecallMini"></div>
+            <div id="recallValue" class="formula-card-value">0%</div>
+          </div>
+
+          <div id="formulaCardF1" class="metric-formula-card">
+            <div class="formula-latex" id="formulaF1Mini"></div>
+            <div id="f1Value" class="formula-card-value">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="matrixFocusHint" style="margin-top:22px;font-size:17px;line-height:1.7;color:#475569;text-align:center;"></div>
+    </div>
+
+    <!-- centered bottom cards -->
+    <div style="max-width:960px;margin:22px auto 0 auto;display:flex;flex-direction:column;gap:18px;">
+      <div style="background:#eefbf5;border:1px solid #bbf7d0;border-radius:22px;padding:20px 24px;">
+        <div style="font-size:18px;font-weight:700;color:#166534;margin-bottom:12px;">selected metric intuition</div>
+        <div id="metricIntuitionText" style="font-size:19px;line-height:1.8;color:#475569;"></div>
+      </div>
+
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:22px;padding:20px 24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="font-size:18px;font-weight:700;color:#1e40af;">selected metric formula</div>
+          <div id="metricFocusBadge" style="font-size:14px;color:#2563eb;font-weight:700;"></div>
+        </div>
+        <div id="metricFormulaBox" style="font-size:30px;color:#111827;line-height:1.9;margin-top:12px;text-align:center;"></div>
+        <div id="metricSubFormulaBox" style="font-size:24px;color:#334155;line-height:1.8;margin-top:6px;text-align:center;"></div>
+        <div id="metricBottomNote" style="font-size:18px;line-height:1.8;color:#475569;margin-top:14px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #metrics-demo-wrap .legend-chip {
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    border-radius:999px;
+    border:1px solid #cbd5e1;
+    background:#ffffff;
+    color:#334155;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.08em;
+  }
+  #metrics-demo-wrap .legend-dot {
+    width:14px;
+    height:14px;
+    border-radius:999px;
+    display:inline-block;
+  }
+  #metrics-demo-wrap .metric-focus-btn {
+    padding:10px 16px;
+    border-radius:999px;
+    border:1px solid #cbd5e1;
+    background:#ffffff;
+    color:#334155;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    transition:all 0.15s ease;
+  }
+  #metrics-demo-wrap .metric-focus-btn.active {
+    background:#dbeafe;
+    color:#1e3a8a;
+    border-color:#93c5fd;
+    box-shadow:0 0 0 2px rgba(59,130,246,0.10) inset;
+  }
+  #metrics-demo-wrap .axis-label {
+    font-size:14px;
+    color:#334155;
+    font-weight:700;
+    letter-spacing:0.08em;
+  }
+  #metrics-demo-wrap .row-label {
+    font-size:14px;
+    color:#334155;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-align:center;
+    line-height:1.5;
+  }
+  #metrics-demo-wrap .matrix-cell {
+    width:100%;
+    height:100%;
+    border-radius:18px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(15,23,42,0.08);
+    transition:all 0.18s ease;
+    box-shadow:0 10px 20px rgba(15,23,42,0.04);
+  }
+  #metrics-demo-wrap .matrix-cell.emphasized {
+    transform:translateY(-2px);
+    box-shadow:0 16px 30px rgba(15,23,42,0.12);
+    border-color:rgba(15,23,42,0.18);
+  }
+  #metrics-demo-wrap .matrix-cell.deemphasized {
+    opacity:0.35;
+  }
+  #metrics-demo-wrap .tp-cell { background:#dbeee7; }
+  #metrics-demo-wrap .fp-cell { background:#f6ddd1; }
+  #metrics-demo-wrap .fn-cell { background:#efe4bf; }
+  #metrics-demo-wrap .tn-cell { background:#dde3f6; }
+  #metrics-demo-wrap .cell-code {
+    font-size:16px;
+    color:#334155;
+    font-weight:700;
+    letter-spacing:0.08em;
+  }
+  #metrics-demo-wrap .cell-count {
+    font-size:30px;
+    color:#0f172a;
+    font-weight:800;
+    margin-top:6px;
+  }
+  #metrics-demo-wrap .metric-formula-card {
+    border:1px solid #dbeafe;
+    background:#ffffff;
+    border-radius:18px;
+    padding:18px 18px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:12px;
+    align-items:center;
+    margin-bottom:12px;
+    transition:all 0.16s ease;
+    cursor:pointer;
+    box-shadow:0 10px 20px rgba(15,23,42,0.04);
+  }
+  #metrics-demo-wrap .metric-formula-card.active {
+    background:#dbeafe;
+    border-color:#93c5fd;
+    transform:translateY(-1px);
+  }
+  #metrics-demo-wrap .formula-latex {
+    font-size:24px;
+    color:#111827;
+    line-height:1.5;
+  }
+  #metrics-demo-wrap .formula-card-value {
+    font-size:18px;
+    color:#334155;
+    font-weight:800;
+    min-width:62px;
+    text-align:right;
+  }
+  @media (max-width: 980px) {
+    #metrics-demo-wrap .metric-formula-card {
+      grid-template-columns:1fr;
+      text-align:center;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  if (!window.__mathjax_loaded__) {
+    const mj = document.createElement("script");
+    mj.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+    mj.async = true;
+    document.head.appendChild(mj);
+    window.__mathjax_loaded__ = true;
+  }
+
+  const samples = [
+    { score: 0.97, label: 1 }, { score: 0.95, label: 1 }, { score: 0.93, label: 1 },
+    { score: 0.91, label: 1 }, { score: 0.89, label: 0 }, { score: 0.86, label: 1 },
+    { score: 0.83, label: 0 }, { score: 0.81, label: 1 }, { score: 0.78, label: 1 },
+    { score: 0.75, label: 0 }, { score: 0.72, label: 1 }, { score: 0.69, label: 0 },
+    { score: 0.66, label: 1 }, { score: 0.63, label: 0 }, { score: 0.60, label: 1 },
+    { score: 0.57, label: 0 }, { score: 0.54, label: 1 }, { score: 0.50, label: 0 },
+    { score: 0.46, label: 1 }, { score: 0.42, label: 0 }, { score: 0.38, label: 0 },
+    { score: 0.32, label: 1 }, { score: 0.24, label: 0 }, { score: 0.12, label: 0 }
+  ];
+
+  const thresholdSlider = document.getElementById("thresholdSliderM");
+  const thresholdValue = document.getElementById("thresholdValueM");
+  const scoreStripSvg = document.getElementById("scoreStripSvg");
+
+  const metricButtons = Array.from(document.querySelectorAll(".metric-focus-btn"));
+
+  const tpCount = document.getElementById("tpCount");
+  const fpCount = document.getElementById("fpCount");
+  const fnCount = document.getElementById("fnCount");
+  const tnCount = document.getElementById("tnCount");
+
+  const cellTP = document.getElementById("cellTP");
+  const cellFP = document.getElementById("cellFP");
+  const cellFN = document.getElementById("cellFN");
+  const cellTN = document.getElementById("cellTN");
+
+  const formulaCardAccuracy = document.getElementById("formulaCardAccuracy");
+  const formulaCardPrecision = document.getElementById("formulaCardPrecision");
+  const formulaCardRecall = document.getElementById("formulaCardRecall");
+  const formulaCardF1 = document.getElementById("formulaCardF1");
+
+  const formulaAccuracyMini = document.getElementById("formulaAccuracyMini");
+  const formulaPrecisionMini = document.getElementById("formulaPrecisionMini");
+  const formulaRecallMini = document.getElementById("formulaRecallMini");
+  const formulaF1Mini = document.getElementById("formulaF1Mini");
+
+  const accuracyValue = document.getElementById("accuracyValue");
+  const precisionValue = document.getElementById("precisionValue");
+  const recallValue = document.getElementById("recallValue");
+  const f1Value = document.getElementById("f1Value");
+
+  const metricIntuitionText = document.getElementById("metricIntuitionText");
+  const metricFocusBadge = document.getElementById("metricFocusBadge");
+  const metricFormulaBox = document.getElementById("metricFormulaBox");
+  const metricSubFormulaBox = document.getElementById("metricSubFormulaBox");
+  const metricBottomNote = document.getElementById("metricBottomNote");
+  const matrixFocusHint = document.getElementById("matrixFocusHint");
+
+  let threshold = parseFloat(thresholdSlider.value);
+  let focusedMetric = "precision";
+  let lastMathKey = "";
+
+  const COLORS = {
+    tp: "#4fa88f",
+    fp: "#df875f",
+    fn: "#c79a33",
+    tn: "#6b82d8"
+  };
+
+  function safeDivide(a, b) {
+    return b === 0 ? 0 : a / b;
+  }
+
+  function classify(sample) {
+    const predictedPositive = sample.score >= threshold;
+    if (sample.label === 1 && predictedPositive) return "TP";
+    if (sample.label === 0 && predictedPositive) return "FP";
+    if (sample.label === 1 && !predictedPositive) return "FN";
+    return "TN";
+  }
+
+  function computeCounts() {
+    let TP = 0, FP = 0, FN = 0, TN = 0;
+    samples.forEach(s => {
+      const cat = classify(s);
+      if (cat === "TP") TP++;
+      else if (cat === "FP") FP++;
+      else if (cat === "FN") FN++;
+      else TN++;
+    });
+
+    const total = TP + FP + FN + TN;
+    const accuracy = safeDivide(TP + TN, total);
+    const precision = safeDivide(TP, TP + FP);
+    const recall = safeDivide(TP, TP + FN);
+    const f1 = (precision + recall === 0) ? 0 : 2 * precision * recall / (precision + recall);
+
+    return { TP, FP, FN, TN, total, accuracy, precision, recall, f1 };
+  }
+
+  function percent(x) {
+    return Math.round(x * 100) + "%";
+  }
+
+  function renderScoreStrip() {
+    const width = 1180;
+    const height = 160;
+    const padX = 50;
+    const usableW = width - 2 * padX;
+    const thresholdX = padX + usableW * threshold;
+
+    function xPos(score) {
+      return padX + usableW * score;
+    }
+
+    const topY = 68;
+    const bottomY = 102;
+
+    const dots = samples.map((s, i) => {
+      const y = i % 2 === 0 ? topY : bottomY;
+      const cat = classify(s);
+      const fill = cat === "TP" ? COLORS.tp
+                : cat === "FP" ? COLORS.fp
+                : cat === "FN" ? COLORS.fn
+                : COLORS.tn;
+      return `<circle cx="${xPos(s.score)}" cy="${y}" r="9.5" fill="${fill}" stroke="#ffffff" stroke-width="2.5"></circle>`;
+    }).join("");
+
+    scoreStripSvg.innerHTML = `
+      <rect x="0" y="0" width="${width}" height="${height}" rx="16" fill="#ffffff"></rect>
+
+      <rect x="${padX}" y="38" width="${thresholdX - padX}" height="88" rx="16" fill="rgba(107,130,216,0.08)"></rect>
+      <rect x="${thresholdX}" y="38" width="${padX + usableW - thresholdX}" height="88" rx="16" fill="rgba(79,168,143,0.08)"></rect>
+
+      <text x="${padX + 10}" y="24" fill="#64748b" font-size="13" font-weight="600">predicted negative region</text>
+      <text x="${thresholdX + 12}" y="24" fill="#64748b" font-size="13" font-weight="600">predicted positive region</text>
+
+      <line x1="${padX}" y1="126" x2="${padX + usableW}" y2="126" stroke="#cbd5e1" stroke-width="2"></line>
+
+      <line x1="${thresholdX}" y1="30" x2="${thresholdX}" y2="134" stroke="#1d4ed8" stroke-width="2.5" stroke-dasharray="6 6"></line>
+      <rect x="${thresholdX - 48}" y="6" width="96" height="22" rx="11" fill="#dbeafe" stroke="#93c5fd"></rect>
+      <text x="${thresholdX}" y="21" text-anchor="middle" fill="#1e3a8a" font-size="12.5" font-weight="700">threshold ${threshold.toFixed(2)}</text>
+
+      ${dots}
+
+      <text x="${padX}" y="148" fill="#94a3b8" font-size="12">0.0</text>
+      <text x="${padX + usableW / 2}" y="148" text-anchor="middle" fill="#94a3b8" font-size="12">0.5</text>
+      <text x="${padX + usableW}" y="148" text-anchor="end" fill="#94a3b8" font-size="12">1.0</text>
+    `;
+  }
+
+  function applyMatrixFocus(metric) {
+    [cellTP, cellFP, cellFN, cellTN].forEach(cell => {
+      cell.classList.remove("emphasized", "deemphasized");
+    });
+
+    const strong = [];
+    const weak = [];
+
+    if (metric === "accuracy") {
+      strong.push(cellTP, cellTN);
+      weak.push(cellFP, cellFN);
+      matrixFocusHint.textContent = "Accuracy rewards all correct predictions, so it focuses on TP and TN together.";
+    } else if (metric === "precision") {
+      strong.push(cellTP, cellFP);
+      weak.push(cellFN, cellTN);
+      matrixFocusHint.textContent = "Precision only asks: among predicted positives, how many were truly positive?";
+    } else if (metric === "recall") {
+      strong.push(cellTP, cellFN);
+      weak.push(cellFP, cellTN);
+      matrixFocusHint.textContent = "Recall only asks: among actual positives, how many did the model successfully catch?";
+    } else {
+      strong.push(cellTP, cellFP, cellFN);
+      weak.push(cellTN);
+      matrixFocusHint.textContent = "F1 balances precision and recall, so it depends on TP, FP, and FN rather than TN.";
+    }
+
+    strong.forEach(el => el.classList.add("emphasized"));
+    weak.forEach(el => el.classList.add("deemphasized"));
+  }
+
+  function setActiveMetric(metric) {
+    focusedMetric = metric;
+
+    metricButtons.forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.metric === metric);
+    });
+
+    formulaCardAccuracy.classList.toggle("active", metric === "accuracy");
+    formulaCardPrecision.classList.toggle("active", metric === "precision");
+    formulaCardRecall.classList.toggle("active", metric === "recall");
+    formulaCardF1.classList.toggle("active", metric === "f1");
+  }
+
+  function renderMiniFormulas() {
+    formulaAccuracyMini.innerHTML = String.raw`\[
+    \text{accuracy}=\frac{TP+TN}{TP+FP+TN+FN}
+    \]`;
+    formulaPrecisionMini.innerHTML = String.raw`\[
+    \text{precision}=\frac{TP}{TP+FP}
+    \]`;
+    formulaRecallMini.innerHTML = String.raw`\[
+    \text{recall}=\frac{TP}{TP+FN}
+    \]`;
+    formulaF1Mini.innerHTML = String.raw`\[
+    F_1=\frac{2TP}{2TP+FP+FN}
+    \]`;
+
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([
+        formulaAccuracyMini,
+        formulaPrecisionMini,
+        formulaRecallMini,
+        formulaF1Mini
+      ]).catch(() => {});
+    }
+  }
+
+  function renderFormulas(counts) {
+    const { TP, FP, FN, TN, total, accuracy, precision, recall, f1 } = counts;
+
+    let formula = "";
+    let subFormula = "";
+    let note = "";
+    let badge = "";
+
+    if (focusedMetric === "accuracy") {
+      badge = "focus: overall correctness";
+      formula = String.raw`\[
+      \text{accuracy} = \frac{TP + TN}{TP + FP + TN + FN}
+      \]`;
+      subFormula = String.raw`\[
+      = \frac{${TP} + ${TN}}{${TP} + ${FP} + ${TN} + ${FN}}
+      = \frac{${TP + TN}}{${total}}
+      = ${accuracy.toFixed(2)}
+      \]`;
+      note = "Accuracy asks: “overall, how often is the model correct?” It treats true positives and true negatives as equally valuable.";
+      metricIntuitionText.textContent = "Accuracy is broad and easy to understand, but it can hide problems when the classes are imbalanced. A model can look good overall while still missing many positives.";
+    } else if (focusedMetric === "precision") {
+      badge = "focus: trust a positive prediction";
+      formula = String.raw`\[
+      \text{precision} = \frac{TP}{TP + FP}
+      \]`;
+      subFormula = String.raw`\[
+      = \frac{${TP}}{${TP} + ${FP}}
+      = \frac{${TP}}{${TP + FP}}
+      = ${precision.toFixed(2)}
+      \]`;
+      note = "Precision asks: “when the model predicts positive, how often is it right?” So it only cares about TP and FP.";
+      metricIntuitionText.textContent = "High precision means your positive predictions are trustworthy. This matters when false alarms are costly, such as flagging legitimate transactions as fraud.";
+    } else if (focusedMetric === "recall") {
+      badge = "focus: catch actual positives";
+      formula = String.raw`\[
+      \text{recall} = \frac{TP}{TP + FN}
+      \]`;
+      subFormula = String.raw`\[
+      = \frac{${TP}}{${TP} + ${FN}}
+      = \frac{${TP}}{${TP + FN}}
+      = ${recall.toFixed(2)}
+      \]`;
+      note = "Recall asks: “of all the actual positives, how many did we catch?” So it focuses on TP and FN.";
+      metricIntuitionText.textContent = "High recall means you miss fewer true positives. This matters when missed cases are costly, such as disease screening or safety monitoring.";
+    } else {
+      badge = "focus: balance precision and recall";
+      formula = String.raw`\[
+      F_1 = \frac{2TP}{2TP + FP + FN}
+      \]`;
+      subFormula = String.raw`\[
+      = \frac{2\cdot ${TP}}{2\cdot ${TP} + ${FP} + ${FN}}
+      = \frac{${2 * TP}}{${2 * TP + FP + FN}}
+      = ${f1.toFixed(2)}
+      \]`;
+      note = "F1 is high only when both precision and recall are reasonably high. It ignores TN and focuses on the positive class trade-off.";
+      metricIntuitionText.textContent = "F1 is useful when you want one compact score that punishes both false alarms and missed positives. It is especially common when the positive class is the main concern.";
+    }
+
+    metricFocusBadge.textContent = badge;
+
+    const mathKey = formula + subFormula + note + focusedMetric + TP + FP + FN + TN;
+    if (mathKey !== lastMathKey) {
+      metricFormulaBox.innerHTML = formula;
+      metricSubFormulaBox.innerHTML = subFormula;
+      metricBottomNote.textContent = note;
+      lastMathKey = mathKey;
+
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([metricFormulaBox, metricSubFormulaBox]).catch(() => {});
+      }
+    }
+  }
+
+  function renderCounts(counts) {
+    tpCount.textContent = counts.TP;
+    fpCount.textContent = counts.FP;
+    fnCount.textContent = counts.FN;
+    tnCount.textContent = counts.TN;
+
+    accuracyValue.textContent = percent(counts.accuracy);
+    precisionValue.textContent = percent(counts.precision);
+    recallValue.textContent = percent(counts.recall);
+    f1Value.textContent = percent(counts.f1);
+  }
+
+  function renderAll() {
+    threshold = parseFloat(thresholdSlider.value);
+    thresholdValue.textContent = threshold.toFixed(2);
+
+    const counts = computeCounts();
+    renderScoreStrip();
+    renderCounts(counts);
+    applyMatrixFocus(focusedMetric);
+    setActiveMetric(focusedMetric);
+    renderFormulas(counts);
+  }
+
+  metricButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      focusedMetric = btn.dataset.metric;
+      renderAll();
+    });
+  });
+
+  [formulaCardAccuracy, formulaCardPrecision, formulaCardRecall, formulaCardF1].forEach((card, idx) => {
+    const map = ["accuracy", "precision", "recall", "f1"];
+    card.addEventListener("click", () => {
+      focusedMetric = map[idx];
+      renderAll();
+    });
+  });
+
+  thresholdSlider.addEventListener("input", renderAll);
+
+  renderMiniFormulas();
+  renderAll();
+})();
+</script>
+
+</body>
+</html>

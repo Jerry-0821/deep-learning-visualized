@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backpropagation.ipynb</title>
+</head>
+<body style="margin:0;background:#ffffff;">
+
+<div id="bp-cache-demo-wrap" style="max-width:1360px;margin:18px auto;background:#f7fbff;padding:18px;border-radius:24px;font-family:Arial,sans-serif;">
+  <div style="font-size:30px;font-weight:700;color:#0f172a;margin-bottom:6px;">Backpropagation / Cache-Aware Demo</div>
+  <div style="font-size:14px;color:#64748b;margin-bottom:14px;">
+    forward stores cache → backward reuses cache
+  </div>
+
+  <div style="background:#ffffff;border:1px solid #dbeafe;border-radius:24px;padding:18px;box-shadow:0 10px 30px rgba(59,130,246,0.06);">
+    <div style="background:#0d1124;border:1px solid #1f2a4d;border-radius:18px;padding:14px;">
+      <canvas id="bpCacheCanvas" width="1240" height="650"
+        style="display:block;width:100%;max-width:1240px;margin:0 auto;border-radius:14px;background:#151a34;"></canvas>
+
+      <div style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:14px;">
+        <button id="bpPrevBtn" style="padding:10px 14px;border:none;border-radius:10px;background:#e5e7eb;color:#111827;cursor:pointer;">← Prev</button>
+        <button id="bpNextBtn" style="padding:10px 14px;border:none;border-radius:10px;background:#e5e7eb;color:#111827;cursor:pointer;">Next →</button>
+
+        <button id="bpShowCacheBtn" style="padding:10px 14px;border:none;border-radius:10px;background:#dbeafe;color:#1e3a8a;cursor:pointer;">Show cache</button>
+        <button id="bpHideCacheBtn" style="padding:10px 14px;border:none;border-radius:10px;background:#e2e8f0;color:#334155;cursor:pointer;">Hide cache</button>
+
+        <button id="bpCachePlayPauseBtn" style="padding:10px 16px;border:none;border-radius:10px;background:#2563eb;color:white;cursor:pointer;">▶ Play</button>
+        <button id="bpCacheReplayBtn" style="padding:10px 16px;border:none;border-radius:10px;background:#e5e7eb;color:#111827;cursor:pointer;">Replay</button>
+
+        <input id="bpCacheTimeSlider" type="range" min="0" max="11.6" step="0.01" value="0" style="width:380px;">
+        <span id="bpCacheTimeLabel" style="color:#d1d5db;font-size:13px;min-width:72px;">0.00 s</span>
+      </div>
+
+      <div id="bpStepMarkers" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px;">
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:18px;padding:16px 18px;">
+        <div style="font-size:16px;font-weight:700;color:#1e3a8a;margin-bottom:10px;">Formula</div>
+        <div id="bpCacheFormulaMain" style="font-size:28px;color:#111827;line-height:1.8;"></div>
+        <div id="bpCacheFormulaSub" style="font-size:22px;color:#334155;line-height:1.8;margin-top:4px;"></div>
+        <div id="bpCacheFormulaFinal" style="font-size:22px;color:#7c3aed;font-weight:700;margin-top:8px;"></div>
+      </div>
+
+      <div style="background:#f5faff;border:1px solid #c7d2fe;border-radius:18px;padding:16px 18px;">
+        <div style="font-size:16px;font-weight:700;color:#3730a3;margin-bottom:10px;">What is cached?</div>
+        <div id="bpCacheExplain" style="font-size:18px;line-height:1.75;color:#475569;"></div>
+      </div>
+
+      <div style="background:#eefbf5;border:1px solid #bbf7d0;border-radius:18px;padding:16px 18px;">
+        <div style="font-size:16px;font-weight:700;color:#166534;margin-bottom:10px;">Concept note</div>
+        <div id="bpCacheConcept" style="font-size:18px;line-height:1.75;color:#475569;"></div>
+      </div>
+
+      <div style="background:#f8fbff;border:1px solid #dbeafe;border-radius:18px;padding:16px 18px;">
+        <div style="font-size:16px;font-weight:700;color:#1e3a8a;margin-bottom:10px;">Current moment</div>
+        <div id="bpCacheMomentTitle" style="font-size:28px;font-weight:700;color:#111827;margin-bottom:8px;"></div>
+        <div id="bpCacheMomentDesc" style="font-size:18px;line-height:1.75;color:#475569;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  if (!window.__mathjax_loaded__) {
+    const mj = document.createElement("script");
+    mj.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+    mj.async = true;
+    document.head.appendChild(mj);
+    window.__mathjax_loaded__ = true;
+  }
+
+  const canvas = document.getElementById("bpCacheCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const playPauseBtn = document.getElementById("bpCachePlayPauseBtn");
+  const replayBtn = document.getElementById("bpCacheReplayBtn");
+  const prevBtn = document.getElementById("bpPrevBtn");
+  const nextBtn = document.getElementById("bpNextBtn");
+  const showCacheBtn = document.getElementById("bpShowCacheBtn");
+  const hideCacheBtn = document.getElementById("bpHideCacheBtn");
+  const timeSlider = document.getElementById("bpCacheTimeSlider");
+  const timeLabel = document.getElementById("bpCacheTimeLabel");
+  const stepMarkersWrap = document.getElementById("bpStepMarkers");
+
+  const formulaMain = document.getElementById("bpCacheFormulaMain");
+  const formulaSub = document.getElementById("bpCacheFormulaSub");
+  const formulaFinal = document.getElementById("bpCacheFormulaFinal");
+  const cacheExplain = document.getElementById("bpCacheExplain");
+  const concept = document.getElementById("bpCacheConcept");
+  const momentTitle = document.getElementById("bpCacheMomentTitle");
+  const momentDesc = document.getElementById("bpCacheMomentDesc");
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const TOTAL = 11.6;
+
+  let cacheVisible = true;
+
+  const STEP_MARKERS = [
+    { t: 1.2,  label: "1 Inputs" },
+    { t: 2.85, label: "2 Z1/A1 cache" },
+    { t: 4.20, label: "3 Z2/A2 cache" },
+    { t: 4.85, label: "4 Loss" },
+    { t: 6.45, label: "5 δ²" },
+    { t: 6.95, label: "6 δ¹" },
+    { t: 7.55, label: "7 ∂W2" },
+    { t: 8.20, label: "8 ∂W1" },
+    { t: 8.95, label: "9 Update" }
+  ];
+
+  // ===== Numerical example =====
+  const DATA = {
+    x1: 1.0,
+    x2: 0.5,
+    y: 1.0
+  };
+
+  const P = {
+    w11: 0.9,   w12: -0.4,
+    w21: 0.3,   w22: 0.8,
+    b1: 0.1,    b2: -0.2,
+    v1: 1.1,    v2: -0.7,
+    bo: 0.05,
+    eta: 0.5
+  };
+
+  function sigmoid(z) { return 1 / (1 + Math.exp(-z)); }
+  function sigp_from_a(a) { return a * (1 - a); }
+
+  const z_h1 = P.w11 * DATA.x1 + P.w12 * DATA.x2 + P.b1;
+  const z_h2 = P.w21 * DATA.x1 + P.w22 * DATA.x2 + P.b2;
+  const a_h1 = sigmoid(z_h1);
+  const a_h2 = sigmoid(z_h2);
+  const z_o  = P.v1 * a_h1 + P.v2 * a_h2 + P.bo;
+  const yhat = sigmoid(z_o);
+  const L    = 0.5 * (yhat - DATA.y) * (yhat - DATA.y);
+
+  const delta_o  = (yhat - DATA.y) * sigp_from_a(yhat);
+  const delta_h1 = P.v1 * delta_o * sigp_from_a(a_h1);
+  const delta_h2 = P.v2 * delta_o * sigp_from_a(a_h2);
+
+  const dL_dv1 = delta_o * a_h1;
+  const dL_dv2 = delta_o * a_h2;
+  const dL_dbo = delta_o;
+
+  const dL_dw11 = delta_h1 * DATA.x1;
+  const dL_dw12 = delta_h1 * DATA.x2;
+  const dL_dw21 = delta_h2 * DATA.x1;
+  const dL_dw22 = delta_h2 * DATA.x2;
+  const dL_db1  = delta_h1;
+  const dL_db2  = delta_h2;
+
+  const new_v1 = P.v1 - P.eta * dL_dv1;
+  const new_v2 = P.v2 - P.eta * dL_dv2;
+
+  const CACHE = {
+    A0: `[${DATA.x1.toFixed(2)}, ${DATA.x2.toFixed(2)}]`,
+    Z1: `[${z_h1.toFixed(2)}, ${z_h2.toFixed(2)}]`,
+    A1: `[${a_h1.toFixed(2)}, ${a_h2.toFixed(2)}]`,
+    Z2: `${z_o.toFixed(2)}`,
+    A2: `${yhat.toFixed(2)}`
+  };
+
+  const COLORS = {
+    bgTop: "#121735",
+    bgBottom: "#171c38",
+
+    neuronStroke: "#58C4DD",
+    neuronFill: "#39FF14",
+    hiddenStroke: "#7dd3a6",
+
+    edgeDefault: "#596178",
+    forwardSignal: "#FFF36A",
+    backwardSignal: "#ff8b8b",
+
+    cacheStroke: "#93c5fd",
+    cacheFill: "#172554",
+    cacheHighlight: "#fef08a",
+
+    lossStroke: "#fca5a5",
+    lossFill: "#4a1f2e",
+
+    outputStroke: "#c084fc",
+    outputFill: "#40225d",
+
+    label: "#F8FAFC",
+    sub: "#AAB4CC",
+    gold: "#facc15",
+    orange: "#f59e0b",
+    cyan: "#67e8f9",
+    green: "#4ade80",
+    red: "#f87171",
+    white: "#ffffff"
+  };
+
+  const POS = {
+    x1: {x: 130, y: 180},
+    x2: {x: 130, y: 330},
+
+    h1: {x: 410, y: 170},
+    h2: {x: 410, y: 340},
+
+    yhat: {x: 690, y: 255},
+    loss: {x: 930, y: 130},
+
+    cacheX: 900,
+    cacheY: 290,
+    cacheW: 270,
+    cacheH: 250,
+
+    inputLabelY: 555,
+    hiddenLabelY: 555,
+    outputLabelY: 555
+  };
+
+  const EDGES = {
+    x1h1: {x1: POS.x1.x + 30, y1: POS.x1.y, x2: POS.h1.x - 32, y2: POS.h1.y},
+    x1h2: {x1: POS.x1.x + 30, y1: POS.x1.y, x2: POS.h2.x - 32, y2: POS.h2.y},
+    x2h1: {x1: POS.x2.x + 30, y1: POS.x2.y, x2: POS.h1.x - 32, y2: POS.h1.y},
+    x2h2: {x1: POS.x2.x + 30, y1: POS.x2.y, x2: POS.h2.x - 32, y2: POS.h2.y},
+
+    h1o:  {x1: POS.h1.x + 30, y1: POS.h1.y, x2: POS.yhat.x - 35, y2: POS.yhat.y},
+    h2o:  {x1: POS.h2.x + 30, y1: POS.h2.y, x2: POS.yhat.x - 35, y2: POS.yhat.y},
+
+    oyL:  {x1: POS.yhat.x + 36, y1: POS.yhat.y - 8, x2: POS.loss.x - 70, y2: POS.loss.y + 8}
+  };
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeInOut(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t) * t; }
+  function linear(t) { return t; }
+
+  function hexToRgb(hex) {
+    const h = hex.replace("#", "");
+    return {
+      r: parseInt(h.substring(0, 2), 16),
+      g: parseInt(h.substring(2, 4), 16),
+      b: parseInt(h.substring(4, 6), 16)
+    };
+  }
+
+  function colorWithAlpha(hex, a) {
+    const c = hexToRgb(hex);
+    return `rgba(${c.r}, ${c.g}, ${c.b}, ${a})`;
+  }
+
+  function drawBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, COLORS.bgTop);
+    g.addColorStop(1, COLORS.bgBottom);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function text(txt, x, y, size=24, color=COLORS.label, align="left", alpha=1, weight="500") {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.font = `${weight} ${size}px Georgia, "Times New Roman", serif`;
+    ctx.textAlign = align;
+    ctx.textBaseline = "middle";
+    ctx.fillText(txt, x, y);
+    ctx.restore();
+  }
+
+  function mathText(txt, x, y, size=24, color=COLORS.label, align="left", alpha=1, weight="500") {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.font = `${weight} ${size}px "Cambria Math", "STIX Two Math", Georgia, serif`;
+    ctx.textAlign = align;
+    ctx.textBaseline = "middle";
+    ctx.fillText(txt, x, y);
+    ctx.restore();
+  }
+
+  function drawLine(x1, y1, x2, y2, color, width, alpha=1, dashed=false) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = "round";
+    if (dashed) ctx.setLineDash([9, 7]);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawArrowHead(x, y, angle, color, alpha=1) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-13, -7);
+    ctx.lineTo(-13, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawGlow(ctx, x, y, r, color, intensity) {
+    [1.8, 1.35, 1.0].forEach((scale, i) => {
+      const alpha = intensity * [0.035, 0.06, 0.12][i];
+      ctx.beginPath();
+      ctx.arc(x, y, r * scale, 0, Math.PI * 2);
+      ctx.fillStyle = colorWithAlpha(color, alpha);
+      ctx.fill();
+    });
+  }
+
+  function drawNode(x, y, r, stroke, fillColor, fillOpacity, glowIntensity, label, labelSize=22) {
+    ctx.save();
+    drawGlow(ctx, x, y, r, stroke, glowIntensity);
+
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = colorWithAlpha(fillColor, fillOpacity);
+    ctx.fill();
+
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = stroke;
+    ctx.stroke();
+
+    mathText(label, x, y + 1, labelSize, COLORS.label, "center", 1, "600");
+    ctx.restore();
+  }
+
+  function roundRect(x, y, w, h, r, fill, stroke=null, alpha=1) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    if (stroke) {
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawEdgeSignal(edge, progress, color, width=3.0) {
+    if (progress < 0 || progress > 1) return;
+
+    const drawP = Math.min(progress * 2, 1);
+    const eraseP = Math.max(progress * 2 - 1, 0);
+
+    const sx = lerp(edge.x1, edge.x2, eraseP);
+    const sy = lerp(edge.y1, edge.y2, eraseP);
+    const ex = lerp(edge.x1, edge.x2, drawP);
+    const ey = lerp(edge.y1, edge.y2, drawP);
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawCacheBox(x, y, w, h, alpha, highlights) {
+    if (!cacheVisible || alpha <= 0.001) return;
+
+    roundRect(x, y, w, h, 16, colorWithAlpha(COLORS.cacheFill, 0.95), COLORS.cacheStroke, alpha);
+    text("cache", x + 18, y + 24, 18, COLORS.label, "left", alpha, "600");
+
+    const rows = [
+      {key: "A0", val: CACHE.A0},
+      {key: "Z1", val: CACHE.Z1},
+      {key: "A1", val: CACHE.A1},
+      {key: "Z2", val: CACHE.Z2},
+      {key: "A2", val: CACHE.A2}
+    ];
+
+    const rowH = 38;
+    rows.forEach((row, i) => {
+      const yy = y + 52 + i * rowH;
+      const active = highlights[row.key] || 0;
+
+      if (active > 0.001) {
+        roundRect(x + 12, yy - 16, w - 24, 30, 8, colorWithAlpha(COLORS.cacheHighlight, 0.15 + 0.25 * active), COLORS.cacheHighlight, alpha);
+      }
+
+      mathText(row.key, x + 26, yy, 17, active > 0.01 ? COLORS.cacheHighlight : COLORS.label, "left", alpha, "600");
+      mathText("=", x + 78, yy, 17, COLORS.sub, "left", alpha, "500");
+      mathText(row.val, x + 102, yy, 16, active > 0.01 ? COLORS.cacheHighlight : COLORS.sub, "left", alpha, "500");
+    });
+
+    text("stored in forward, reused in backward", x + w/2, y + h - 18, 13, COLORS.sub, "center", alpha, "400");
+  }
+
+  function state0() {
+    return {
+      fade: 0,
+      titleWrite: 0,
+
+      inputFill: [0, 0],
+      inputGlow: [0, 0],
+
+      hiddenFill: [0, 0],
+      hiddenGlow: [0, 0],
+
+      outputFill: 0,
+      outputGlow: 0,
+
+      forwardSig: {x1h1:-1,x1h2:-1,x2h1:-1,x2h2:-1,h1o:-1,h2o:-1},
+      backwardSig: {oh1:-1,oh2:-1},
+
+      lossShow: 0,
+      lossGlow: 0,
+
+      yhatShow: 0,
+      lossValueShow: 0,
+
+      cacheShow: 0,
+      cacheHL: {A0:0,Z1:0,A1:0,Z2:0,A2:0},
+
+      deltaOutShow: 0,
+      deltaHiddenShow: 0,
+
+      gradOutShow: 0,
+      gradHiddenShow: 0,
+
+      updateShow: 0
+    };
+  }
+
+  class Animator {
+    constructor() {
+      this.clips = [];
+      this.t0 = null;
+      this.elapsed = 0;
+      this.playing = false;
+      this.raf = null;
+    }
+
+    add(start, duration, updateFn, easeFn=easeInOut) {
+      this.clips.push({ start, duration, updateFn, easeFn });
+    }
+
+    buildState(timeSec) {
+      const s = state0();
+      this.clips.forEach(clip => {
+        if (timeSec < clip.start) return;
+        const raw = clamp((timeSec - clip.start) / clip.duration, 0, 1);
+        clip.updateFn(clip.easeFn(raw), s);
+      });
+      return s;
+    }
+
+    applyAt(timeSec) {
+      this.elapsed = timeSec;
+      const s = this.buildState(timeSec);
+      render(s, timeSec);
+      updateText(timeSec);
+      syncControls();
+      updateStepButtonsUI();
+      updateCacheButtonsUI();
+    }
+
+    run(fromSec=null) {
+      if (fromSec !== null) this.elapsed = fromSec;
+      this.playing = true;
+      this.t0 = null;
+
+      const tick = (now) => {
+        if (!this.playing) return;
+        if (this.t0 === null) this.t0 = now - this.elapsed * 1000;
+
+        this.elapsed = (now - this.t0) / 1000;
+        if (this.elapsed >= TOTAL) {
+          this.elapsed = TOTAL;
+          this.playing = false;
+        }
+
+        this.applyAt(this.elapsed);
+
+        if (this.playing) this.raf = requestAnimationFrame(tick);
+      };
+      this.raf = requestAnimationFrame(tick);
+    }
+
+    pause() {
+      this.playing = false;
+      if (this.raf) cancelAnimationFrame(this.raf);
+    }
+
+    replay() {
+      this.pause();
+      this.applyAt(0);
+      this.run(0);
+    }
+  }
+
+  const animator = new Animator();
+
+  animator.add(0.0, 0.5, (p, s) => { s.fade = p; });
+  animator.add(0.6, 0.7, (p, s) => { s.titleWrite = p; }, linear);
+
+  animator.add(1.2, 0.35, (p, s) => { s.inputFill[0] = 0.85 * p; s.inputGlow[0] = p; });
+  animator.add(1.5, 0.35, (p, s) => { s.inputFill[1] = 0.85 * p; s.inputGlow[1] = p; });
+
+  animator.add(1.9, 0.65, (p, s) => { s.forwardSig.x1h1 = p; s.cacheHL.A0 = p; }, linear);
+  animator.add(2.05, 0.65, (p, s) => { s.forwardSig.x1h2 = p; s.cacheHL.A0 = Math.max(s.cacheHL.A0, p); }, linear);
+  animator.add(2.20, 0.65, (p, s) => { s.forwardSig.x2h1 = p; s.cacheHL.A0 = Math.max(s.cacheHL.A0, p); }, linear);
+  animator.add(2.35, 0.65, (p, s) => { s.forwardSig.x2h2 = p; s.cacheHL.A0 = Math.max(s.cacheHL.A0, p); }, linear);
+
+  animator.add(2.85, 0.45, (p, s) => {
+    s.hiddenFill[0] = 0.85 * p;
+    s.hiddenFill[1] = 0.85 * p;
+    s.hiddenGlow[0] = p;
+    s.hiddenGlow[1] = p;
+    s.cacheShow = p;
+    s.cacheHL.Z1 = p;
+    s.cacheHL.A1 = p * 0.8;
+  });
+
+  animator.add(3.45, 0.65, (p, s) => { s.forwardSig.h1o = p; s.cacheHL.A1 = Math.max(s.cacheHL.A1, p); }, linear);
+  animator.add(3.65, 0.65, (p, s) => { s.forwardSig.h2o = p; s.cacheHL.A1 = Math.max(s.cacheHL.A1, p); }, linear);
+
+  animator.add(4.20, 0.45, (p, s) => {
+    s.outputFill = 0.8 * p;
+    s.outputGlow = p;
+    s.yhatShow = p;
+    s.cacheHL.Z2 = p;
+    s.cacheHL.A2 = p;
+  });
+
+  animator.add(4.85, 0.45, (p, s) => {
+    s.lossShow = p;
+    s.lossGlow = p;
+    s.lossValueShow = p;
+    s.cacheHL.A2 = Math.max(s.cacheHL.A2, p);
+  });
+
+  animator.add(5.60, 0.65, (p, s) => {
+    s.backwardSig.oh1 = p;
+    s.cacheHL.Z2 = Math.max(s.cacheHL.Z2, p);
+    s.cacheHL.A2 = Math.max(s.cacheHL.A2, p);
+  }, linear);
+
+  animator.add(5.85, 0.65, (p, s) => {
+    s.backwardSig.oh2 = p;
+    s.cacheHL.Z2 = Math.max(s.cacheHL.Z2, p);
+    s.cacheHL.A2 = Math.max(s.cacheHL.A2, p);
+  }, linear);
+
+  animator.add(6.45, 0.45, (p, s) => {
+    s.deltaOutShow = p;
+    s.cacheHL.Z2 = Math.max(s.cacheHL.Z2, p);
+    s.cacheHL.A2 = Math.max(s.cacheHL.A2, p);
+  });
+
+  animator.add(6.95, 0.45, (p, s) => {
+    s.deltaHiddenShow = p;
+    s.cacheHL.Z1 = Math.max(s.cacheHL.Z1, p);
+    s.cacheHL.A1 = Math.max(s.cacheHL.A1, p);
+  });
+
+  animator.add(7.55, 0.45, (p, s) => {
+    s.gradOutShow = p;
+    s.cacheHL.A1 = Math.max(s.cacheHL.A1, p);
+  });
+
+  animator.add(8.20, 0.45, (p, s) => {
+    s.gradHiddenShow = p;
+    s.cacheHL.A0 = Math.max(s.cacheHL.A0, p);
+  });
+
+  animator.add(8.95, 0.55, (p, s) => {
+    s.updateShow = p;
+  });
+
+  function render(s, t) {
+    ctx.clearRect(0, 0, W, H);
+    drawBackground();
+
+    ctx.save();
+    ctx.globalAlpha = Math.max(s.fade, 0.02);
+
+    const titleFull = "Backpropagation choreography";
+    const subtitleFull = "forward stores cache → backward reuses cache";
+    const titleLen = Math.max(1, Math.floor(titleFull.length * s.titleWrite));
+    const subtitleLen = Math.max(1, Math.floor(subtitleFull.length * s.titleWrite));
+
+    text(titleFull.substring(0, titleLen), 42, 38, 24, COLORS.label, "left", 1, "600");
+    text(subtitleFull.substring(0, subtitleLen), 44, 66, 12.5, COLORS.sub, "left", 1, "400");
+
+    text("Input layer", POS.x1.x, POS.inputLabelY, 20, COLORS.label, "center", 0.96, "600");
+    text("Hidden layer", POS.h1.x, POS.hiddenLabelY, 20, COLORS.label, "center", 0.96, "600");
+    text("Output", POS.yhat.x, POS.outputLabelY, 20, COLORS.label, "center", 0.96, "600");
+
+    Object.values(EDGES).forEach(edge => {
+      drawLine(edge.x1, edge.y1, edge.x2, edge.y2, COLORS.edgeDefault, 1.6);
+    });
+
+    drawNode(POS.x1.x, POS.x1.y, 30, COLORS.neuronStroke, COLORS.neuronFill, s.inputFill[0], 0.65*s.inputGlow[0], "x1", 20);
+    drawNode(POS.x2.x, POS.x2.y, 30, COLORS.neuronStroke, COLORS.neuronFill, s.inputFill[1], 0.65*s.inputGlow[1], "x2", 20);
+
+    drawNode(POS.h1.x, POS.h1.y, 32, COLORS.hiddenStroke, COLORS.neuronFill, s.hiddenFill[0], 0.6*s.hiddenGlow[0], "h1", 20);
+    drawNode(POS.h2.x, POS.h2.y, 32, COLORS.hiddenStroke, COLORS.neuronFill, s.hiddenFill[1], 0.6*s.hiddenGlow[1], "h2", 20);
+
+    drawNode(POS.yhat.x, POS.yhat.y, 34, COLORS.outputStroke, COLORS.neuronFill, s.outputFill, 0.7*s.outputGlow, "ŷ", 22);
+
+    mathText("= 1.0", 178, 150, 17, COLORS.sub, "left", 1, "500");
+    mathText("= 0.5", 178, 360, 17, COLORS.sub, "left", 1, "500");
+    mathText("target y = 1.0", POS.yhat.x + 52, POS.yhat.y - 20, 17, COLORS.sub, "left", 1, "500");
+
+    drawEdgeSignal(EDGES.x1h1, s.forwardSig.x1h1, COLORS.forwardSignal, 3.0);
+    drawEdgeSignal(EDGES.x1h2, s.forwardSig.x1h2, COLORS.forwardSignal, 3.0);
+    drawEdgeSignal(EDGES.x2h1, s.forwardSig.x2h1, COLORS.forwardSignal, 3.0);
+    drawEdgeSignal(EDGES.x2h2, s.forwardSig.x2h2, COLORS.forwardSignal, 3.0);
+
+    mathText("z₁ = " + z_h1.toFixed(2), POS.h1.x - 12, POS.h1.y - 64, 17, COLORS.gold, "center", s.hiddenFill[0], "600");
+    mathText("a₁ = " + a_h1.toFixed(2), POS.h1.x - 12, POS.h1.y - 42, 17, COLORS.green, "center", s.hiddenFill[0], "600");
+
+    mathText("z₂ = " + z_h2.toFixed(2), POS.h2.x - 12, POS.h2.y + 44, 17, COLORS.gold, "center", s.hiddenFill[1], "600");
+    mathText("a₂ = " + a_h2.toFixed(2), POS.h2.x - 12, POS.h2.y + 66, 17, COLORS.green, "center", s.hiddenFill[1], "600");
+
+    drawEdgeSignal(EDGES.h1o, s.forwardSig.h1o, COLORS.forwardSignal, 3.0);
+    drawEdgeSignal(EDGES.h2o, s.forwardSig.h2o, COLORS.forwardSignal, 3.0);
+
+    mathText("zᵒ = " + z_o.toFixed(2), POS.yhat.x, POS.yhat.y + 56, 17, COLORS.gold, "center", s.yhatShow, "600");
+    mathText("ŷ = " + yhat.toFixed(2), POS.yhat.x, POS.yhat.y + 78, 18, COLORS.outputStroke, "center", s.yhatShow, "600");
+
+    if (s.lossShow > 0.001) {
+      drawGlow(ctx, POS.loss.x, POS.loss.y, 42, COLORS.lossStroke, 0.7 * s.lossGlow);
+      roundRect(POS.loss.x - 76, POS.loss.y - 40, 152, 80, 18, colorWithAlpha(COLORS.lossFill, 0.92), COLORS.lossStroke, s.lossShow);
+      mathText("L", POS.loss.x, POS.loss.y - 10, 28, COLORS.label, "center", s.lossShow, "600");
+      mathText("= " + L.toFixed(3), POS.loss.x, POS.loss.y + 16, 18, COLORS.lossStroke, "center", s.lossValueShow, "600");
+      text("Loss", POS.loss.x, POS.loss.y - 64, 18, COLORS.label, "center", s.lossShow, "600");
+    }
+
+    drawEdgeSignal(EDGES.oyL, Math.max(s.lossShow - 0.05, -1), COLORS.forwardSignal, 3.0);
+
+    drawEdgeSignal({x1: EDGES.h1o.x2, y1: EDGES.h1o.y2, x2: EDGES.h1o.x1, y2: EDGES.h1o.y1}, s.backwardSig.oh1, COLORS.backwardSignal, 3.0);
+    drawEdgeSignal({x1: EDGES.h2o.x2, y1: EDGES.h2o.y2, x2: EDGES.h2o.x1, y2: EDGES.h2o.y1}, s.backwardSig.oh2, COLORS.backwardSignal, 3.0);
+
+    mathText("δ² = " + delta_o.toFixed(3), POS.yhat.x + 110, POS.yhat.y + 2, 18, COLORS.red, "left", s.deltaOutShow, "600");
+    mathText("δ¹₁ = " + delta_h1.toFixed(3), POS.h1.x + 70, POS.h1.y - 10, 17, COLORS.red, "left", s.deltaHiddenShow, "600");
+    mathText("δ¹₂ = " + delta_h2.toFixed(3), POS.h2.x + 70, POS.h2.y + 10, 17, COLORS.red, "left", s.deltaHiddenShow, "600");
+
+    if (s.gradOutShow > 0.001) {
+      roundRect(545, 118, 160, 34, 10, colorWithAlpha("#1f2937", 0.9), "#fca5a5", s.gradOutShow);
+      roundRect(545, 360, 160, 34, 10, colorWithAlpha("#1f2937", 0.9), "#fca5a5", s.gradOutShow);
+      mathText("∂L/∂v₁ = " + dL_dv1.toFixed(3), 625, 135, 15, COLORS.label, "center", s.gradOutShow, "500");
+      mathText("∂L/∂v₂ = " + dL_dv2.toFixed(3), 625, 377, 15, COLORS.label, "center", s.gradOutShow, "500");
+    }
+
+    if (s.gradHiddenShow > 0.001) {
+      roundRect(255, 108, 160, 34, 10, colorWithAlpha("#1f2937", 0.9), "#93c5fd", s.gradHiddenShow);
+      roundRect(255, 398, 160, 34, 10, colorWithAlpha("#1f2937", 0.9), "#93c5fd", s.gradHiddenShow);
+      mathText("∂L/∂w₁₁ = " + dL_dw11.toFixed(3), 335, 125, 14, COLORS.label, "center", s.gradHiddenShow, "500");
+      mathText("∂L/∂w₂₂ = " + dL_dw22.toFixed(3), 335, 415, 14, COLORS.label, "center", s.gradHiddenShow, "500");
+    }
+
+    if (s.updateShow > 0.001) {
+      roundRect(865, 562, 290, 60, 14, colorWithAlpha("#172554", 0.92), "#93c5fd", s.updateShow);
+      mathText("v₁ ← " + P.v1.toFixed(2) + " - " + P.eta.toFixed(1) + "(" + dL_dv1.toFixed(3) + ") = " + new_v1.toFixed(3),
+               1010, 583, 16, COLORS.label, "center", s.updateShow, "500");
+      mathText("v₂ ← " + P.v2.toFixed(2) + " - " + P.eta.toFixed(1) + "(" + dL_dv2.toFixed(3) + ") = " + new_v2.toFixed(3),
+               1010, 607, 16, COLORS.label, "center", s.updateShow, "500");
+    }
+
+    drawCacheBox(POS.cacheX, POS.cacheY, POS.cacheW, POS.cacheH, Math.max(s.cacheShow, 0.001), s.cacheHL);
+
+    ctx.restore();
+  }
+
+  function getMoment(t) {
+    const moments = [
+      {t:0.0,  title:"Scene appears", desc:"We begin with a small 2→2→1 network and an empty cache area."},
+      {t:1.2,  title:"Inputs activate", desc:"The input sample x enters the network. In code, this will become A0."},
+      {t:1.9,  title:"Forward pass: input to hidden", desc:"Signals move into the hidden layer. The backward pass will later need the input activation A0."},
+      {t:2.85, title:"Store hidden pre-activations and activations", desc:"Now we store Z1 and A1. These are exactly the intermediate values backward will need later."},
+      {t:3.45, title:"Forward pass: hidden to output", desc:"The hidden activations travel to the output neuron."},
+      {t:4.20, title:"Store output pre-activation and prediction", desc:"Now we store Z2 and A2=ŷ. These are essential for the output delta."},
+      {t:4.85, title:"Loss is computed", desc:"The loss compares the prediction with the target y."},
+      {t:5.60, title:"Backward signal starts", desc:"The red backward sweep starts from the output side. Backprop will now reuse cached forward values."},
+      {t:6.45, title:"Output delta uses cache", desc:"To compute δ², we need the prediction A2 and the output pre-activation Z2."},
+      {t:6.95, title:"Hidden deltas use cache", desc:"To compute hidden deltas, we reuse Z1 and the downstream error signal."},
+      {t:7.55, title:"Output gradients use cache", desc:"∂L/∂W2 uses δ² together with A1, which came from the forward cache."},
+      {t:8.20, title:"Hidden gradients use cache", desc:"∂L/∂W1 uses hidden delta together with A0, which is the cached input activation."},
+      {t:8.95, title:"Weights update", desc:"Once gradients are ready, gradient descent applies the update rule."}
+    ];
+    let cur = moments[0];
+    for (const m of moments) if (t >= m.t) cur = m;
+    return cur;
+  }
+
+  function getCurrentStepIndex(timeSec) {
+    let idx = 0;
+    for (let i = 0; i < STEP_MARKERS.length; i++) {
+      if (timeSec >= STEP_MARKERS[i].t) idx = i;
+    }
+    return idx;
+  }
+
+  function jumpToStep(index) {
+    index = clamp(index, 0, STEP_MARKERS.length - 1);
+    animator.pause();
+    animator.applyAt(STEP_MARKERS[index].t);
+  }
+
+  function renderStepMarkers() {
+    stepMarkersWrap.innerHTML = "";
+    STEP_MARKERS.forEach((step, idx) => {
+      const btn = document.createElement("button");
+      btn.textContent = step.label;
+      btn.dataset.idx = String(idx);
+      btn.style.padding = "8px 12px";
+      btn.style.borderRadius = "999px";
+      btn.style.border = "1px solid #475569";
+      btn.style.background = "#0f172a";
+      btn.style.color = "#cbd5e1";
+      btn.style.cursor = "pointer";
+      btn.style.fontSize = "12px";
+      btn.style.transition = "all 0.15s ease";
+      btn.onclick = () => jumpToStep(idx);
+      stepMarkersWrap.appendChild(btn);
+    });
+  }
+
+  function updateStepButtonsUI() {
+    const idx = getCurrentStepIndex(animator.elapsed);
+    const buttons = stepMarkersWrap.querySelectorAll("button");
+    buttons.forEach((btn, i) => {
+      if (i === idx) {
+        btn.style.background = "#dbeafe";
+        btn.style.color = "#1e3a8a";
+        btn.style.borderColor = "#93c5fd";
+        btn.style.fontWeight = "700";
+      } else {
+        btn.style.background = "#0f172a";
+        btn.style.color = "#cbd5e1";
+        btn.style.borderColor = "#475569";
+        btn.style.fontWeight = "500";
+      }
+    });
+
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx >= STEP_MARKERS.length - 1;
+
+    prevBtn.style.opacity = prevBtn.disabled ? "0.45" : "1";
+    nextBtn.style.opacity = nextBtn.disabled ? "0.45" : "1";
+    prevBtn.style.cursor = prevBtn.disabled ? "not-allowed" : "pointer";
+    nextBtn.style.cursor = nextBtn.disabled ? "not-allowed" : "pointer";
+  }
+
+  function updateCacheButtonsUI() {
+    if (cacheVisible) {
+      showCacheBtn.style.background = "#bfdbfe";
+      showCacheBtn.style.color = "#1e3a8a";
+      showCacheBtn.style.fontWeight = "700";
+
+      hideCacheBtn.style.background = "#e2e8f0";
+      hideCacheBtn.style.color = "#334155";
+      hideCacheBtn.style.fontWeight = "500";
+    } else {
+      showCacheBtn.style.background = "#e2e8f0";
+      showCacheBtn.style.color = "#334155";
+      showCacheBtn.style.fontWeight = "500";
+
+      hideCacheBtn.style.background = "#cbd5e1";
+      hideCacheBtn.style.color = "#0f172a";
+      hideCacheBtn.style.fontWeight = "700";
+    }
+  }
+
+  let lastMathKey = "";
+
+  function updateText(t) {
+    const m = getMoment(t);
+    momentTitle.textContent = m.title;
+    momentDesc.textContent = m.desc;
+
+    cacheExplain.textContent = cacheVisible
+      ? "Forward pass stores intermediate results in cache. Here we explicitly cache A0, Z1, A1, Z2, and A2=ŷ. Backward does not want to recompute them from scratch; it reuses them to build deltas and gradients step by step."
+      : "Cache is currently hidden. Click Show cache to display the stored forward values that backward will reuse.";
+
+    concept.textContent =
+      "The clean mental model is: forward computes and stores, backward reads that stored information. In practice, many implementations keep activations and z-values in lists. Then backprop uses the last cached output first, and moves layer by layer to earlier cached quantities.";
+
+    const mainEq = String.raw`\[
+    \text{cache} = \{A_0,\; Z_1,\; A_1,\; Z_2,\; A_2\}
+    \]
+    \[
+    Z_1 = W_1A_0 + b_1,\quad A_1 = \sigma(Z_1),\quad
+    Z_2 = W_2A_1 + b_2,\quad A_2 = \hat y = \sigma(Z_2)
+    \]`;
+
+    let subEq = "";
+    let finalEq = "";
+
+    if (t < 4.85) {
+      subEq = String.raw`\[
+      A_0 = ${CACHE.A0},\quad Z_1 = ${CACHE.Z1},\quad A_1 = ${CACHE.A1},\quad Z_2 = ${CACHE.Z2},\quad A_2 = ${CACHE.A2}
+      \]`;
+    } else if (t < 6.45) {
+      subEq = String.raw`\[
+      L = \frac{1}{2}(A_2 - y)^2
+      = \frac{1}{2}(${yhat.toFixed(3)} - ${DATA.y.toFixed(1)})^2
+      = ${L.toFixed(3)}
+      \]`;
+    } else if (t < 6.95) {
+      subEq = String.raw`\[
+      \delta^{(2)} = (A_2 - y)\,\sigma'(Z_2)
+      = (${yhat.toFixed(3)} - ${DATA.y.toFixed(1)})\sigma'(${z_o.toFixed(3)})
+      = ${delta_o.toFixed(3)}
+      \]`;
+    } else if (t < 7.55) {
+      subEq = String.raw`\[
+      \delta^{(1)} = (W_2)^T\delta^{(2)} \odot \sigma'(Z_1)
+      \]
+      \[
+      \delta^{(1)}_1 = ${delta_h1.toFixed(3)},\qquad
+      \delta^{(1)}_2 = ${delta_h2.toFixed(3)}
+      \]`;
+    } else if (t < 8.20) {
+      subEq = String.raw`\[
+      \frac{\partial L}{\partial W_2} = \delta^{(2)}(A_1)^T
+      \]
+      \[
+      \frac{\partial L}{\partial v_1} = ${dL_dv1.toFixed(3)},\qquad
+      \frac{\partial L}{\partial v_2} = ${dL_dv2.toFixed(3)}
+      \]`;
+    } else if (t < 8.95) {
+      subEq = String.raw`\[
+      \frac{\partial L}{\partial W_1} = \delta^{(1)}(A_0)^T
+      \]
+      \[
+      \frac{\partial L}{\partial w_{11}} = ${dL_dw11.toFixed(3)},\qquad
+      \frac{\partial L}{\partial w_{12}} = ${dL_dw12.toFixed(3)}
+      \]
+      \[
+      \frac{\partial L}{\partial w_{21}} = ${dL_dw21.toFixed(3)},\qquad
+      \frac{\partial L}{\partial w_{22}} = ${dL_dw22.toFixed(3)}
+      \]`;
+    } else {
+      subEq = String.raw`\[
+      W \leftarrow W - \eta \frac{\partial L}{\partial W}
+      \]
+      \[
+      v_1 \leftarrow ${P.v1.toFixed(2)} - ${P.eta.toFixed(1)}(${dL_dv1.toFixed(3)}) = ${new_v1.toFixed(3)}
+      \]
+      \[
+      v_2 \leftarrow ${P.v2.toFixed(2)} - ${P.eta.toFixed(1)}(${dL_dv2.toFixed(3)}) = ${new_v2.toFixed(3)}
+      \]`;
+
+      finalEq = String.raw`\[
+      \text{Important: backward uses cached } A_0,\; Z_1,\; A_1,\; Z_2,\; A_2 \text{ instead of recomputing forward again.}
+      \]`;
+    }
+
+    const mathKey = mainEq + "||" + subEq + "||" + finalEq + "||" + cacheVisible;
+    if (mathKey !== lastMathKey) {
+      formulaMain.innerHTML = mainEq;
+      formulaSub.innerHTML = subEq;
+      formulaFinal.innerHTML = finalEq;
+      lastMathKey = mathKey;
+
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([formulaMain, formulaSub, formulaFinal]).catch(() => {});
+      }
+    }
+  }
+
+  function syncControls() {
+    timeSlider.value = animator.elapsed.toFixed(2);
+    timeLabel.textContent = animator.elapsed.toFixed(2) + " s";
+    playPauseBtn.textContent = animator.playing ? "⏸ Pause" : "▶ Play";
+  }
+
+  playPauseBtn.onclick = () => {
+    if (animator.playing) animator.pause();
+    else animator.run(animator.elapsed);
+    syncControls();
+  };
+
+  replayBtn.onclick = () => {
+    animator.replay();
+  };
+
+  prevBtn.onclick = () => {
+    const idx = getCurrentStepIndex(animator.elapsed);
+    jumpToStep(Math.max(0, idx - 1));
+  };
+
+  nextBtn.onclick = () => {
+    const idx = getCurrentStepIndex(animator.elapsed);
+    jumpToStep(Math.min(STEP_MARKERS.length - 1, idx + 1));
+  };
+
+  showCacheBtn.onclick = () => {
+    cacheVisible = true;
+    animator.applyAt(animator.elapsed);
+  };
+
+  hideCacheBtn.onclick = () => {
+    cacheVisible = false;
+    animator.applyAt(animator.elapsed);
+  };
+
+  timeSlider.oninput = (e) => {
+    animator.pause();
+    animator.applyAt(parseFloat(e.target.value));
+  };
+
+  renderStepMarkers();
+  animator.applyAt(0);
+})();
+</script>
+
+</body>
+</html>
