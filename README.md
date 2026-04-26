@@ -8,6 +8,14 @@ Many deep learning concepts are difficult to imagine at first. A single neuron, 
 
 This project tries to make those processes easier to see.
 
+## Preview
+
+![Homepage](public/readme/homepage.png)
+
+![Single Neuron](public/readme/single-neuron.png)
+
+![Gradient Descent](public/readme/gradient-descent.png)
+
 ## Live Demo
 
 https://deep-learning-visualized.vercel.app
