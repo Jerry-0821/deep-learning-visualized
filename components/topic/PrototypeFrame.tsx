@@ -23,10 +23,22 @@ export function PrototypeFrame({ src, title, fallbackHeight }: PrototypeFramePro
     let lastAppliedHeight = initialHeight;
     const timeoutIds: number[] = [];
 
+    const restorePageScroll = (scrollX: number, scrollY: number) => {
+      const root = document.documentElement;
+      const previousScrollBehavior = root.style.scrollBehavior;
+
+      root.style.scrollBehavior = "auto";
+      window.scrollTo(scrollX, scrollY);
+      root.style.scrollBehavior = previousScrollBehavior;
+    };
+
     const updateHeight = (resetViewport = false) => {
       if (cancelled || !iframe) {
         return;
       }
+
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
 
       try {
         const doc = iframe.contentDocument;
@@ -67,9 +79,12 @@ export function PrototypeFrame({ src, title, fallbackHeight }: PrototypeFramePro
         } else if (resetViewport) {
           iframe.style.height = `${lastAppliedHeight}px`;
         }
+
+        restorePageScroll(scrollX, scrollY);
       } catch {
         iframe.style.height = `${fallbackHeight}px`;
         lastAppliedHeight = fallbackHeight;
+        restorePageScroll(scrollX, scrollY);
       }
     };
 
