@@ -1,0 +1,27 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Confusion matrix -->
+              <g transform="translate(90,15)">
+                <!-- Headers -->
+                <text x="50" y="8" text-anchor="middle" fill="#9b95b0" font-size="7" font-family="Inter, Arial, sans-serif" font-weight="600">Predicted +</text>
+                <text x="110" y="8" text-anchor="middle" fill="#9b95b0" font-size="7" font-family="Inter, Arial, sans-serif" font-weight="600">Predicted −</text>
+                <text x="-5" y="48" text-anchor="middle" fill="#9b95b0" font-size="7" font-family="Inter, Arial, sans-serif" font-weight="600" transform="rotate(-90 -5 48)">Actual +</text>
+                <text x="-5" y="108" text-anchor="middle" fill="#9b95b0" font-size="7" font-family="Inter, Arial, sans-serif" font-weight="600" transform="rotate(-90 -5 108)">Actual −</text>
+                <!-- Grid -->
+                <rect x="15" y="15" width="60" height="55" rx="6" fill="rgba(39,174,96,0.15)" stroke="rgba(39,174,96,0.3)" stroke-width="1"/>
+                <text x="45" y="38" text-anchor="middle" fill="#27ae60" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">TP</text>
+                <text x="45" y="58" text-anchor="middle" fill="#27ae60" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="500">42</text>
+
+                <rect x="80" y="15" width="60" height="55" rx="6" fill="rgba(231,76,60,0.08)" stroke="rgba(231,76,60,0.2)" stroke-width="1"/>
+                <text x="110" y="38" text-anchor="middle" fill="#e74c3c" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">FN</text>
+                <text x="110" y="58" text-anchor="middle" fill="#e74c3c" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="500">8</text>
+
+                <rect x="15" y="75" width="60" height="55" rx="6" fill="rgba(231,76,60,0.08)" stroke="rgba(231,76,60,0.2)" stroke-width="1"/>
+                <text x="45" y="98" text-anchor="middle" fill="#e74c3c" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">FP</text>
+                <text x="45" y="118" text-anchor="middle" fill="#e74c3c" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="500">5</text>
+
+                <rect x="80" y="75" width="60" height="55" rx="6" fill="rgba(39,174,96,0.15)" stroke="rgba(39,174,96,0.3)" stroke-width="1"/>
+                <text x="110" y="98" text-anchor="middle" fill="#27ae60" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">TN</text>
+                <text x="110" y="118" text-anchor="middle" fill="#27ae60" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="500">45</text>
+              </g>
+              <text x="160" y="150" text-anchor="middle" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">Confusion Matrix → Precision, Recall, F1</text>
+            </svg>

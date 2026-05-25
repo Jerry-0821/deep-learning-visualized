@@ -1,0 +1,29 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Main bar -->
+              <rect x="30" y="50" width="260" height="40" rx="8" fill="rgba(225,112,85,0.04)" stroke="rgba(225,112,85,0.15)" stroke-width="1"/>
+              <!-- Train segment -->
+              <rect x="30" y="50" width="156" height="40" rx="8" fill="rgba(225,112,85,0.15)"/>
+              <rect x="186" y="50" width="0" height="40" fill="rgba(225,112,85,0.15)"/>
+              <text x="108" y="74" text-anchor="middle" fill="#e17055" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="700">Train</text>
+              <!-- Val segment -->
+              <rect x="186" y="50" width="60" height="40" fill="rgba(225,112,85,0.25)"/>
+              <text x="216" y="74" text-anchor="middle" fill="#e17055" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">Val</text>
+              <!-- Test segment -->
+              <rect x="246" y="50" width="44" height="40" rx="0 8 8 0" fill="rgba(225,112,85,0.38)"/>
+              <text x="268" y="74" text-anchor="middle" fill="#fff" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="600">Test</text>
+              <!-- Rounded right corners overlay -->
+              <rect x="282" y="50" width="8" height="40" rx="8" fill="rgba(225,112,85,0.38)"/>
+              <!-- Percentage labels -->
+              <text x="108" y="106" text-anchor="middle" fill="#e17055" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">60%</text>
+              <text x="216" y="106" text-anchor="middle" fill="#e17055" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">20%</text>
+              <text x="268" y="106" text-anchor="middle" fill="#e17055" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">20%</text>
+              <!-- Divider lines -->
+              <line x1="186" y1="48" x2="186" y2="92" stroke="#e17055" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+              <line x1="246" y1="48" x2="246" y2="92" stroke="#e17055" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+              <!-- Top label -->
+              <text x="160" y="36" text-anchor="middle" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">Full dataset</text>
+              <!-- Bottom label -->
+              <text x="160" y="135" text-anchor="middle" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">Avoid data leakage between splits</text>
+              <!-- Bracket arrow -->
+              <path d="M30,44 L30,40 L290,40 L290,44" stroke="#e17055" stroke-width="1" opacity="0.3" fill="none"/>
+            </svg>

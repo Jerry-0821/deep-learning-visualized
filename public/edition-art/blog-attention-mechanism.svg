@@ -1,0 +1,27 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="40" y="30" width="30" height="20" rx="4" fill="rgba(0,184,148,0.2)" stroke="#00b894" stroke-width="1.5"/>
+              <text x="55" y="44" text-anchor="middle" fill="#00b894" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="700">Q</text>
+              <rect x="40" y="70" width="30" height="20" rx="4" fill="rgba(0,184,148,0.2)" stroke="#00b894" stroke-width="1.5"/>
+              <text x="55" y="84" text-anchor="middle" fill="#00b894" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="700">K</text>
+              <rect x="40" y="110" width="30" height="20" rx="4" fill="rgba(0,184,148,0.2)" stroke="#00b894" stroke-width="1.5"/>
+              <text x="55" y="124" text-anchor="middle" fill="#00b894" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="700">V</text>
+              <circle cx="110" cy="50" r="12" stroke="#00b894" stroke-width="1.5" fill="#fff"/>
+              <text x="110" y="54" text-anchor="middle" fill="#00b894" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="700">×</text>
+              <path d="M 70 40 L 98 50" stroke="#00b894" stroke-width="1.5" marker-end="url(#arrow-att)"/>
+              <path d="M 70 80 L 98 50" stroke="#00b894" stroke-width="1.5" marker-end="url(#arrow-att)"/>
+              <rect x="150" y="35" width="30" height="30" rx="4" fill="rgba(0,184,148,0.1)" stroke="#00b894" stroke-width="1.5"/>
+              <rect x="152" y="37" width="12" height="12" fill="#00b894" opacity="0.8" rx="2"/>
+              <rect x="166" y="37" width="12" height="12" fill="#00b894" opacity="0.2" rx="2"/>
+              <rect x="152" y="51" width="12" height="12" fill="#00b894" opacity="0.4" rx="2"/>
+              <rect x="166" y="51" width="12" height="12" fill="#00b894" opacity="0.9" rx="2"/>
+              <path d="M 122 50 L 145 50" stroke="#00b894" stroke-width="1.5" marker-end="url(#arrow-att)"/>
+              <text x="165" y="25" text-anchor="middle" fill="#9b95b0" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="500">Scores</text>
+              <circle cx="210" cy="80" r="12" stroke="#00b894" stroke-width="1.5" fill="#fff"/>
+              <text x="210" y="84" text-anchor="middle" fill="#00b894" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="700">×</text>
+              <path d="M 180 50 L 205 70" stroke="#00b894" stroke-width="1.5" marker-end="url(#arrow-att)"/>
+              <path d="M 70 120 L 200 88" stroke="#00b894" stroke-width="1.5" marker-end="url(#arrow-att)"/>
+              <rect x="250" y="70" width="40" height="20" rx="4" fill="rgba(0,184,148,0.3)" stroke="#00b894" stroke-width="1.5"/>
+              <text x="270" y="84" text-anchor="middle" fill="#00b894" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="700">Out</text>
+              <path d="M 222 80 L 245 80" stroke="#00b894" stroke-width="1.5" marker-end="url(#arrow-att)"/>
+              <defs><marker id="arrow-att" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#00b894"/></marker></defs>
+            </svg>

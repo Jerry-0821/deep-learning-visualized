@@ -1,0 +1,12 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="60" y="40" width="80" height="80" rx="8" fill="rgba(0,184,148,0.1)" stroke="#00b894" stroke-width="2" stroke-dasharray="4 2"/>
+              <text x="100" y="85" text-anchor="middle" fill="#00b894" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="600">Frozen Base</text>
+              <rect x="94" y="55" width="12" height="10" rx="2" fill="#00b894" opacity="0.8"/>
+              <path d="M 97 55 L 97 50 C 97 48 103 48 103 50 L 103 55" stroke="#00b894" stroke-width="1.5" fill="none"/>
+              <path d="M 140 80 L 175 80" stroke="#00b894" stroke-width="2" marker-end="url(#arrow-tl)"/>
+              <rect x="180" y="50" width="60" height="60" rx="8" fill="rgba(0,184,148,0.3)" stroke="#00b894" stroke-width="2"/>
+              <text x="210" y="85" text-anchor="middle" fill="#00b894" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="700">New Head</text>
+              <path d="M 240 70 L 260 60" stroke="#00b894" stroke-width="1.5" marker-end="url(#arrow-tl)"/>
+              <path d="M 240 90 L 260 100" stroke="#00b894" stroke-width="1.5" marker-end="url(#arrow-tl)"/>
+              <defs><marker id="arrow-tl" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#00b894"/></marker></defs>
+            </svg>

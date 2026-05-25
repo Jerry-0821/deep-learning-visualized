@@ -1,0 +1,14 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <text x="40" y="84" text-anchor="middle" fill="#00b894" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="600">x</text>
+              <line x1="50" y1="80" x2="80" y2="80" stroke="#00b894" stroke-width="2" marker-end="url(#arrow-res)"/>
+              <rect x="80" y="55" width="80" height="50" rx="8" fill="rgba(0,184,148,0.1)" stroke="#00b894" stroke-width="2"/>
+              <text x="120" y="84" text-anchor="middle" fill="#00b894" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="600">Layer(s)</text>
+              <line x1="160" y1="80" x2="190" y2="80" stroke="#00b894" stroke-width="2" marker-end="url(#arrow-res)"/>
+              <circle cx="205" cy="80" r="15" stroke="#00b894" stroke-width="2" fill="rgba(0,184,148,0.1)"/>
+              <text x="205" y="85" text-anchor="middle" fill="#00b894" font-size="14" font-family="Inter, Arial, sans-serif" font-weight="700">+</text>
+              <path d="M 65 80 C 65 20, 205 20, 205 65" stroke="#00b894" stroke-width="2.5" fill="none" marker-end="url(#arrow-res)"/>
+              <text x="135" y="35" text-anchor="middle" fill="#00b894" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="600">Identity (x)</text>
+              <line x1="220" y1="80" x2="250" y2="80" stroke="#00b894" stroke-width="2" marker-end="url(#arrow-res)"/>
+              <text x="270" y="84" text-anchor="middle" fill="#00b894" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="600">F(x) + x</text>
+              <defs><marker id="arrow-res" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#00b894"/></marker></defs>
+            </svg>

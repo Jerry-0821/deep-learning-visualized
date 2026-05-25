@@ -1,0 +1,33 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Input nodes -->
+              <circle cx="40" cy="40" r="14" stroke="#6c5ce7" stroke-width="2" fill="rgba(136,125,240,0.06)"/>
+              <text x="40" y="44" text-anchor="middle" fill="#6c5ce7" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">x₁</text>
+              <circle cx="40" cy="80" r="14" stroke="#6c5ce7" stroke-width="2" fill="rgba(136,125,240,0.06)"/>
+              <text x="40" y="84" text-anchor="middle" fill="#6c5ce7" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">x₂</text>
+              <circle cx="40" cy="120" r="14" stroke="#6c5ce7" stroke-width="2" fill="rgba(136,125,240,0.06)"/>
+              <text x="40" y="124" text-anchor="middle" fill="#6c5ce7" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">x₃</text>
+              <!-- Weighted connections -->
+              <line x1="54" y1="40" x2="116" y2="76" stroke="#a29bfe" stroke-width="1.5" opacity="0.6"/>
+              <line x1="54" y1="80" x2="116" y2="80" stroke="#a29bfe" stroke-width="2" opacity="0.8"/>
+              <line x1="54" y1="120" x2="116" y2="84" stroke="#a29bfe" stroke-width="1.5" opacity="0.6"/>
+              <!-- Weight labels -->
+              <text x="82" y="55" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">w₁</text>
+              <text x="82" y="75" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">w₂</text>
+              <text x="82" y="107" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">w₃</text>
+              <!-- Sum node -->
+              <circle cx="130" cy="80" r="20" stroke="#6c5ce7" stroke-width="2.5" fill="rgba(136,125,240,0.08)"/>
+              <text x="130" y="85" text-anchor="middle" fill="#6c5ce7" font-size="14" font-family="Inter, Arial, sans-serif" font-weight="700">Σ</text>
+              <!-- Arrow to activation -->
+              <line x1="150" y1="80" x2="182" y2="80" stroke="#6c5ce7" stroke-width="2" marker-end="url(#arrow1)"/>
+              <!-- Activation box -->
+              <rect x="184" y="60" width="56" height="40" rx="8" stroke="#6c5ce7" stroke-width="2" fill="rgba(136,125,240,0.06)"/>
+              <text x="212" y="77" text-anchor="middle" fill="#6c5ce7" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="600">f(z)</text>
+              <text x="212" y="91" text-anchor="middle" fill="#9b95b0" font-size="7" font-family="Inter, Arial, sans-serif">activation</text>
+              <!-- Arrow to output -->
+              <line x1="240" y1="80" x2="264" y2="80" stroke="#6c5ce7" stroke-width="2" marker-end="url(#arrow1)"/>
+              <!-- Output node -->
+              <circle cx="280" cy="80" r="16" stroke="#6c5ce7" stroke-width="2.5" fill="rgba(136,125,240,0.12)"/>
+              <text x="280" y="84" text-anchor="middle" fill="#6c5ce7" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="700">ŷ</text>
+              <!-- Arrow marker -->
+              <defs><marker id="arrow1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#6c5ce7"/></marker></defs>
+            </svg>

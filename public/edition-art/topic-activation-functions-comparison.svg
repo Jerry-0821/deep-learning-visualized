@@ -1,0 +1,36 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- ReLU -->
+              <g transform="translate(10,15)">
+                <rect x="0" y="0" width="68" height="55" rx="6" fill="rgba(136,125,240,0.04)" stroke="rgba(136,125,240,0.12)" stroke-width="1"/>
+                <line x1="10" y1="45" x2="58" y2="45" stroke="#ddd" stroke-width="0.5"/>
+                <line x1="34" y1="8" x2="34" y2="50" stroke="#ddd" stroke-width="0.5"/>
+                <polyline points="12,45 34,45 56,12" stroke="#6c5ce7" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <text x="34" y="65" text-anchor="middle" fill="#5c5677" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">ReLU</text>
+              </g>
+              <!-- Sigmoid -->
+              <g transform="translate(85,15)">
+                <rect x="0" y="0" width="68" height="55" rx="6" fill="rgba(136,125,240,0.04)" stroke="rgba(136,125,240,0.12)" stroke-width="1"/>
+                <line x1="10" y1="45" x2="58" y2="45" stroke="#ddd" stroke-width="0.5"/>
+                <line x1="34" y1="8" x2="34" y2="50" stroke="#ddd" stroke-width="0.5"/>
+                <path d="M12,44 C20,44 28,42 34,28 C40,14 48,12 56,12" stroke="#a29bfe" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <text x="34" y="65" text-anchor="middle" fill="#5c5677" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">Sigmoid</text>
+              </g>
+              <!-- Tanh -->
+              <g transform="translate(160,15)">
+                <rect x="0" y="0" width="68" height="55" rx="6" fill="rgba(136,125,240,0.04)" stroke="rgba(136,125,240,0.12)" stroke-width="1"/>
+                <line x1="10" y1="45" x2="58" y2="45" stroke="#ddd" stroke-width="0.5"/>
+                <line x1="34" y1="8" x2="34" y2="50" stroke="#ddd" stroke-width="0.5"/>
+                <path d="M12,48 C20,47 28,44 34,28 C40,12 48,9 56,8" stroke="#6c5ce7" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <text x="34" y="65" text-anchor="middle" fill="#5c5677" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">Tanh</text>
+              </g>
+              <!-- Leaky ReLU -->
+              <g transform="translate(235,15)">
+                <rect x="0" y="0" width="68" height="55" rx="6" fill="rgba(136,125,240,0.04)" stroke="rgba(136,125,240,0.12)" stroke-width="1"/>
+                <line x1="10" y1="45" x2="58" y2="45" stroke="#ddd" stroke-width="0.5"/>
+                <line x1="34" y1="8" x2="34" y2="50" stroke="#ddd" stroke-width="0.5"/>
+                <polyline points="12,48 34,42 56,12" stroke="#a29bfe" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <text x="34" y="65" text-anchor="middle" fill="#5c5677" font-size="7" font-family="Inter, Arial, sans-serif" font-weight="600">Leaky ReLU</text>
+              </g>
+              <!-- Label -->
+              <text x="160" y="110" text-anchor="middle" fill="#9b95b0" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="500">Nonlinearity shapes the neuron response</text>
+            </svg>

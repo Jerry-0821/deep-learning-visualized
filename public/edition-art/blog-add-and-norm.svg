@@ -1,0 +1,15 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <text x="40" y="104" text-anchor="middle" fill="#e17055" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="600">x</text>
+              <path d="M 50 100 L 90 100" stroke="#e17055" stroke-width="2" marker-end="url(#arrow-an)"/>
+              <rect x="90" y="80" width="70" height="40" rx="6" fill="rgba(225,112,85,0.1)" stroke="#e17055" stroke-width="2"/>
+              <text x="125" y="104" text-anchor="middle" fill="#e17055" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">Sublayer</text>
+              <path d="M 160 100 L 205 100" stroke="#e17055" stroke-width="2" marker-end="url(#arrow-an)"/>
+              <path d="M 70 100 L 70 40 L 215 40 L 215 85" stroke="#e17055" stroke-width="2" fill="none" marker-end="url(#arrow-an)"/>
+              <circle cx="215" cy="100" r="12" stroke="#e17055" stroke-width="2" fill="rgba(225,112,85,0.1)"/>
+              <text x="215" y="105" text-anchor="middle" fill="#e17055" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="700">+</text>
+              <rect x="245" y="85" width="50" height="30" rx="4" fill="rgba(225,112,85,0.2)" stroke="#e17055" stroke-width="2"/>
+              <text x="270" y="103" text-anchor="middle" fill="#e17055" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="600">Norm</text>
+              <path d="M 227 100 L 240 100" stroke="#e17055" stroke-width="2" marker-end="url(#arrow-an)"/>
+              <path d="M 295 100 L 310 100" stroke="#e17055" stroke-width="2" marker-end="url(#arrow-an)"/>
+              <defs><marker id="arrow-an" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#e17055"/></marker></defs>
+            </svg>

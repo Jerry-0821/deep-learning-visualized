@@ -1,0 +1,27 @@
+<svg viewBox="0 0 260 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Bias target -->
+              <circle cx="55" cy="55" r="35" stroke="#e17055" stroke-width="1" fill="none" opacity="0.2"/>
+              <circle cx="55" cy="55" r="24" stroke="#e17055" stroke-width="1" fill="none" opacity="0.3"/>
+              <circle cx="55" cy="55" r="13" stroke="#e17055" stroke-width="1" fill="none" opacity="0.4"/>
+              <circle cx="55" cy="55" r="3" fill="#e17055" opacity="0.6"/>
+              <!-- Bias dots (clustered off-center) -->
+              <circle cx="42" cy="40" r="2.5" fill="#e17055" opacity="0.7"/>
+              <circle cx="38" cy="46" r="2.5" fill="#e17055" opacity="0.7"/>
+              <circle cx="44" cy="48" r="2.5" fill="#e17055" opacity="0.7"/>
+              <circle cx="40" cy="42" r="2.5" fill="#e17055" opacity="0.7"/>
+              <text x="55" y="103" text-anchor="middle" font-size="7" fill="#9b95b0" font-family="Inter, Arial, sans-serif">High Bias</text>
+              <!-- Data split bar -->
+              <rect x="115" y="30" width="130" height="18" rx="4" fill="rgba(225,112,85,0.12)" stroke="#e17055" stroke-width="1" opacity="0.6"/>
+              <rect x="115" y="30" width="78" height="18" rx="4 0 0 4" fill="rgba(225,112,85,0.25)"/>
+              <rect x="193" y="30" width="32" height="18" fill="rgba(225,112,85,0.15)"/>
+              <rect x="225" y="30" width="20" height="18" rx="0 4 4 0" fill="rgba(225,112,85,0.08)"/>
+              <text x="154" y="42" text-anchor="middle" font-size="7" fill="#e17055" font-family="Inter, Arial, sans-serif" font-weight="600">Train 70%</text>
+              <text x="209" y="42" text-anchor="middle" font-size="6" fill="#e17055" font-family="Inter, Arial, sans-serif">Val</text>
+              <text x="235" y="42" text-anchor="middle" font-size="6" fill="#e17055" font-family="Inter, Arial, sans-serif">Test</text>
+              <!-- Loss curves -->
+              <path d="M 115 90 Q 140 75 165 72 Q 190 70 215 68 Q 235 67 245 66" stroke="#e17055" stroke-width="1.5" fill="none" opacity="0.6"/>
+              <path d="M 115 90 Q 140 78 165 80 Q 190 82 215 86 Q 235 90 245 94" stroke="#e17055" stroke-width="1.5" fill="none" opacity="0.35" stroke-dasharray="4 3"/>
+              <text x="247" y="64" font-size="6" fill="#e17055" font-family="Inter, Arial, sans-serif">train</text>
+              <text x="247" y="96" font-size="6" fill="#e17055" font-family="Inter, Arial, sans-serif" opacity="0.6">val</text>
+              <text x="115" y="105" font-size="7" fill="#9b95b0" font-family="Inter, Arial, sans-serif">Loss curves</text>
+            </svg>

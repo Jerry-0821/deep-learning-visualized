@@ -1,0 +1,48 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Q, K, V boxes -->
+              <rect x="15" y="30" width="36" height="28" rx="6" fill="rgba(0,184,148,0.1)" stroke="#00b894" stroke-width="1.5"/>
+              <text x="33" y="48" text-anchor="middle" fill="#00b894" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="700">Q</text>
+              <rect x="15" y="66" width="36" height="28" rx="6" fill="rgba(0,184,148,0.1)" stroke="#00b894" stroke-width="1.5"/>
+              <text x="33" y="84" text-anchor="middle" fill="#00b894" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="700">K</text>
+              <rect x="15" y="102" width="36" height="28" rx="6" fill="rgba(0,184,148,0.1)" stroke="#00b894" stroke-width="1.5"/>
+              <text x="33" y="120" text-anchor="middle" fill="#00b894" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="700">V</text>
+              <!-- Arrows from Q,K to attention -->
+              <line x1="51" y1="44" x2="100" y2="55" stroke="#00b894" stroke-width="1.2" opacity="0.5"/>
+              <line x1="51" y1="80" x2="100" y2="72" stroke="#00b894" stroke-width="1.2" opacity="0.5"/>
+              <!-- Attention score matrix -->
+              <g transform="translate(102,32)">
+                <rect x="0" y="0" width="72" height="72" rx="6" fill="rgba(0,184,148,0.03)" stroke="#00b894" stroke-width="1.5"/>
+                <!-- Score cells with varying opacity -->
+                <rect x="4" y="4" width="15" height="15" rx="2" fill="#00b894" opacity="0.7"/>
+                <rect x="21" y="4" width="15" height="15" rx="2" fill="#00b894" opacity="0.2"/>
+                <rect x="38" y="4" width="15" height="15" rx="2" fill="#00b894" opacity="0.1"/>
+                <rect x="55" y="4" width="13" height="15" rx="2" fill="#00b894" opacity="0.05"/>
+
+                <rect x="4" y="21" width="15" height="15" rx="2" fill="#00b894" opacity="0.15"/>
+                <rect x="21" y="21" width="15" height="15" rx="2" fill="#00b894" opacity="0.6"/>
+                <rect x="38" y="21" width="15" height="15" rx="2" fill="#00b894" opacity="0.3"/>
+                <rect x="55" y="21" width="13" height="15" rx="2" fill="#00b894" opacity="0.1"/>
+
+                <rect x="4" y="38" width="15" height="15" rx="2" fill="#00b894" opacity="0.1"/>
+                <rect x="21" y="38" width="15" height="15" rx="2" fill="#00b894" opacity="0.25"/>
+                <rect x="38" y="38" width="15" height="15" rx="2" fill="#00b894" opacity="0.65"/>
+                <rect x="55" y="38" width="13" height="15" rx="2" fill="#00b894" opacity="0.15"/>
+
+                <rect x="4" y="55" width="15" height="13" rx="2" fill="#00b894" opacity="0.05"/>
+                <rect x="21" y="55" width="15" height="13" rx="2" fill="#00b894" opacity="0.1"/>
+                <rect x="38" y="55" width="15" height="13" rx="2" fill="#00b894" opacity="0.2"/>
+                <rect x="55" y="55" width="13" height="13" rx="2" fill="#00b894" opacity="0.75"/>
+              </g>
+              <text x="138" y="120" text-anchor="middle" fill="#00b894" font-size="7" font-family="Inter, Arial, sans-serif" font-weight="600">Attention scores</text>
+              <!-- Arrow from V to output through scores -->
+              <line x1="51" y1="116" x2="100" y2="90" stroke="#00b894" stroke-width="1.2" opacity="0.5"/>
+              <!-- Arrow to output -->
+              <line x1="176" y1="68" x2="210" y2="68" stroke="#00b894" stroke-width="2" marker-end="url(#arrow-att)"/>
+              <text x="193" y="60" text-anchor="middle" fill="#00b894" font-size="7" font-family="Inter, Arial, sans-serif" font-weight="600">softmax</text>
+              <!-- Output -->
+              <rect x="215" y="42" width="80" height="52" rx="8" fill="rgba(0,184,148,0.08)" stroke="#00b894" stroke-width="1.5"/>
+              <text x="255" y="64" text-anchor="middle" fill="#00b894" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="600">Context</text>
+              <text x="255" y="78" text-anchor="middle" fill="#00b894" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="600">Vectors</text>
+              <text x="160" y="148" text-anchor="middle" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">Scaled dot-product attention</text>
+              <defs><marker id="arrow-att" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#00b894"/></marker></defs>
+            </svg>

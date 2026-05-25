@@ -1,0 +1,45 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Underfit -->
+              <g transform="translate(10,15)">
+                <rect x="0" y="0" width="90" height="75" rx="8" fill="rgba(136,125,240,0.03)" stroke="rgba(136,125,240,0.12)" stroke-width="1"/>
+                <!-- Data dots -->
+                <circle cx="15" cy="55" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="25" cy="40" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="35" cy="50" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="48" cy="30" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="58" cy="35" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="70" cy="20" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="80" cy="25" r="3" fill="#a29bfe" opacity="0.7"/>
+                <!-- Straight line (underfit) -->
+                <line x1="10" y1="58" x2="85" y2="18" stroke="#e74c3c" stroke-width="2" opacity="0.7"/>
+                <text x="45" y="92" text-anchor="middle" fill="#e74c3c" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">Underfit</text>
+              </g>
+              <!-- Good fit -->
+              <g transform="translate(115,15)">
+                <rect x="0" y="0" width="90" height="75" rx="8" fill="rgba(136,125,240,0.03)" stroke="rgba(136,125,240,0.12)" stroke-width="1"/>
+                <circle cx="15" cy="55" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="25" cy="42" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="35" cy="48" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="48" cy="32" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="58" cy="35" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="70" cy="22" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="80" cy="26" r="3" fill="#a29bfe" opacity="0.7"/>
+                <!-- Smooth curve (good fit) -->
+                <path d="M12,56 C25,44 35,50 48,32 C58,22 72,20 83,24" stroke="#27ae60" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <text x="45" y="92" text-anchor="middle" fill="#27ae60" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">Good fit</text>
+              </g>
+              <!-- Overfit -->
+              <g transform="translate(220,15)">
+                <rect x="0" y="0" width="90" height="75" rx="8" fill="rgba(136,125,240,0.03)" stroke="rgba(136,125,240,0.12)" stroke-width="1"/>
+                <circle cx="15" cy="55" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="25" cy="42" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="35" cy="48" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="48" cy="32" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="58" cy="35" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="70" cy="22" r="3" fill="#a29bfe" opacity="0.7"/>
+                <circle cx="80" cy="26" r="3" fill="#a29bfe" opacity="0.7"/>
+                <!-- Wiggly line (overfit) -->
+                <path d="M12,56 C18,40 22,60 26,42 C30,30 32,55 36,48 C42,28 45,38 48,32 C52,25 56,42 58,35 C62,18 68,30 70,22 C74,14 78,30 82,26" stroke="#e74c3c" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <text x="45" y="92" text-anchor="middle" fill="#e74c3c" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">Overfit</text>
+              </g>
+            </svg>

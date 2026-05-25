@@ -1,0 +1,22 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Contour ellipses -->
+              <ellipse cx="170" cy="82" rx="120" ry="55" stroke="#a29bfe" stroke-width="0.8" opacity="0.15"/>
+              <ellipse cx="170" cy="82" rx="95" ry="42" stroke="#a29bfe" stroke-width="0.8" opacity="0.2"/>
+              <ellipse cx="170" cy="82" rx="70" ry="30" stroke="#a29bfe" stroke-width="1" opacity="0.25"/>
+              <ellipse cx="170" cy="82" rx="45" ry="18" stroke="#a29bfe" stroke-width="1" opacity="0.3"/>
+              <ellipse cx="170" cy="82" rx="22" ry="8" stroke="#a29bfe" stroke-width="1" opacity="0.35"/>
+              <ellipse cx="170" cy="82" rx="6" ry="3" stroke="#6c5ce7" stroke-width="1.5" fill="rgba(136,125,240,0.15)" opacity="0.5"/>
+              <!-- Descent path (zigzag) -->
+              <polyline points="68,38 110,115 135,50 165,105 172,65 170,85" stroke="#6c5ce7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 3"/>
+              <!-- Path dots -->
+              <circle cx="68" cy="38" r="4" fill="#6c5ce7"/>
+              <circle cx="110" cy="115" r="3" fill="#6c5ce7" opacity="0.7"/>
+              <circle cx="135" cy="50" r="3" fill="#6c5ce7" opacity="0.7"/>
+              <circle cx="165" cy="105" r="3" fill="#6c5ce7" opacity="0.7"/>
+              <circle cx="172" cy="65" r="3" fill="#6c5ce7" opacity="0.7"/>
+              <circle cx="170" cy="82" r="5" fill="#6c5ce7"/>
+              <!-- Labels -->
+              <text x="68" y="30" text-anchor="middle" fill="#6c5ce7" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">start</text>
+              <text x="170" y="100" text-anchor="middle" fill="#6c5ce7" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">optimum</text>
+              <text x="170" y="150" text-anchor="middle" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">Learning rate controls the step size</text>
+            </svg>

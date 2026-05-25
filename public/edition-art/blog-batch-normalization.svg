@@ -1,0 +1,11 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="40" y1="130" x2="280" y2="130" stroke="#9b95b0" stroke-width="1.5" />
+              <path d="M 120 130 C 130 130 140 70 170 70 C 200 70 210 130 220 130" stroke="#a29bfe" stroke-width="2" stroke-dasharray="4 4" opacity="0.6"/>
+              <text x="170" y="55" text-anchor="middle" fill="#9b95b0" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="500">Unnormalized</text>
+              <path d="M 140 90 L 110 90" stroke="#a29bfe" stroke-width="2" marker-end="url(#arrow-bn)" opacity="0.8"/>
+              <defs><marker id="arrow-bn" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#a29bfe"/></marker></defs>
+              <path d="M 40 130 C 50 130 65 40 80 40 C 95 40 110 130 120 130" stroke="#6c5ce7" stroke-width="2.5"/>
+              <path d="M 40 130 C 50 130 65 40 80 40 C 95 40 110 130 120 130 Z" fill="rgba(108,92,231,0.1)"/>
+              <text x="80" y="30" text-anchor="middle" fill="#6c5ce7" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">Normalized (μ=0, σ=1)</text>
+              <line x1="80" y1="40" x2="80" y2="130" stroke="#6c5ce7" stroke-width="1" stroke-dasharray="2 2" opacity="0.5"/>
+            </svg>

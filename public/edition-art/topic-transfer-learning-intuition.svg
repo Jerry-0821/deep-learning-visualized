@@ -1,0 +1,41 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Network layers -->
+              <!-- Layer 1 (Frozen) -->
+              <rect x="35" y="30" width="44" height="100" rx="8" fill="rgba(136,125,240,0.1)" stroke="#6c5ce7" stroke-width="1.5"/>
+              <circle cx="57" cy="50" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <circle cx="57" cy="68" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <circle cx="57" cy="86" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <circle cx="57" cy="104" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <!-- Layer 2 (Frozen) -->
+              <rect x="90" y="30" width="44" height="100" rx="8" fill="rgba(136,125,240,0.1)" stroke="#6c5ce7" stroke-width="1.5"/>
+              <circle cx="112" cy="50" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <circle cx="112" cy="68" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <circle cx="112" cy="86" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <circle cx="112" cy="104" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <!-- Layer 3 (Frozen) -->
+              <rect x="145" y="30" width="44" height="100" rx="8" fill="rgba(136,125,240,0.1)" stroke="#6c5ce7" stroke-width="1.5"/>
+              <circle cx="167" cy="55" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <circle cx="167" cy="75" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <circle cx="167" cy="95" r="6" fill="#6c5ce7" opacity="0.4"/>
+              <!-- Frozen label -->
+              <text x="112" y="148" text-anchor="middle" fill="#6c5ce7" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="600">Frozen layers</text>
+              <!-- Lock icon -->
+              <g transform="translate(102,10)">
+                <rect x="0" y="6" width="12" height="9" rx="2" fill="#6c5ce7" opacity="0.5"/>
+                <path d="M2,6 V4 A4,4 0 0 1 10,4 V6" stroke="#6c5ce7" stroke-width="1.5" fill="none" opacity="0.5"/>
+              </g>
+              <!-- Swap arrow -->
+              <g transform="translate(197,60)">
+                <path d="M0,15 C8,15 12,5 20,5 M20,5 L16,1 M20,5 L16,9" stroke="#e17055" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M20,25 C12,25 8,35 0,35 M0,35 L4,31 M0,35 L4,39" stroke="#e17055" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </g>
+              <!-- New head layer -->
+              <rect x="230" y="38" width="55" height="84" rx="8" fill="rgba(225,112,85,0.12)" stroke="#e17055" stroke-width="2" stroke-dasharray="4 2"/>
+              <circle cx="257" cy="60" r="6" fill="#e17055" opacity="0.5"/>
+              <circle cx="257" cy="80" r="6" fill="#e17055" opacity="0.5"/>
+              <circle cx="257" cy="100" r="6" fill="#e17055" opacity="0.5"/>
+              <text x="257" y="140" text-anchor="middle" fill="#e17055" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="600">New head</text>
+              <!-- Task labels -->
+              <text x="85" y="22" text-anchor="middle" fill="#9b95b0" font-size="7" font-family="Inter, Arial, sans-serif" font-weight="500">Pretrained on Task A</text>
+              <text x="257" y="30" text-anchor="middle" fill="#e17055" font-size="7" font-family="Inter, Arial, sans-serif" font-weight="500">Task B</text>
+            </svg>

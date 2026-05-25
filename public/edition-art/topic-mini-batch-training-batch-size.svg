@@ -1,0 +1,22 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Axes -->
+              <line x1="40" y1="130" x2="290" y2="130" stroke="#9b95b0" stroke-width="1" opacity="0.3"/>
+              <line x1="40" y1="20" x2="40" y2="130" stroke="#9b95b0" stroke-width="1" opacity="0.3"/>
+              <text x="165" y="148" text-anchor="middle" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">Iterations</text>
+              <text x="25" y="75" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500" transform="rotate(-90 25 75)">Loss</text>
+              <!-- Full-batch (smooth) -->
+              <path d="M50,35 C80,38 110,50 140,65 C170,78 200,92 230,102 C250,108 270,112 280,114" stroke="#e17055" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.8"/>
+              <!-- Mini-batch (noisy) -->
+              <path d="M50,30 C55,42 60,28 67,45 C74,35 80,52 87,42 C94,55 100,45 107,58 C114,50 120,62 127,55 C134,65 140,58 147,68 C154,62 160,72 167,68 C174,78 180,72 187,80 C194,75 200,82 207,80 C214,85 220,82 227,88 C234,85 240,90 247,88 C254,92 260,90 267,94 C274,92 280,95 285,96" stroke="#e17055" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+              <!-- Labels -->
+              <g font-family="Inter, Arial, sans-serif" font-size="9" font-weight="600">
+                <rect x="200" y="28" width="62" height="16" rx="4" fill="rgba(225,112,85,0.1)"/>
+                <text x="231" y="39" text-anchor="middle" fill="#e17055">Full-batch</text>
+                <line x1="230" y1="44" x2="230" y2="102" stroke="#e17055" stroke-width="0.5" stroke-dasharray="2 2" opacity="0.3"/>
+              </g>
+              <g font-family="Inter, Arial, sans-serif" font-size="9" font-weight="600">
+                <rect x="105" y="20" width="64" height="16" rx="4" fill="rgba(225,112,85,0.06)"/>
+                <text x="137" y="31" text-anchor="middle" fill="#e17055" opacity="0.6">Mini-batch</text>
+                <line x1="137" y1="36" x2="137" y2="55" stroke="#e17055" stroke-width="0.5" stroke-dasharray="2 2" opacity="0.2"/>
+              </g>
+            </svg>

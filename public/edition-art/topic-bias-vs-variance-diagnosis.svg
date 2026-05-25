@@ -1,0 +1,48 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Target 1: High Variance (scattered) -->
+              <g transform="translate(25,15)">
+                <circle cx="42" cy="42" r="38" fill="none" stroke="rgba(225,112,85,0.1)" stroke-width="1"/>
+                <circle cx="42" cy="42" r="26" fill="none" stroke="rgba(225,112,85,0.15)" stroke-width="1"/>
+                <circle cx="42" cy="42" r="14" fill="none" stroke="rgba(225,112,85,0.2)" stroke-width="1"/>
+                <circle cx="42" cy="42" r="4" fill="#e17055" opacity="0.3"/>
+                <!-- Scattered dots -->
+                <circle cx="20" cy="25" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="60" cy="55" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="30" cy="65" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="55" cy="22" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="68" cy="38" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="25" cy="48" r="3" fill="#e17055" opacity="0.7"/>
+                <text x="42" y="96" text-anchor="middle" fill="#e17055" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">High variance</text>
+              </g>
+              <!-- Target 2: High Bias (clustered off-center) -->
+              <g transform="translate(125,15)">
+                <circle cx="42" cy="42" r="38" fill="none" stroke="rgba(225,112,85,0.1)" stroke-width="1"/>
+                <circle cx="42" cy="42" r="26" fill="none" stroke="rgba(225,112,85,0.15)" stroke-width="1"/>
+                <circle cx="42" cy="42" r="14" fill="none" stroke="rgba(225,112,85,0.2)" stroke-width="1"/>
+                <circle cx="42" cy="42" r="4" fill="#e17055" opacity="0.3"/>
+                <!-- Clustered off-center -->
+                <circle cx="60" cy="58" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="64" cy="62" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="56" cy="64" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="62" cy="56" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="58" cy="60" r="3" fill="#e17055" opacity="0.7"/>
+                <circle cx="66" cy="58" r="3" fill="#e17055" opacity="0.7"/>
+                <text x="42" y="96" text-anchor="middle" fill="#e17055" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">High bias</text>
+              </g>
+              <!-- Target 3: Ideal (clustered on center) -->
+              <g transform="translate(225,15)">
+                <circle cx="42" cy="42" r="38" fill="none" stroke="rgba(39,174,96,0.1)" stroke-width="1"/>
+                <circle cx="42" cy="42" r="26" fill="none" stroke="rgba(39,174,96,0.15)" stroke-width="1"/>
+                <circle cx="42" cy="42" r="14" fill="none" stroke="rgba(39,174,96,0.2)" stroke-width="1"/>
+                <circle cx="42" cy="42" r="4" fill="#27ae60" opacity="0.3"/>
+                <!-- Clustered on center -->
+                <circle cx="41" cy="40" r="3" fill="#27ae60" opacity="0.8"/>
+                <circle cx="44" cy="43" r="3" fill="#27ae60" opacity="0.8"/>
+                <circle cx="39" cy="44" r="3" fill="#27ae60" opacity="0.8"/>
+                <circle cx="43" cy="39" r="3" fill="#27ae60" opacity="0.8"/>
+                <circle cx="40" cy="42" r="3" fill="#27ae60" opacity="0.8"/>
+                <circle cx="45" cy="41" r="3" fill="#27ae60" opacity="0.8"/>
+                <text x="42" y="96" text-anchor="middle" fill="#27ae60" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="600">Low bias, low var</text>
+              </g>
+              <text x="160" y="140" text-anchor="middle" fill="#9b95b0" font-size="8" font-family="Inter, Arial, sans-serif" font-weight="500">Diagnosis via error comparison</text>
+            </svg>
