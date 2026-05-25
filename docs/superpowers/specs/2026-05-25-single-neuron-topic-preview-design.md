@@ -41,10 +41,13 @@ The standalone HTML preview must retain the current Single Neuron interactive ex
   `Output`
 - previous, next, play/pause, replay, activation selector, and timeline controls
 - activation choices: sigmoid, ReLU, tanh, and Leaky ReLU
-- the original values and accumulating forward-pass calculation
-- the dynamic MathJax equations shown as the animation progresses
-- the selected activation formula and activation explanation
-- the current-moment title and explanation
+- the original values and complete forward-pass calculation, presented in the approved stable
+  reading drawer
+- the original MathJax equation content, shown together in that drawer rather than replaced
+  stage-by-stage in the always-visible flow
+- the selected activation formula and activation explanation, shown in the drawer and updated
+  only when the selected activation changes
+- the current-moment title and explanation, shown as a lightweight live status near the controls
 
 After the interactive lesson, it must retain the current structured teaching notes exactly:
 
@@ -70,14 +73,60 @@ and computed outputs must remain functional and visible.
 
 ## Formula Placement And Rendering
 
-The interactive animation comes first. Dynamic calculation and activation-formula output must
-be shown directly below that animation, not above it.
+The interactive animation comes first. Its mathematical explanation must never appear above the
+animation.
 
 The structured `Important formulas` section belongs below the interactive experience as part of
 the teaching notes.
 
 All visible equations and mathematical variables introduced by the redesigned shell should be
 rendered with MathJax/LaTeX. Existing lesson formulas must be preserved in meaning and values.
+
+## Approved Calculation Drawer Revision
+
+The first preview revealed that continually changing formula cards below an animation make the
+reader repeatedly chase the current playback step. This revision is approved as the reusable
+pattern for any later topic whose calculation explanation changes repeatedly during animation.
+
+### Drawer Behavior
+
+- Add a small three-horizontal-line button on the right side of the interactive lesson.
+- The button opens a resizable right-side reading drawer and closes it again.
+- The drawer is closed by default. It must not cover the animation until the learner chooses to
+  inspect the explanation.
+- The drawer uses the page typography and a plain editorial surface, without colored formula
+  cards or decorative framing.
+- On narrow layouts the same information may open as a full-width overlay or sheet, provided it
+  remains closed by default and dismissible.
+
+### Calculation Content
+
+- For Single Neuron, move the changing formula-card experience out of the always-visible reading
+  flow.
+- In the drawer, list the complete forward-pass calculation in stable sequence rather than
+  replacing one partial step with another as the animation runs.
+- Keep the original values, operations, activation choice, and result. The presentation may
+  reveal all calculation steps together, but it may not invent, remove, or rewrite teaching
+  meaning.
+- Display the stable steps with normal page typography and MathJax/LaTeX.
+- The selected activation formula, activation note, and final activation-dependent result belong
+  in this drawer. When the activation selector changes, these activation-dependent entries may
+  update to match the selection; they should not flicker through time-based animation stages.
+
+### Current Moment Treatment
+
+- Do not leave `Current moment` as a large colored card under the animation.
+- Keep its instructional content available as a lightweight live-status line near the animation
+  controls, because the learner still needs orientation while the drawer is closed.
+- This status may change with animation playback because its purpose is to describe the visible
+  moment, not to serve as a reading transcript of the calculation.
+
+### Content-Preservation Interpretation
+
+Relocating the calculation and activation explanations into the drawer is a presentation change,
+not permission to delete content. The preview must still preserve every calculation value,
+activation explanation, formula, and current-moment explanation supplied by the authoritative
+interactive lesson. The existing interaction engine remains the source of truth.
 
 ## Implementation Boundary
 
@@ -99,12 +148,16 @@ reference must not be used as a replacement for the original animation content.
 Before presenting the preview:
 
 1. Open it in a browser and confirm it renders in the new editorial layout.
-2. Confirm the dynamic formula area is visible below the animation.
-3. Step through the five animation phases and confirm formula values update.
-4. Change the activation selector and confirm the activation formula/output changes.
-5. Compare every displayed instructional paragraph and formula with the existing local/live
+2. Confirm the three-line drawer control is visible and the drawer is closed by default.
+3. Open and resize the drawer, then confirm it lists the full Single Neuron calculation without
+   needing to advance animation steps.
+4. Step through the five animation phases and confirm the lightweight current-moment status
+   changes while the complete drawer calculation remains stable.
+5. Change the activation selector and confirm the drawer's selected activation formula, note,
+   and final output change consistently.
+6. Compare every displayed instructional paragraph and formula with the existing local/live
    Single Neuron lesson.
-6. Confirm existing production files and routes have not been overwritten.
+7. Confirm existing production files and routes have not been overwritten.
 
 ## Future Rollout Rule
 
