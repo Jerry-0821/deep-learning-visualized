@@ -65,11 +65,44 @@ Use the local design-system guidelines for presentation:
 - milk-white page background, deep gray-purple text, and purple accents
 - `Instrument Serif` for major display headings and `Inter` for body/UI text
 - a fixed translucent top bar
-- a left sticky table of contents and a flexible wide reading column
+- a collapsible left table-of-contents drawer and a flexible wide reading column
 - spacious editorial typography rather than bordered text cards
 
 The animation itself may remain visually distinct inside its interactive canvas. Its controls
 and computed outputs must remain functional and visible.
+
+## Approved Left Navigation Drawer Revision
+
+Every redesigned topic page must provide the same left-side navigation behavior for its
+`On This Page` section list.
+
+### Desktop Behavior
+
+- Show the left navigation drawer expanded by default so a learner can see and use the topic
+  outline immediately.
+- Add a small white outline sidebar icon button as the left drawer control. It must be visually
+  distinct from the right calculation drawer's three-horizontal-line button.
+- Allow the learner to collapse the left drawer. When it is collapsed, the reading content may
+  use the reclaimed horizontal space.
+- Keep the icon control available after collapse so the drawer can be reopened at any time.
+- Selecting a section link on desktop navigates to that section without automatically closing
+  the drawer; closing it remains an explicit learner choice.
+
+### Narrow-Screen Behavior
+
+- On narrow screens, keep the left navigation drawer closed by default so it does not crowd out
+  the reading content.
+- Open it as an overlay or sheet from the same white outline sidebar control.
+- Close the overlay after the learner selects a section, presses `Escape`, or selects the
+  backdrop.
+
+### Relationship To The Calculation Drawer
+
+- The left drawer is navigation only and is a universal layout requirement for all topics.
+- The right calculation drawer remains a lesson-specific explanatory surface and stays closed
+  by default.
+- Both drawers may exist together, but their controls, visual symbols, default states, and
+  purposes must remain unambiguous.
 
 ## Formula Placement And Rendering
 
@@ -148,16 +181,21 @@ reference must not be used as a replacement for the original animation content.
 Before presenting the preview:
 
 1. Open it in a browser and confirm it renders in the new editorial layout.
-2. Confirm the three-line drawer control is visible and the drawer is closed by default.
-3. Open and resize the drawer, then confirm it lists the full Single Neuron calculation without
+2. On desktop, confirm the left outline/sidebar navigation drawer is visible by default, can
+   collapse and reopen, and gives the reading column more space when collapsed.
+3. On a narrow viewport, confirm the left navigation drawer is initially closed and behaves as
+   a dismissible overlay.
+4. Confirm the right three-line calculation-drawer control is visible and its drawer is closed
+   by default.
+5. Open and resize the calculation drawer, then confirm it lists the full Single Neuron calculation without
    needing to advance animation steps.
-4. Step through the five animation phases and confirm the lightweight current-moment status
+6. Step through the five animation phases and confirm the lightweight current-moment status
    changes while the complete drawer calculation remains stable.
-5. Change the activation selector and confirm the drawer's selected activation formula, note,
+7. Change the activation selector and confirm the calculation drawer's selected activation formula, note,
    and final output change consistently.
-6. Compare every displayed instructional paragraph and formula with the existing local/live
+8. Compare every displayed instructional paragraph and formula with the existing local/live
    Single Neuron lesson.
-7. Confirm existing production files and routes have not been overwritten.
+9. Confirm existing production files and routes have not been overwritten.
 
 ## Future Rollout Rule
 
