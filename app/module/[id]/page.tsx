@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { ModulePage } from "@/components/module/ModulePage";
+import { notFound, redirect } from "next/navigation";
 import { modulesById, moduleIds } from "@/data/modules";
 
 type ModuleRouteProps = {
@@ -34,5 +33,5 @@ export default async function ModuleRoutePage({ params }: ModuleRouteProps) {
     notFound();
   }
 
-  return <ModulePage module={module} />;
+  redirect(`/topics#mod-${module.id}`);
 }

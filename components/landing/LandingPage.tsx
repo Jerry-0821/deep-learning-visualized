@@ -99,7 +99,7 @@ export function LandingPage() {
                     <span className="edition-node-arrow">{"\u2192"}</span>
                   </Link>
                 ))}
-                <Link className="edition-map-view-all" href={`/module/${module.id}`}>
+                <Link className="edition-map-view-all" href={`/topics#mod-${module.id}`}>
                   View all {module.topics.length} topics <span>{"\u2192"}</span>
                 </Link>
               </div>

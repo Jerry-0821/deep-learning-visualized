@@ -24,7 +24,7 @@ export const topics = modules.flatMap((module) =>
     tag: topic.tag,
     moduleId: module.id,
     moduleTitle: module.fullTitle,
-    moduleHref: `/module/${module.id}`,
+    moduleHref: `/topics#mod-${module.id}`,
     topicIndex: index + 1,
   })),
 );
