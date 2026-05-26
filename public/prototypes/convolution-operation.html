@@ -600,6 +600,7 @@
     momentDesc.innerText = desc;
 
     if (latex !== lastLatex) {
+      formulaMain.dataset.drawerLatex = `\\[ ${latex} \\]`;
       formulaMain.innerHTML = `\\[ ${latex} \\]`;
       lastLatex = latex;
       if (window.MathJax && window.MathJax.typesetPromise) {

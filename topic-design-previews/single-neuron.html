@@ -1,0 +1,1301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Single Neuron Forward Pass | Topic Design Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]],
+        },
+        svg: {
+          fontCache: "global",
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --bg: #fcfbfd;
+        --text-primary: #23212c;
+        --text-secondary: #585566;
+        --text-muted: #817d8f;
+        --accent: #6c5ce7;
+        --accent-soft: #efedff;
+        --rule: #e8e5ee;
+        --header-height: 70px;
+        --page-width: 1440px;
+        --reading-width: 1000px;
+        --navigation-width: 220px;
+        --drawer-width: 460px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text-primary);
+        font-family: "Inter", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .topbar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 20;
+        height: var(--header-height);
+        background: rgb(252 251 253 / 88%);
+        border-bottom: 1px solid rgb(232 229 238 / 70%);
+        backdrop-filter: blur(16px);
+      }
+
+      .topbar-inner {
+        align-items: center;
+        display: flex;
+        height: 100%;
+        justify-content: space-between;
+        margin: 0 auto;
+        max-width: var(--page-width);
+        padding: 0 42px;
+      }
+
+      .brand {
+        align-items: center;
+        display: flex;
+        font-size: 13px;
+        font-weight: 600;
+        gap: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .brand-dot {
+        background: var(--accent);
+        border-radius: 50%;
+        display: inline-block;
+        height: 8px;
+        width: 8px;
+      }
+
+      .preview-label {
+        color: var(--text-secondary);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .topbar-actions {
+        align-items: center;
+        display: flex;
+        gap: 26px;
+      }
+
+      .back-module-link {
+        border-left: 1px solid var(--rule);
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+        padding-left: 26px;
+      }
+
+      .back-module-link:hover {
+        color: var(--text-primary);
+      }
+
+      .page {
+        column-gap: 60px;
+        display: grid;
+        grid-template-columns: var(--navigation-width) minmax(0, var(--reading-width));
+        justify-content: center;
+        margin: 0 auto;
+        max-width: var(--page-width);
+        padding: calc(var(--header-height) + 72px) 42px 100px;
+        transition: column-gap 200ms ease;
+      }
+
+      body.navigation-collapsed .page {
+        column-gap: 0;
+        grid-template-columns: 0 minmax(0, var(--reading-width));
+      }
+
+      .navigation-drawer {
+        min-width: 0;
+        opacity: 1;
+        transform: translateX(0);
+        transition: opacity 180ms ease, transform 200ms ease, visibility 180ms ease;
+      }
+
+      body.navigation-collapsed .navigation-drawer {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-28px);
+        visibility: hidden;
+      }
+
+      .toc {
+        align-self: start;
+        color: var(--text-secondary);
+        position: sticky;
+        top: calc(var(--header-height) + 46px);
+      }
+
+      .toc-label,
+      .kicker,
+      .section-label {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        margin: 0 0 20px;
+        text-transform: uppercase;
+      }
+
+      .toc a {
+        border-left: 1px solid var(--rule);
+        color: var(--text-secondary);
+        display: block;
+        font-size: 14px;
+        line-height: 1.5;
+        padding: 10px 0 10px 18px;
+        transition: border-color 160ms ease, color 160ms ease;
+      }
+
+      .toc a:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .navigation-toggle {
+        align-items: center;
+        background: #181720;
+        border: 1px solid #494653;
+        border-radius: 11px;
+        color: #ffffff;
+        cursor: pointer;
+        display: inline-flex;
+        height: 46px;
+        justify-content: center;
+        left: 20px;
+        position: fixed;
+        top: calc(var(--header-height) + 22px);
+        transition: background 160ms ease, border-color 160ms ease;
+        width: 46px;
+        z-index: 36;
+      }
+
+      .navigation-toggle:hover,
+      .navigation-toggle[aria-expanded="false"] {
+        background: #23212c;
+        border-color: #6e6a7b;
+      }
+
+      .sidebar-icon {
+        display: block;
+        height: 20px;
+        stroke: currentColor;
+        width: 20px;
+      }
+
+      main {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .hero {
+        margin-bottom: 72px;
+        max-width: 900px;
+      }
+
+      .kicker {
+        color: var(--accent);
+        margin-bottom: 22px;
+      }
+
+      h1,
+      h2 {
+        font-family: "Instrument Serif", Georgia, serif;
+        font-weight: 400;
+        letter-spacing: -0.035em;
+        line-height: 1.04;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(4.25rem, 8.6vw, 7.6rem);
+      }
+
+      h2 {
+        font-size: clamp(2.35rem, 4vw, 3.35rem);
+        margin-bottom: 22px;
+      }
+
+      .lede {
+        color: var(--text-secondary);
+        font-size: clamp(1.08rem, 1.6vw, 1.25rem);
+        line-height: 1.75;
+        margin: 32px 0 36px;
+        max-width: 640px;
+      }
+
+      .hero-meta {
+        color: var(--text-muted);
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 12px;
+        gap: 20px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .hero-meta span + span::before {
+        color: var(--rule);
+        content: "/";
+        margin-right: 20px;
+      }
+
+      .content-section {
+        border-top: 1px solid var(--rule);
+        margin-top: 66px;
+        padding-top: 56px;
+        scroll-margin-top: calc(var(--header-height) + 36px);
+      }
+
+      .section-head {
+        align-items: baseline;
+        display: flex;
+        gap: 28px;
+        justify-content: space-between;
+        margin-bottom: 34px;
+      }
+
+      .section-head h2 {
+        margin-bottom: 0;
+      }
+
+      .section-actions {
+        align-items: center;
+        display: flex;
+        gap: 20px;
+      }
+
+      .source-note {
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.65;
+        margin: 0;
+        max-width: 285px;
+        text-align: right;
+      }
+
+      .drawer-toggle {
+        align-items: center;
+        background: transparent;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        color: var(--text-primary);
+        cursor: pointer;
+        display: inline-flex;
+        flex: 0 0 auto;
+        height: 46px;
+        justify-content: center;
+        position: fixed;
+        right: 24px;
+        top: calc(var(--header-height) + 22px);
+        transition: border-color 160ms ease, color 160ms ease, background 160ms ease, right 220ms ease;
+        width: 46px;
+        z-index: 36;
+      }
+
+      .drawer-toggle:hover,
+      .drawer-toggle[aria-expanded="true"] {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      body.drawer-open .drawer-toggle {
+        right: calc(var(--drawer-width) + 20px);
+      }
+
+      .menu-icon {
+        display: grid;
+        gap: 4px;
+        width: 18px;
+      }
+
+      .menu-icon span {
+        background: currentColor;
+        border-radius: 1px;
+        display: block;
+        height: 1.5px;
+        width: 100%;
+      }
+
+      .visually-hidden {
+        clip-path: inset(50%);
+        height: 1px;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
+
+      .interactive-figure {
+        margin: 0;
+      }
+
+      .prototype-host {
+        background: transparent;
+        border: 1px solid var(--rule);
+        border-radius: 26px;
+        min-height: 760px;
+        overflow: hidden;
+        padding: 18px;
+        width: 100%;
+      }
+
+      .prototype-host #neuron-demo-activation-wrap {
+        background: transparent !important;
+        font-family: "Inter", Arial, sans-serif !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+      }
+
+      .prototype-runtime-output {
+        display: none !important;
+      }
+
+      .moment-status {
+        align-items: start;
+        border-top: 1px solid rgb(89 97 120 / 52%);
+        color: #dbeafe;
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 126px 1fr;
+        margin-top: 15px;
+        padding: 14px 4px 2px;
+      }
+
+      .moment-status[hidden] {
+        display: none;
+      }
+
+      .moment-label {
+        color: #94a3b8;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        margin: 5px 0 0;
+        text-transform: uppercase;
+      }
+
+      .moment-copy #momentTitleA {
+        color: #f8fafc;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.4;
+        margin: 0 0 3px;
+      }
+
+      .moment-copy #momentDescA {
+        color: #b8c3da;
+        font-size: 13px;
+        line-height: 1.65;
+      }
+
+      .prototype-loading,
+      .prototype-error {
+        align-items: center;
+        color: var(--text-secondary);
+        display: flex;
+        justify-content: center;
+        min-height: 720px;
+      }
+
+      .prototype-error {
+        color: #8f3548;
+      }
+
+      figcaption {
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.65;
+        margin-top: 18px;
+      }
+
+      .reading-copy {
+        color: var(--text-secondary);
+        font-size: 17px;
+        max-width: 790px;
+      }
+
+      .reading-copy p {
+        margin: 0 0 22px;
+      }
+
+      .formula-line {
+        align-items: start;
+        border-bottom: 1px solid var(--rule);
+        display: grid;
+        gap: 36px;
+        grid-template-columns: minmax(230px, 0.9fr) minmax(260px, 1fr);
+        padding: 30px 0;
+      }
+
+      .formula-line:first-of-type {
+        border-top: 1px solid var(--rule);
+      }
+
+      .formula {
+        color: var(--text-primary);
+        font-size: 1.08rem;
+        min-height: 54px;
+      }
+
+      .formula mjx-container[display="true"] {
+        margin: 0 !important;
+        text-align: left !important;
+      }
+
+      .formula-line p {
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      .paired-list {
+        column-gap: 70px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .paired-list h3,
+      .small-heading {
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        margin: 0 0 22px;
+        text-transform: uppercase;
+      }
+
+      ul {
+        color: var(--text-secondary);
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      li {
+        border-top: 1px solid var(--rule);
+        padding: 18px 0 20px 27px;
+        position: relative;
+      }
+
+      li::before {
+        color: var(--accent);
+        content: "+";
+        left: 0;
+        position: absolute;
+      }
+
+      .cons li::before {
+        content: "-";
+      }
+
+      .example-grid {
+        column-gap: 70px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .example-grid p {
+        color: var(--text-secondary);
+        font-size: 16px;
+        margin: 0;
+      }
+
+      footer {
+        border-top: 1px solid var(--rule);
+        color: var(--text-muted);
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        margin-top: 76px;
+        padding-top: 30px;
+        text-transform: uppercase;
+      }
+
+      .calculation-drawer {
+        background: var(--bg);
+        border-left: 1px solid var(--rule);
+        bottom: 0;
+        color: var(--text-primary);
+        position: fixed;
+        right: 0;
+        top: var(--header-height);
+        transform: translateX(calc(100% + 2px));
+        transition: transform 220ms ease;
+        width: var(--drawer-width);
+        z-index: 35;
+      }
+
+      .calculation-drawer.is-open {
+        box-shadow: -16px 0 38px rgb(35 33 44 / 8%);
+        transform: translateX(0);
+      }
+
+      .drawer-resizer {
+        bottom: 0;
+        cursor: ew-resize;
+        left: -9px;
+        position: absolute;
+        top: 0;
+        width: 18px;
+      }
+
+      .drawer-resizer::after {
+        background: var(--rule);
+        bottom: 0;
+        content: "";
+        left: 8px;
+        position: absolute;
+        top: 0;
+        transition: background 160ms ease;
+        width: 1px;
+      }
+
+      .drawer-resizer:focus-visible::after,
+      .drawer-resizer:hover::after {
+        background: var(--accent);
+      }
+
+      .drawer-inner {
+        height: 100%;
+        overflow-y: auto;
+        padding: 32px 38px 46px;
+      }
+
+      .drawer-header {
+        align-items: start;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 42px;
+      }
+
+      .drawer-heading {
+        font-family: "Instrument Serif", Georgia, serif;
+        font-size: 2.65rem;
+        font-weight: 400;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+        margin: 0;
+      }
+
+      .drawer-close {
+        background: transparent;
+        border: 0;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 26px;
+        line-height: 1;
+        padding: 3px 0 8px 18px;
+      }
+
+      .drawer-close:hover {
+        color: var(--accent);
+      }
+
+      .drawer-section {
+        border-top: 1px solid var(--rule);
+        margin-top: 34px;
+        padding-top: 28px;
+      }
+
+      .drawer-section:first-of-type {
+        margin-top: 0;
+      }
+
+      .drawer-section-title {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        margin: 0 0 20px;
+        text-transform: uppercase;
+      }
+
+      .drawer-equation {
+        color: var(--text-primary);
+        font-size: 1rem;
+        overflow-x: auto;
+      }
+
+      .drawer-equation mjx-container[display="true"] {
+        margin: 15px 0 !important;
+        text-align: left !important;
+      }
+
+      .calculation-step {
+        border-top: 1px solid var(--rule);
+        padding: 11px 0;
+      }
+
+      .calculation-step:first-of-type {
+        border-top: 0;
+      }
+
+      .drawer-activation-meta {
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+
+      .drawer-activation-note {
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.75;
+        margin-top: 18px;
+      }
+
+      .drawer-result {
+        border-top: 1px solid var(--rule);
+        margin-top: 22px;
+        padding-top: 16px;
+      }
+
+      .drawer-result-label {
+        color: var(--text-muted);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+      }
+
+      .drawer-backdrop {
+        background: rgb(35 33 44 / 18%);
+        border: 0;
+        display: none;
+        inset: var(--header-height) 0 0;
+        position: fixed;
+        z-index: 30;
+      }
+
+      .navigation-backdrop {
+        background: rgb(35 33 44 / 18%);
+        border: 0;
+        display: none;
+        inset: var(--header-height) 0 0;
+        position: fixed;
+        z-index: 33;
+      }
+
+      @media (max-width: 980px) {
+        .topbar-inner {
+          padding: 0 22px;
+        }
+
+        .preview-label {
+          display: none;
+        }
+
+        .back-module-link {
+          border-left: 0;
+          padding-left: 0;
+        }
+
+        .page {
+          display: block;
+          padding: calc(var(--header-height) + 46px) 22px 72px;
+        }
+
+        .navigation-drawer {
+          background: var(--bg);
+          border-right: 1px solid var(--rule);
+          bottom: 0;
+          box-shadow: 12px 0 34px rgb(35 33 44 / 8%);
+          left: 0;
+          opacity: 1;
+          padding: 86px 32px 32px;
+          position: fixed;
+          top: var(--header-height);
+          transform: translateX(-102%);
+          visibility: visible;
+          width: min(312px, calc(100vw - 38px));
+          z-index: 34;
+        }
+
+        body.navigation-mobile-open .navigation-drawer {
+          transform: translateX(0);
+        }
+
+        .toc {
+          display: block;
+          position: static;
+        }
+
+        .navigation-toggle {
+          left: 16px;
+          top: calc(var(--header-height) + 16px);
+        }
+
+        body.navigation-mobile-open .navigation-toggle {
+          left: min(244px, calc(100vw - 106px));
+        }
+
+        .section-head,
+        .formula-line,
+        .paired-list,
+        .example-grid {
+          display: block;
+        }
+
+        .section-actions {
+          justify-content: space-between;
+          margin-top: 18px;
+        }
+
+        .drawer-toggle {
+          right: 16px;
+          top: calc(var(--header-height) + 16px);
+        }
+
+        body.drawer-open .drawer-toggle {
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .source-note {
+          margin-top: 0;
+          max-width: none;
+          text-align: left;
+        }
+
+        .formula-line p {
+          margin-top: 20px;
+        }
+
+        .paired-list > div + div,
+        .example-grid > div + div {
+          margin-top: 48px;
+        }
+
+        .moment-status {
+          display: block;
+        }
+
+        .moment-label {
+          margin-bottom: 8px;
+        }
+
+        .calculation-drawer {
+          top: var(--header-height);
+          width: min(var(--drawer-width), calc(100vw - 28px));
+        }
+
+        .drawer-inner {
+          padding: 28px 26px 42px;
+        }
+
+        body.drawer-open .drawer-backdrop {
+          display: block;
+        }
+
+        body.navigation-mobile-open .navigation-backdrop {
+          display: block;
+          left: min(312px, calc(100vw - 38px));
+        }
+      }
+    </style>
+  </head>
+  <body class="navigation-open">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#">
+          <span class="brand-dot"></span>
+          Deep Learning Visualized
+        </a>
+        <div class="topbar-actions">
+          <span class="preview-label">Topic design preview</span>
+          <a class="back-module-link" href="https://deep-learning-visualized.vercel.app/module/1">Back to module</a>
+        </div>
+      </div>
+    </header>
+
+    <button
+      class="navigation-toggle"
+      id="navigation-drawer-toggle"
+      type="button"
+      aria-controls="navigation-drawer"
+      aria-expanded="true"
+    >
+      <span class="visually-hidden">Collapse section navigation</span>
+      <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none">
+        <rect x="2.5" y="3" width="15" height="14" rx="3" stroke-width="1.5"></rect>
+        <path d="M8 3.5V16.5" stroke-width="1.5"></path>
+      </svg>
+    </button>
+
+    <div class="page">
+      <aside class="navigation-drawer" id="navigation-drawer" aria-hidden="false">
+        <nav class="toc" aria-label="Topic sections">
+          <p class="toc-label">On This Page</p>
+          <a href="#interactive-prototype">Interactive lesson</a>
+          <a href="#background">Background</a>
+          <a href="#important-formulas">Important formulas</a>
+          <a href="#strengths-limits">Pros / Cons</a>
+          <a href="#example-guidance">Example / Mistake</a>
+        </nav>
+      </aside>
+
+      <main>
+        <section class="hero" aria-label="Topic introduction">
+          <p class="kicker">Module 01 / Foundation</p>
+          <h1>Single Neuron<br />Forward Pass</h1>
+          <p class="lede">
+            Input -&gt; weights -&gt; bias -&gt; activation -&gt; output. See how one neuron turns
+            features into a prediction signal.
+          </p>
+          <div class="hero-meta">
+            <span>Visual design preview</span>
+            <span>Original interaction preserved</span>
+          </div>
+        </section>
+
+        <section class="content-section" id="interactive-prototype">
+          <div class="section-head">
+            <div>
+              <p class="section-label">Explore</p>
+              <h2>Interactive lesson</h2>
+            </div>
+            <div class="section-actions">
+              <p class="source-note">
+                Complete current prototype loaded without changing its teaching content.
+              </p>
+              <button
+                class="drawer-toggle"
+                id="calculation-drawer-toggle"
+                type="button"
+                aria-controls="calculation-drawer"
+                aria-expanded="false"
+              >
+                <span class="visually-hidden">Open calculation steps</span>
+                <span class="menu-icon" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <figure class="interactive-figure">
+            <div class="prototype-host" id="prototype-host" aria-label="Single Neuron interaction">
+              <p class="prototype-loading">Loading the preserved interactive lesson...</p>
+            </div>
+            <div class="moment-status" id="live-moment-status" hidden>
+              <p class="moment-label">Current moment</p>
+              <div class="moment-copy" id="live-moment-copy"></div>
+            </div>
+            <figcaption>
+              Open the calculation panel to review the complete forward pass and the selected
+              activation without following each playback step.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section class="content-section" id="background">
+          <p class="section-label">Context</p>
+          <h2>Background</h2>
+          <div class="reading-copy">
+            <p>
+              A single neuron is the fundamental building block of a neural network. It receives
+              one or more input signals, multiplies each by a weight that controls how influential
+              that input is, adds a bias term to shift the result, and then passes the weighted sum
+              through an activation function to produce an output. This forward-pass sequence
+              turns raw input values into an internal representation the network can use.
+            </p>
+            <p>
+              On its own, a single neuron is still a linear model before the activation is applied.
+              That is why a neuron is simple but important: by stacking many neurons with nonlinear
+              activations, we move from a single weighted sum to a flexible model that can learn
+              much richer patterns.
+            </p>
+          </div>
+        </section>
+
+        <section class="content-section" id="important-formulas">
+          <p class="section-label">Notation</p>
+          <h2>Important formulas</h2>
+          <div class="formula-line">
+            <div class="formula">\[ z = \sum_{i=1}^{n} w_i x_i + b \]</div>
+            <p>The neuron first computes a weighted sum of its inputs and adds a bias.</p>
+          </div>
+          <div class="formula-line">
+            <div class="formula">\[ a = \sigma(z) \]</div>
+            <p>The activation function transforms the weighted sum into the neuron output.</p>
+          </div>
+        </section>
+
+        <section class="content-section" id="strengths-limits">
+          <p class="section-label">Tradeoffs</p>
+          <h2>Pros and cons</h2>
+          <div class="paired-list">
+            <div>
+              <h3>Pros</h3>
+              <ul>
+                <li>
+                  Forms the basic computational unit of feed-forward neural networks and deeper
+                  architectures.
+                </li>
+                <li>
+                  Weighted inputs plus bias provide a flexible linear template for learning
+                  relative input importance.
+                </li>
+                <li>
+                  When combined with nonlinear activations and multiple layers, neurons support
+                  universal function approximation.
+                </li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h3>Cons</h3>
+              <ul>
+                <li>A single neuron alone cannot model complex nonlinear relationships.</li>
+                <li>
+                  Without a nonlinear activation, stacking many linear neurons still behaves like
+                  one linear transformation.
+                </li>
+                <li>
+                  A small neuron set can underfit complex data, while a large one requires careful
+                  initialization and regularization.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section" id="example-guidance">
+          <p class="section-label">Practice</p>
+          <h2>Example and guidance</h2>
+          <div class="example-grid">
+            <div>
+              <h3 class="small-heading">Quick Example</h3>
+              <p>
+                Let x1 = 1, x2 = 2, w1 = 0.5, w2 = -1.0, and b = 0.1. The weighted sum becomes
+                z = -1.4, and passing that through a sigmoid gives a value close to 0.20.
+              </p>
+            </div>
+            <div>
+              <h3 class="small-heading">Common Mistake</h3>
+              <p>
+                Beginners often forget the bias term and treat the neuron as only a weighted input
+                sum. Another common mistake is to ignore the role of nonlinearity: if every
+                activation is linear, stacking neurons does not create a more expressive network.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <footer>Single Neuron Forward Pass / Topic design test / Teaching content preserved</footer>
+      </main>
+    </div>
+
+    <button class="navigation-backdrop" id="navigation-backdrop" type="button" aria-label="Close section navigation"></button>
+    <button class="drawer-backdrop" id="drawer-backdrop" type="button" aria-label="Close calculation steps"></button>
+    <aside class="calculation-drawer" id="calculation-drawer" aria-hidden="true" inert>
+      <div
+        class="drawer-resizer"
+        id="drawer-resizer"
+        role="separator"
+        aria-label="Resize calculation steps"
+        aria-orientation="vertical"
+        tabindex="0"
+      ></div>
+      <div class="drawer-inner">
+        <header class="drawer-header">
+          <div>
+            <p class="section-label">Reference</p>
+            <h2 class="drawer-heading">Calculation steps</h2>
+          </div>
+          <button class="drawer-close" id="calculation-drawer-close" type="button" aria-label="Close calculation steps">
+            &times;
+          </button>
+        </header>
+
+        <section class="drawer-section" aria-label="Complete forward pass">
+          <p class="drawer-section-title">Full Forward Pass</p>
+          <div class="drawer-equation">\[ z = w_1x_1 + w_2x_2 + w_3x_3 + b \]</div>
+          <div class="calculation-step drawer-equation">\[ z = w_1x_1 = 1.2 \cdot 0.8 = 0.96 \]</div>
+          <div class="calculation-step drawer-equation">\[ z = 0.96 + (-0.48) = 0.48 \]</div>
+          <div class="calculation-step drawer-equation">\[ z = 0.48 + 0.45 = 0.93 \]</div>
+          <div class="calculation-step drawer-equation">\[ z = 0.93 + 0.4 = 1.33 \]</div>
+        </section>
+
+        <section class="drawer-section" aria-label="Selected activation">
+          <p class="drawer-section-title">Selected Activation</p>
+          <div class="drawer-activation-meta" id="drawer-activation-meta"></div>
+          <div class="drawer-equation" id="drawer-activation-formula"></div>
+          <div class="drawer-result">
+            <p class="drawer-result-label">Final Output</p>
+            <div class="drawer-equation" id="drawer-final-formula"></div>
+          </div>
+          <p class="drawer-result-label">Activation Note</p>
+          <div class="drawer-activation-note" id="drawer-activation-note"></div>
+        </section>
+      </div>
+    </aside>
+
+    <script>
+      const navigationDrawer = document.getElementById("navigation-drawer");
+      const navigationToggle = document.getElementById("navigation-drawer-toggle");
+      const navigationBackdrop = document.getElementById("navigation-backdrop");
+      const navigationLinks = navigationDrawer.querySelectorAll("a");
+      const narrowLayout = window.matchMedia("(max-width: 980px)");
+      const calculationDrawer = document.getElementById("calculation-drawer");
+      const drawerToggle = document.getElementById("calculation-drawer-toggle");
+      const drawerClose = document.getElementById("calculation-drawer-close");
+      const drawerBackdrop = document.getElementById("drawer-backdrop");
+      const drawerResizer = document.getElementById("drawer-resizer");
+
+      const drawerFinalEquations = {
+        sigmoid: String.raw`\[
+          y = \sigma(z) = \frac{1}{1 + e^{-z}} = \frac{1}{1 + e^{-1.33}} = 0.79
+        \]`,
+        relu: String.raw`\[
+          y = \operatorname{ReLU}(z) = \max(0, z) = \max(0, 1.33) = 1.33
+        \]`,
+        tanh: String.raw`\[
+          y = \tanh(z) = \tanh(1.33) = 0.87
+        \]`,
+        leakyrelu: String.raw`\[
+          y = \operatorname{LeakyReLU}(z) =
+          \begin{cases}
+          z, & z \ge 0 \\
+          0.01z, & z < 0
+          \end{cases}
+          = 1.33
+        \]`,
+      };
+
+      function setNavigationOpen(isOpen) {
+        const isNarrow = narrowLayout.matches;
+        navigationDrawer.setAttribute("aria-hidden", String(!isOpen));
+        navigationToggle.setAttribute("aria-expanded", String(isOpen));
+        navigationToggle.querySelector(".visually-hidden").textContent = isOpen
+          ? "Collapse section navigation"
+          : "Open section navigation";
+        document.body.classList.toggle("navigation-collapsed", !isNarrow && !isOpen);
+        document.body.classList.toggle("navigation-mobile-open", isNarrow && isOpen);
+
+        if (isOpen) {
+          navigationDrawer.removeAttribute("inert");
+          if (isNarrow) {
+            setDrawerOpen(false);
+          }
+        } else {
+          navigationDrawer.setAttribute("inert", "");
+        }
+      }
+
+      function initializeNavigationForViewport() {
+        setNavigationOpen(!narrowLayout.matches);
+      }
+
+      function setDrawerOpen(isOpen) {
+        if (isOpen && narrowLayout.matches) {
+          setNavigationOpen(false);
+        }
+        calculationDrawer.classList.toggle("is-open", isOpen);
+        calculationDrawer.setAttribute("aria-hidden", String(!isOpen));
+        drawerToggle.setAttribute("aria-expanded", String(isOpen));
+        drawerToggle.querySelector(".visually-hidden").textContent = isOpen
+          ? "Close calculation steps"
+          : "Open calculation steps";
+        document.body.classList.toggle("drawer-open", isOpen);
+        if (isOpen) {
+          calculationDrawer.removeAttribute("inert");
+          drawerResizer.tabIndex = 0;
+        } else {
+          calculationDrawer.setAttribute("inert", "");
+          drawerResizer.tabIndex = -1;
+        }
+      }
+
+      function setDrawerWidth(width) {
+        const maximumWidth = Math.min(700, window.innerWidth - 28);
+        const clampedWidth = Math.max(300, Math.min(maximumWidth, width));
+        document.documentElement.style.setProperty("--drawer-width", `${clampedWidth}px`);
+        calculationDrawer.dataset.width = String(clampedWidth);
+      }
+
+      function typesetDrawer(nodes) {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise(nodes).catch(() => {});
+        }
+      }
+
+      function renderDrawerFinalEquation() {
+        const activationSelect = document.getElementById("activationSelectA");
+        const finalFormula = document.getElementById("drawer-final-formula");
+        if (!activationSelect || !finalFormula) {
+          return;
+        }
+
+        finalFormula.innerHTML = drawerFinalEquations[activationSelect.value];
+        typesetDrawer([finalFormula]);
+      }
+
+      function moveRuntimeNode(sourceId, targetId) {
+        const source = document.getElementById(sourceId);
+        const target = document.getElementById(targetId);
+        if (!source || !target) {
+          throw new Error(`Unable to place preserved interaction content: ${sourceId}`);
+        }
+
+        source.removeAttribute("style");
+        target.appendChild(source);
+      }
+
+      function adaptPreservedPrototype() {
+        const formulaMain = document.getElementById("formulaMainA");
+        const canvas = document.getElementById("neuronCanvasA");
+        const activationSelect = document.getElementById("activationSelectA");
+        const liveStatus = document.getElementById("live-moment-status");
+        if (!formulaMain || !canvas || !activationSelect || !liveStatus) {
+          throw new Error("The authoritative interaction is missing required presentation nodes.");
+        }
+
+        const runtimeOutputPanels = formulaMain.parentElement.parentElement;
+        runtimeOutputPanels.classList.add("prototype-runtime-output");
+        runtimeOutputPanels.hidden = true;
+        runtimeOutputPanels.setAttribute("aria-hidden", "true");
+
+        moveRuntimeNode("activationMetaA", "drawer-activation-meta");
+        moveRuntimeNode("activationFormulaA", "drawer-activation-formula");
+        moveRuntimeNode("activationDescA", "drawer-activation-note");
+        moveRuntimeNode("momentTitleA", "live-moment-copy");
+        moveRuntimeNode("momentDescA", "live-moment-copy");
+
+        canvas.parentElement.appendChild(liveStatus);
+        liveStatus.hidden = false;
+
+        activationSelect.addEventListener("change", renderDrawerFinalEquation);
+        renderDrawerFinalEquation();
+      }
+
+      navigationToggle.addEventListener("click", () => {
+        setNavigationOpen(navigationDrawer.getAttribute("aria-hidden") === "true");
+      });
+      navigationBackdrop.addEventListener("click", () => setNavigationOpen(false));
+      navigationLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          if (narrowLayout.matches) {
+            setNavigationOpen(false);
+          }
+        });
+      });
+      narrowLayout.addEventListener("change", initializeNavigationForViewport);
+
+      drawerToggle.addEventListener("click", () => {
+        setDrawerOpen(calculationDrawer.getAttribute("aria-hidden") === "true");
+      });
+      drawerClose.addEventListener("click", () => {
+        setDrawerOpen(false);
+        drawerToggle.focus();
+      });
+      drawerBackdrop.addEventListener("click", () => setDrawerOpen(false));
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && calculationDrawer.getAttribute("aria-hidden") === "false") {
+          setDrawerOpen(false);
+          drawerToggle.focus();
+        }
+        if (
+          event.key === "Escape" &&
+          narrowLayout.matches &&
+          navigationDrawer.getAttribute("aria-hidden") === "false"
+        ) {
+          setNavigationOpen(false);
+          navigationToggle.focus();
+        }
+      });
+
+      drawerResizer.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault();
+          const delta = event.key === "ArrowLeft" ? 28 : -28;
+          setDrawerWidth(calculationDrawer.getBoundingClientRect().width + delta);
+        }
+      });
+
+      let activeResize = null;
+      drawerResizer.addEventListener("pointerdown", (event) => {
+        activeResize = {
+          x: event.clientX,
+          width: calculationDrawer.getBoundingClientRect().width,
+        };
+        drawerResizer.setPointerCapture(event.pointerId);
+      });
+      drawerResizer.addEventListener("pointermove", (event) => {
+        if (activeResize) {
+          setDrawerWidth(activeResize.width + activeResize.x - event.clientX);
+        }
+      });
+      drawerResizer.addEventListener("pointerup", () => {
+        activeResize = null;
+      });
+
+      initializeNavigationForViewport();
+      setDrawerOpen(false);
+
+      async function mountPreservedPrototype() {
+        const prototypeHost = document.getElementById("prototype-host");
+        try {
+          const response = await fetch("../public/prototypes/neuron-structure.html");
+          if (!response.ok) {
+            throw new Error("Unable to load the authoritative prototype.");
+          }
+
+          const source = await response.text();
+          const parsed = new DOMParser().parseFromString(source, "text/html");
+          const nodes = [...parsed.body.childNodes].filter((node) => node.nodeName !== "SCRIPT");
+          const scriptSource = parsed.body.querySelector("script");
+
+          prototypeHost.replaceChildren(...nodes.map((node) => document.importNode(node, true)));
+
+          if (!scriptSource) {
+            throw new Error("The authoritative prototype script is missing.");
+          }
+
+          const executableScript = document.createElement("script");
+          executableScript.textContent = scriptSource.textContent;
+          prototypeHost.appendChild(executableScript);
+          adaptPreservedPrototype();
+        } catch (error) {
+          prototypeHost.innerHTML =
+            '<p class="prototype-error">The preserved interactive lesson could not be loaded.</p>';
+        }
+      }
+
+      mountPreservedPrototype();
+    </script>
+  </body>
+</html>

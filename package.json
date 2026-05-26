@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "sync:topic-previews": "node scripts/sync_topic_design_previews.mjs",
+    "build": "npm run sync:topic-previews && next build",
     "start": "next start",
     "lint": "next lint"
   },

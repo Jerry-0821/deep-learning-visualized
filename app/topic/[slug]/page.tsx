@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { EmbeddedPrototypePage } from "@/components/topic/EmbeddedPrototypePage";
+import { RedesignedTopicPage } from "@/components/topic/RedesignedTopicPage";
 import { prototypeMappings } from "@/data/prototypeMappings";
+import { getRedesignedTopicPreviewPath } from "@/data/redesignedTopicPreviews";
 import { TopicPlaceholderPage } from "@/components/shared/TopicPlaceholderPage";
 import { routableTopics, topicsBySlug } from "@/data/topics";
 import { getTopicTeachingContent } from "@/data/topicTeachingContent";
@@ -34,6 +36,11 @@ export default async function TopicRoutePage({ params }: TopicRouteProps) {
   const { slug } = await params;
   const topic = topicsBySlug[slug];
   const prototype = topic ? prototypeMappings[topic.canonicalSlug] : prototypeMappings[slug];
+  const redesignedPreview = topic ? getRedesignedTopicPreviewPath(topic.canonicalSlug) : undefined;
+
+  if (topic && redesignedPreview) {
+    return <RedesignedTopicPage topic={topic} src={redesignedPreview} />;
+  }
 
   if (topic && prototype) {
     return <EmbeddedPrototypePage topic={topic} prototype={prototype} />;

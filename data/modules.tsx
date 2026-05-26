@@ -111,7 +111,7 @@ export const modules: ModuleData[] = [
       },
       {
         numberLabel: "04",
-        title: "Backpropagation Intuition",
+        title: "Backpropagation",
         subtitle: "Follow the error signal backward through cached forward values, gradients, and parameter updates.",
         tag: "Core concept",
         icon: "m1-backprop",

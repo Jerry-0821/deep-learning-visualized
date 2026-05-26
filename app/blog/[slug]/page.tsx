@@ -2,8 +2,10 @@ import Link from "next/link";
 import Script from "next/script";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { BlogReadingLayout, type BlogNavigationItem } from "@/components/blog/BlogReadingLayout";
 import { MathJaxRefresh } from "@/components/blog/MathJaxRefresh";
-import { blogPosts, blogPostsBySlug } from "@/data/blogPosts";
+import { EditionBackdrop, EditionNav } from "@/components/edition/EditionChrome";
+import { blogPosts, blogPostsBySlug, type BlogBlock, type BlogPost } from "@/data/blogPosts";
 
 type BlogPostPageProps = {
   params: Promise<{
@@ -25,6 +27,24 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   };
 }
 
+function getBlogBlockHeading(block: BlogBlock) {
+  return block.type === "image" ? undefined : block.heading;
+}
+
+function blockId(index: number) {
+  return `blog-section-${index}`;
+}
+
+function buildBlogNavigationItems(post: BlogPost): BlogNavigationItem[] {
+  return [
+    { id: "blog-overview", label: "Introduction" },
+    ...post.blocks.flatMap((block, index) => {
+      const heading = getBlogBlockHeading(block);
+      return heading ? [{ id: blockId(index), label: heading }] : [];
+    }),
+  ];
+}
+
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
   const post = blogPostsBySlug[slug];
@@ -33,8 +53,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
+  const navigationItems = buildBlogNavigationItems(post);
+
   return (
-    <main className="blog-post-root">
+    <main className="edition-root blog-reading-root">
       <Script id="blog-mathjax-config" strategy="beforeInteractive">
         {`
           window.MathJax = {
@@ -52,15 +74,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         strategy="afterInteractive"
       />
       <MathJaxRefresh />
-      <div className="blog-post-page">
-        <nav className="blog-post-nav">
-          <Link href="/blog">All blog topics</Link>
-          <span className="blog-post-brand">Deep Learning Blog</span>
-          <Link href="/">All modules</Link>
-        </nav>
-
-        <article className="blog-post-shell">
-          <header className="blog-post-header">
+      <EditionBackdrop />
+      <EditionNav active="blog" />
+      <BlogReadingLayout items={navigationItems}>
+        <article className="blog-reading-article">
+          <header className="blog-post-header" id="blog-overview">
+            <Link className="blog-reading-back-link" href="/blog">
+              {"\u2190"} All blog topics
+            </Link>
             <div className="blog-post-badge">{post.tag}</div>
             <h1>{post.title}</h1>
             <p>{post.description}</p>
@@ -69,6 +90,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           {post.blocks.length > 0 ? (
             <div className="blog-post-blocks">
               {post.blocks.map((block, index) => {
+                const headingId = getBlogBlockHeading(block) ? blockId(index) : undefined;
+
                 if (block.type === "image") {
                   return (
                     <figure
@@ -83,7 +106,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
                 if (block.type === "formula") {
                   return (
-                    <section key={`${block.type}-${index}`} className="blog-content-card">
+                    <section key={`${block.type}-${index}`} id={headingId} className="blog-content-card">
                       {block.heading ? <h2>{block.heading}</h2> : null}
                       <div className="blog-formula-list">
                         {block.formulas.map((formula) => (
@@ -99,7 +122,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
                 if (block.type === "list") {
                   return (
-                    <section key={`${block.type}-${index}`} className="blog-content-card">
+                    <section key={`${block.type}-${index}`} id={headingId} className="blog-content-card">
                       <h2>{block.heading}</h2>
                       <ol className={block.tone === "muted" ? "blog-list-muted" : ""}>
                         {block.items.map((item) => (
@@ -112,7 +135,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
                 if (block.type === "table") {
                   return (
-                    <section key={`${block.type}-${index}`} className="blog-content-card">
+                    <section key={`${block.type}-${index}`} id={headingId} className="blog-content-card">
                       <h2>{block.heading}</h2>
                       <div className="blog-table-wrap">
                         <table>
@@ -137,7 +160,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 }
 
                 return (
-                  <section key={`${block.type}-${index}`} className="blog-content-card">
+                  <section key={`${block.type}-${index}`} id={headingId} className="blog-content-card">
                     {block.heading ? <h2>{block.heading}</h2> : null}
                     {block.paragraphs.map((paragraph) => (
                       <p key={paragraph}>{paragraph}</p>
@@ -157,7 +180,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </section>
           )}
         </article>
-      </div>
+      </BlogReadingLayout>
     </main>
   );
 }

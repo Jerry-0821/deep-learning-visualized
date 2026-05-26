@@ -23,3 +23,5 @@ next-dev*.out
 /.codex-chrome-profile-*/
 /.codex-edge-profile-*/
 /.codex-*
+
+.vercel
