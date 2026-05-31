@@ -54,7 +54,7 @@ export function EditionFooter() {
           <Link href="/mindmap">Mindmap</Link>
           <Link href="/about">About</Link>
         </nav>
-        <div className="edition-footer-copy">Copyright 2026 Jerry Lau. Designed for clarity.</div>
+        <div className="edition-footer-copy">Copyright 2026 Deep Learning Visualized. Designed for clarity.</div>
       </div>
     </footer>
   );
