@@ -1,0 +1,20 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="34" y="34" width="92" height="92" rx="18" fill="rgba(108,92,231,0.08)" stroke="#d8d2ff"/>
+  <rect x="196" y="34" width="92" height="92" rx="18" fill="rgba(0,184,148,0.08)" stroke="#c9f4ea"/>
+  <path d="M144 80H174" stroke="#9b95b0" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M174 80L166 73" stroke="#9b95b0" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M174 80L166 87" stroke="#9b95b0" stroke-width="1.8" stroke-linecap="round"/>
+  <rect x="58" y="53" width="16" height="54" rx="4" fill="#6c5ce7"/>
+  <rect x="88" y="84" width="16" height="23" rx="4" fill="#a29bfe"/>
+  <path d="M50 108H112" stroke="#aaa4bd" stroke-width="1.2"/>
+  <text x="80" y="26" text-anchor="middle" fill="#6c5ce7" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="700">raw gradient</text>
+  <circle cx="160" cy="80" r="18" fill="#ffffff" stroke="#d8d2ff" stroke-width="1.5"/>
+  <path d="M151 80C154 72 166 72 169 80C166 88 154 88 151 80Z" fill="rgba(108,92,231,0.14)" stroke="#6c5ce7" stroke-width="1.4"/>
+  <text x="160" y="84" text-anchor="middle" fill="#6c5ce7" font-size="9" font-family="Inter, Arial, sans-serif" font-weight="800">RMS</text>
+  <rect x="220" y="72" width="16" height="35" rx="4" fill="#00b894"/>
+  <rect x="250" y="72" width="16" height="35" rx="4" fill="#55efc4"/>
+  <path d="M212 108H274" stroke="#aaa4bd" stroke-width="1.2"/>
+  <text x="242" y="26" text-anchor="middle" fill="#00b894" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="700">scaled steps</text>
+  <path d="M62 132C88 142 118 142 146 132C172 122 202 122 232 132C250 138 268 138 286 132" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 6" opacity="0.65"/>
+  <text x="160" y="148" text-anchor="middle" fill="#8d86a3" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="600">per-parameter scale</text>
+</svg>

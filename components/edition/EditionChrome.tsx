@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type EditionPage = "home" | "topics" | "blog" | "mindmap";
+type EditionPage = "home" | "topics" | "blog" | "mindmap" | "about";
 
 export function EditionBackdrop() {
   return <div className="edition-atmosphere" aria-hidden="true" />;
@@ -28,7 +28,7 @@ export function EditionNav({ active }: { active: EditionPage }) {
           <Link className={`edition-nav-link ${active === "mindmap" ? "active" : ""}`} href="/mindmap">
             Mindmap
           </Link>
-          <Link className="edition-nav-link" href="/about">
+          <Link className={`edition-nav-link ${active === "about" ? "active" : ""}`} href="/about">
             About
           </Link>
         </div>

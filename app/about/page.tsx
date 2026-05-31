@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { EditionBackdrop, EditionFooter, EditionNav } from "@/components/edition/EditionChrome";
 
 export const metadata: Metadata = {
   title: "About | Deep Learning Visualized",
@@ -63,48 +64,60 @@ const sections = [
 
 export default function AboutPage() {
   return (
-    <main className="about-page-root">
+    <main className="edition-root about-page-root">
+      <EditionBackdrop />
+      <EditionNav active="about" />
       <div className="about-page">
-        <nav className="blog-post-nav">
-          <Link href="/">Curriculum</Link>
-          <span className="blog-post-brand">Deep Learning Visualized</span>
-          <Link href="/topics">Topics</Link>
-        </nav>
-
         <article className="about-article">
           <header className="about-header">
-            <h1>About Deep Learning Visualized</h1>
-            <p>
-              Deep Learning Visualized is a visual learning library for beginners who want to
-              understand deep learning through clear diagrams, interactive animations, and
-              step-by-step explanations.
-            </p>
-            <p>
-              Deep learning can be difficult to understand when it is explained only through
-              formulas, static diagrams, or long theoretical descriptions. Many important concepts
-              are not just definitions. They are processes. Data moves through layers. Signals are
-              transformed. Gradients flow backward. Parameters change. Representations become more
-              abstract step by step.
-            </p>
-            <p>This website is built to make those hidden processes easier to see.</p>
+            <div className="about-header-copy">
+              <div className="about-eyebrow">About</div>
+              <h1>About Deep Learning Visualized</h1>
+              <p>
+                Deep Learning Visualized is a visual learning library for beginners who want to
+                understand deep learning through clear diagrams, interactive animations, and
+                step-by-step explanations.
+              </p>
+              <p>
+                Deep learning can be difficult to understand when it is explained only through
+                formulas, static diagrams, or long theoretical descriptions. Many important concepts
+                are not just definitions. They are processes. Data moves through layers. Signals are
+                transformed. Gradients flow backward. Parameters change. Representations become more
+                abstract step by step.
+              </p>
+              <p>This website is built to make those hidden processes easier to see.</p>
+            </div>
+            <div className="about-visual" aria-hidden="true">
+              <div className="about-visual-node about-visual-node-input">x</div>
+              <div className="about-visual-node about-visual-node-hidden">z</div>
+              <div className="about-visual-node about-visual-node-output">a</div>
+              <div className="about-visual-node about-visual-node-loss">L</div>
+              <span className="about-visual-flow about-visual-flow-one" />
+              <span className="about-visual-flow about-visual-flow-two" />
+              <span className="about-visual-flow about-visual-flow-three" />
+              <span className="about-visual-gradient" />
+            </div>
           </header>
 
-          {sections.map((section) => (
-            <section key={section.title} className="about-section">
-              <h2>{section.title}</h2>
-              {section.paragraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </section>
-          ))}
+          <div className="about-section-grid">
+            {sections.map((section) => (
+              <section key={section.title} className="about-section">
+                <h2>{section.title}</h2>
+                {section.paragraphs.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </section>
+            ))}
+          </div>
 
           <div className="about-cta-row">
             <Link className="about-cta" href="/#modules">
-              Explore the curriculum →
+              Explore the curriculum <span>{"\u2192"}</span>
             </Link>
           </div>
         </article>
       </div>
+      <EditionFooter />
     </main>
   );
 }

@@ -1174,7 +1174,7 @@ export const blogPosts: BlogPost[] = [
     tag: "Optimization",
     description:
       "Learn how Momentum gives gradient descent memory, reducing zig-zag movement and building speed in consistent directions.",
-    coverImage: "/blog/momentum/momentum-01-why-momentum-helps.png",
+    coverImage: "/edition-art/blog-momentum.svg",
     status: "ready",
     blocks: [
       {
@@ -1343,7 +1343,7 @@ export const blogPosts: BlogPost[] = [
     tag: "Optimization",
     description:
       "Learn how RMSProp gives each parameter an adaptive step size by tracking recent squared gradients.",
-    coverImage: "/blog/rmsprop/rmsprop-01-why-rmsprop-helps.png",
+    coverImage: "/edition-art/blog-rmsprop.svg",
     status: "ready",
     blocks: [
       {
