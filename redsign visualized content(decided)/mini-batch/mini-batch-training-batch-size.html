@@ -1,0 +1,2987 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mini-Batch Training &amp; Batch Size | Topic Design Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]],
+        },
+        svg: {
+          fontCache: "global",
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --bg: #fcfbfd;
+        --text-primary: #23212c;
+        --text-secondary: #585566;
+        --text-muted: #817d8f;
+        --accent: #6c5ce7;
+        --accent-soft: #efedff;
+        --rule: #e8e5ee;
+        --header-height: 70px;
+        --page-width: 1440px;
+        --reading-width: 1000px;
+        --navigation-width: 220px;
+        --drawer-width: 460px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text-primary);
+        font-family: "Inter", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .topbar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 20;
+        height: var(--header-height);
+        background: rgb(252 251 253 / 88%);
+        border-bottom: 1px solid rgb(232 229 238 / 70%);
+        backdrop-filter: blur(16px);
+      }
+
+      .topbar-inner {
+        align-items: center;
+        display: flex;
+        height: 100%;
+        justify-content: space-between;
+        margin: 0 auto;
+        max-width: var(--page-width);
+        padding: 0 42px;
+      }
+
+      .brand {
+        align-items: center;
+        display: flex;
+        font-size: 13px;
+        font-weight: 600;
+        gap: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .brand-dot {
+        background: var(--accent);
+        border-radius: 50%;
+        display: inline-block;
+        height: 8px;
+        width: 8px;
+      }
+
+      .preview-label {
+        color: var(--text-secondary);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .topbar-actions {
+        align-items: center;
+        display: flex;
+        gap: 26px;
+      }
+
+      .back-module-link {
+        border-left: 1px solid var(--rule);
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+        padding-left: 26px;
+      }
+
+      .back-module-link:hover {
+        color: var(--text-primary);
+      }
+
+      .page {
+        column-gap: 60px;
+        display: grid;
+        grid-template-columns: var(--navigation-width) minmax(0, var(--reading-width));
+        justify-content: center;
+        margin: 0 auto;
+        max-width: var(--page-width);
+        padding: calc(var(--header-height) + 72px) 42px 100px;
+        transition: column-gap 200ms ease;
+      }
+
+      body.navigation-collapsed .page {
+        column-gap: 0;
+        grid-template-columns: 0 minmax(0, var(--reading-width));
+      }
+
+      .navigation-drawer {
+        min-width: 0;
+        opacity: 1;
+        transform: translateX(0);
+        transition: opacity 180ms ease, transform 200ms ease, visibility 180ms ease;
+      }
+
+      body.navigation-collapsed .navigation-drawer {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-28px);
+        visibility: hidden;
+      }
+
+      .toc {
+        align-self: start;
+        color: var(--text-secondary);
+        position: sticky;
+        top: calc(var(--header-height) + 46px);
+      }
+
+      .toc-label,
+      .kicker,
+      .section-label {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        margin: 0 0 20px;
+        text-transform: uppercase;
+      }
+
+      .toc a {
+        border-left: 1px solid var(--rule);
+        color: var(--text-secondary);
+        display: block;
+        font-size: 14px;
+        line-height: 1.5;
+        padding: 10px 0 10px 18px;
+        transition: border-color 160ms ease, color 160ms ease;
+      }
+
+      .toc a:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .navigation-toggle {
+        align-items: center;
+        background: #181720;
+        border: 1px solid #494653;
+        border-radius: 11px;
+        color: #ffffff;
+        cursor: pointer;
+        display: inline-flex;
+        height: 46px;
+        justify-content: center;
+        left: 20px;
+        position: fixed;
+        top: calc(var(--header-height) + 22px);
+        transition: background 160ms ease, border-color 160ms ease;
+        width: 46px;
+        z-index: 36;
+      }
+
+      .navigation-toggle:hover,
+      .navigation-toggle[aria-expanded="false"] {
+        background: #23212c;
+        border-color: #6e6a7b;
+      }
+
+      .sidebar-icon {
+        display: block;
+        height: 20px;
+        stroke: currentColor;
+        width: 20px;
+      }
+
+      main {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .hero {
+        margin-bottom: 72px;
+        max-width: 900px;
+      }
+
+      .kicker {
+        color: var(--accent);
+        margin-bottom: 22px;
+      }
+
+      h1,
+      h2 {
+        font-family: "Instrument Serif", Georgia, serif;
+        font-weight: 400;
+        letter-spacing: -0.035em;
+        line-height: 1.04;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(4.25rem, 8.6vw, 7.6rem);
+      }
+
+      h2 {
+        font-size: clamp(2.35rem, 4vw, 3.35rem);
+        margin-bottom: 22px;
+      }
+
+      .lede {
+        color: var(--text-secondary);
+        font-size: clamp(1.08rem, 1.6vw, 1.25rem);
+        line-height: 1.75;
+        margin: 32px 0 36px;
+        max-width: 640px;
+      }
+
+      .hero-meta {
+        color: var(--text-muted);
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 12px;
+        gap: 20px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .hero-meta span + span::before {
+        color: var(--rule);
+        content: "/";
+        margin-right: 20px;
+      }
+
+      .content-section {
+        border-top: 1px solid var(--rule);
+        margin-top: 66px;
+        padding-top: 56px;
+        scroll-margin-top: calc(var(--header-height) + 36px);
+      }
+
+      .section-head {
+        align-items: baseline;
+        display: flex;
+        gap: 28px;
+        justify-content: space-between;
+        margin-bottom: 34px;
+      }
+
+      .section-head h2 {
+        margin-bottom: 0;
+      }
+
+      .section-actions {
+        align-items: center;
+        display: flex;
+        gap: 20px;
+      }
+
+      .source-note {
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.65;
+        margin: 0;
+        max-width: 285px;
+        text-align: right;
+      }
+
+      .drawer-toggle {
+        align-items: center;
+        background: transparent;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        color: var(--text-primary);
+        cursor: pointer;
+        display: inline-flex;
+        flex: 0 0 auto;
+        height: 46px;
+        justify-content: center;
+        position: fixed;
+        right: 24px;
+        top: calc(var(--header-height) + 22px);
+        transition: border-color 160ms ease, color 160ms ease, background 160ms ease, right 220ms ease;
+        width: 46px;
+        z-index: 36;
+      }
+
+      .drawer-toggle:hover,
+      .drawer-toggle[aria-expanded="true"] {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      body.drawer-open .drawer-toggle {
+        right: calc(var(--drawer-width) + 20px);
+      }
+
+      .menu-icon {
+        display: grid;
+        gap: 4px;
+        width: 18px;
+      }
+
+      .menu-icon span {
+        background: currentColor;
+        border-radius: 1px;
+        display: block;
+        height: 1.5px;
+        width: 100%;
+      }
+
+      .visually-hidden {
+        clip-path: inset(50%);
+        height: 1px;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
+
+      .interactive-figure {
+        margin: 0;
+      }
+
+      .prototype-host {
+        background: transparent;
+        border: 1px solid var(--rule);
+        border-radius: 26px;
+        min-height: 760px;
+        overflow: hidden;
+        padding: 18px;
+        width: 100%;
+      }
+
+      .prototype-host #neuron-demo-activation-wrap {
+        background: transparent !important;
+        font-family: "Inter", Arial, sans-serif !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+      }
+
+      .prototype-runtime-output {
+        display: none !important;
+      }
+
+      .moment-status {
+        align-items: start;
+        border-top: 1px solid rgb(89 97 120 / 52%);
+        color: #dbeafe;
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 126px 1fr;
+        margin-top: 15px;
+        padding: 14px 4px 2px;
+      }
+
+      .moment-status[hidden] {
+        display: none;
+      }
+
+      .moment-label {
+        color: #94a3b8;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        margin: 5px 0 0;
+        text-transform: uppercase;
+      }
+
+      .moment-copy #momentTitleA {
+        color: #f8fafc;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.4;
+        margin: 0 0 3px;
+      }
+
+      .moment-copy #momentDescA {
+        color: #b8c3da;
+        font-size: 13px;
+        line-height: 1.65;
+      }
+
+      .prototype-loading,
+      .prototype-error {
+        align-items: center;
+        color: var(--text-secondary);
+        display: flex;
+        justify-content: center;
+        min-height: 720px;
+      }
+
+      .prototype-error {
+        color: #8f3548;
+      }
+
+      figcaption {
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.65;
+        margin-top: 18px;
+      }
+
+      .reading-copy {
+        color: var(--text-secondary);
+        font-size: 17px;
+        max-width: 790px;
+      }
+
+      .reading-copy p {
+        margin: 0 0 22px;
+      }
+
+      .formula-line {
+        align-items: start;
+        border-bottom: 1px solid var(--rule);
+        display: grid;
+        gap: 36px;
+        grid-template-columns: minmax(230px, 0.9fr) minmax(260px, 1fr);
+        padding: 30px 0;
+      }
+
+      .formula-line:first-of-type {
+        border-top: 1px solid var(--rule);
+      }
+
+      .formula {
+        color: var(--text-primary);
+        font-size: 1.08rem;
+        min-height: 54px;
+      }
+
+      .formula mjx-container[display="true"] {
+        margin: 0 !important;
+        text-align: left !important;
+      }
+
+      .formula-line p {
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      .paired-list {
+        column-gap: 70px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .paired-list h3,
+      .small-heading {
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        margin: 0 0 22px;
+        text-transform: uppercase;
+      }
+
+      ul {
+        color: var(--text-secondary);
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      li {
+        border-top: 1px solid var(--rule);
+        padding: 18px 0 20px 27px;
+        position: relative;
+      }
+
+      li::before {
+        color: var(--accent);
+        content: "+";
+        left: 0;
+        position: absolute;
+      }
+
+      .cons li::before {
+        content: "-";
+      }
+
+      .example-grid {
+        column-gap: 70px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .example-grid p {
+        color: var(--text-secondary);
+        font-size: 16px;
+        margin: 0;
+      }
+
+      footer {
+        border-top: 1px solid var(--rule);
+        color: var(--text-muted);
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        margin-top: 76px;
+        padding-top: 30px;
+        text-transform: uppercase;
+      }
+
+      .calculation-drawer {
+        background: var(--bg);
+        border-left: 1px solid var(--rule);
+        bottom: 0;
+        color: var(--text-primary);
+        position: fixed;
+        right: 0;
+        top: var(--header-height);
+        transform: translateX(calc(100% + 2px));
+        transition: transform 220ms ease;
+        width: var(--drawer-width);
+        z-index: 35;
+      }
+
+      .calculation-drawer.is-open {
+        box-shadow: -16px 0 38px rgb(35 33 44 / 8%);
+        transform: translateX(0);
+      }
+
+      .drawer-resizer {
+        bottom: 0;
+        cursor: ew-resize;
+        left: -9px;
+        position: absolute;
+        top: 0;
+        width: 18px;
+      }
+
+      .drawer-resizer::after {
+        background: var(--rule);
+        bottom: 0;
+        content: "";
+        left: 8px;
+        position: absolute;
+        top: 0;
+        transition: background 160ms ease;
+        width: 1px;
+      }
+
+      .drawer-resizer:focus-visible::after,
+      .drawer-resizer:hover::after {
+        background: var(--accent);
+      }
+
+      .drawer-inner {
+        height: 100%;
+        overflow-y: auto;
+        padding: 32px 38px 46px;
+      }
+
+      .drawer-header {
+        align-items: start;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 42px;
+      }
+
+      .drawer-heading {
+        font-family: "Instrument Serif", Georgia, serif;
+        font-size: 2.65rem;
+        font-weight: 400;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+        margin: 0;
+      }
+
+      .drawer-close {
+        background: transparent;
+        border: 0;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 26px;
+        line-height: 1;
+        padding: 3px 0 8px 18px;
+      }
+
+      .drawer-close:hover {
+        color: var(--accent);
+      }
+
+      .drawer-section {
+        border-top: 1px solid var(--rule);
+        margin-top: 34px;
+        padding-top: 28px;
+      }
+
+      .drawer-section:first-of-type {
+        margin-top: 0;
+      }
+
+      .drawer-section-title {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        margin: 0 0 20px;
+        text-transform: uppercase;
+      }
+
+      .drawer-equation {
+        color: var(--text-primary);
+        font-size: 1rem;
+        overflow-x: auto;
+      }
+
+      .drawer-equation mjx-container[display="true"] {
+        margin: 15px 0 !important;
+        text-align: left !important;
+      }
+
+      .calculation-step {
+        border-top: 1px solid var(--rule);
+        padding: 11px 0;
+      }
+
+      .calculation-step:first-of-type {
+        border-top: 0;
+      }
+
+      .drawer-activation-meta {
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+
+      .drawer-activation-note {
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.75;
+        margin-top: 18px;
+      }
+
+      .drawer-result {
+        border-top: 1px solid var(--rule);
+        margin-top: 22px;
+        padding-top: 16px;
+      }
+
+      .drawer-result-label {
+        color: var(--text-muted);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+      }
+
+      .drawer-backdrop {
+        background: rgb(35 33 44 / 18%);
+        border: 0;
+        display: none;
+        inset: var(--header-height) 0 0;
+        position: fixed;
+        z-index: 30;
+      }
+
+      .navigation-backdrop {
+        background: rgb(35 33 44 / 18%);
+        border: 0;
+        display: none;
+        inset: var(--header-height) 0 0;
+        position: fixed;
+        z-index: 33;
+      }
+
+      @media (max-width: 980px) {
+        .topbar-inner {
+          padding: 0 22px;
+        }
+
+        .preview-label {
+          display: none;
+        }
+
+        .back-module-link {
+          border-left: 0;
+          padding-left: 0;
+        }
+
+        .page {
+          display: block;
+          padding: calc(var(--header-height) + 46px) 22px 72px;
+        }
+
+        .navigation-drawer {
+          background: var(--bg);
+          border-right: 1px solid var(--rule);
+          bottom: 0;
+          box-shadow: 12px 0 34px rgb(35 33 44 / 8%);
+          left: 0;
+          opacity: 1;
+          padding: 86px 32px 32px;
+          position: fixed;
+          top: var(--header-height);
+          transform: translateX(-102%);
+          visibility: visible;
+          width: min(312px, calc(100vw - 38px));
+          z-index: 34;
+        }
+
+        body.navigation-mobile-open .navigation-drawer {
+          transform: translateX(0);
+        }
+
+        .toc {
+          display: block;
+          position: static;
+        }
+
+        .navigation-toggle {
+          left: 16px;
+          top: calc(var(--header-height) + 16px);
+        }
+
+        body.navigation-mobile-open .navigation-toggle {
+          left: min(244px, calc(100vw - 106px));
+        }
+
+        .section-head,
+        .formula-line,
+        .paired-list,
+        .example-grid {
+          display: block;
+        }
+
+        .section-actions {
+          justify-content: space-between;
+          margin-top: 18px;
+        }
+
+        .drawer-toggle {
+          right: 16px;
+          top: calc(var(--header-height) + 16px);
+        }
+
+        body.drawer-open .drawer-toggle {
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .source-note {
+          margin-top: 0;
+          max-width: none;
+          text-align: left;
+        }
+
+        .formula-line p {
+          margin-top: 20px;
+        }
+
+        .paired-list > div + div,
+        .example-grid > div + div {
+          margin-top: 48px;
+        }
+
+        .moment-status {
+          display: block;
+        }
+
+        .moment-label {
+          margin-bottom: 8px;
+        }
+
+        .calculation-drawer {
+          top: var(--header-height);
+          width: min(var(--drawer-width), calc(100vw - 28px));
+        }
+
+        .drawer-inner {
+          padding: 28px 26px 42px;
+        }
+
+        body.drawer-open .drawer-backdrop {
+          display: block;
+        }
+
+        body.navigation-mobile-open .navigation-backdrop {
+          display: block;
+          left: min(312px, calc(100vw - 38px));
+        }
+      }
+    </style>
+  </head>
+  <body class="navigation-open">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#">
+          <span class="brand-dot"></span>
+          Deep Learning Visualized
+        </a>
+        <div class="topbar-actions">
+          <span class="preview-label">Topic design preview</span>
+          <a class="back-module-link" href="/module/1">Back to module</a>
+        </div>
+      </div>
+    </header>
+
+    <button
+      class="navigation-toggle"
+      id="navigation-drawer-toggle"
+      type="button"
+      aria-controls="navigation-drawer"
+      aria-expanded="true"
+    >
+      <span class="visually-hidden">Collapse section navigation</span>
+      <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none">
+        <rect x="2.5" y="3" width="15" height="14" rx="3" stroke-width="1.5"></rect>
+        <path d="M8 3.5V16.5" stroke-width="1.5"></path>
+      </svg>
+    </button>
+
+    <div class="page">
+      <aside class="navigation-drawer" id="navigation-drawer" aria-hidden="false">
+        <nav class="toc" aria-label="Topic sections">
+          <p class="toc-label">On This Page</p>
+          <a href="#interactive-prototype">Interactive lesson</a>
+          <a href="#background">Background</a>
+          <a href="#important-formulas">Important formulas</a>
+          <a href="#strengths-limits">Pros / Cons</a>
+          <a href="#example-guidance">Quick example</a>
+          <a href="#common-mistakes">Common mistakes</a>
+          <a href="#takeaway">Takeaway</a>
+        </nav>
+      </aside>
+
+      <main>
+        <section class="hero" aria-label="Topic introduction">
+          <p class="kicker">Module 02 / Optimization</p>
+          <h1>Mini-Batch<br />Training</h1>
+          <p class="lede">
+            Compare full-batch, mini-batch, and stochastic gradient descent to see how batch size shapes optimization paths, update frequency, and training noise.
+          </p>
+          <div class="hero-meta">
+            <span>Visual design preview</span>
+            <span>Original interaction preserved</span>
+          </div>
+        </section>
+
+        <section class="content-section" id="interactive-prototype">
+          <div class="section-head">
+            <div>
+              <p class="section-label">Explore</p>
+              <h2>Interactive lesson</h2>
+            </div>
+            <div class="section-actions">
+              <p class="source-note">
+                Complete current prototype loaded without changing its teaching content.
+              </p>
+              <button
+                class="drawer-toggle"
+                id="calculation-drawer-toggle"
+                type="button"
+                aria-controls="calculation-drawer"
+                aria-expanded="false"
+              >
+                <span class="visually-hidden">Open calculation steps</span>
+                <span class="menu-icon" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <figure class="interactive-figure">
+            <div class="prototype-host" id="prototype-host" aria-label="Mini-Batch Training interaction" style="padding:0;min-height:auto;overflow:visible;border:none;border-radius:0;background:transparent;">
+              <div id="mbgd_root_v2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=STIX+Two+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    #mbgd_root_v2 * { box-sizing: border-box; }
+
+    #mbgd_app_v2 {
+      width: 100%;
+      max-width: 1400px;
+      margin: 16px auto;
+      background: linear-gradient(180deg, #f7fbff 0%, #eef5ff 100%);
+      border: 1px solid #d7e4ff;
+      border-radius: 28px;
+      box-shadow: 0 4px 16px rgba(34, 62, 132, 0.03);
+      overflow: hidden;
+      color: #0f172a;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    #mbgd_header_v2 {
+      padding: 22px 22px 12px 22px;
+    }
+
+    #mbgd_title_v2 {
+      margin: 0;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-size: 35px;
+      line-height: 1.06;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: #0d1f4d;
+    }
+
+    #mbgd_subtitle_v2 {
+      margin: 8px 0 0 0;
+      font-size: 14px;
+      color: #5f7197;
+      line-height: 1.6;
+    }
+
+    #mbgd_main_v2 {
+      padding: 0 16px 18px 16px;
+    }
+
+    .mbgd_panel_v2 {
+      background: rgba(255,255,255,0.84);
+      border: 1px solid #d4e1ff;
+      border-radius: 24px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.82);
+      backdrop-filter: blur(4px);
+    }
+
+    #mbgd_controls_panel_v2 {
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    #mbgd_controls_top_v2 {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    #mbgd_method_chips_v2 {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .mbgd_chip_v2 {
+      border: 1px solid #cbdaee;
+      background: rgba(255,255,255,0.97);
+      color: #334155;
+      border-radius: 999px;
+      padding: 10px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      transition: all 0.16s ease;
+    }
+
+    .mbgd_chip_v2.active {
+      background: #eaf2ff;
+      color: #153a92;
+      border-color: #99bfff;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.10) inset;
+    }
+
+    .mbgd_chip_dot_v2 {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    #mbgd_control_group_v2 {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .mbgd_btn_v2 {
+      border: 1px solid #bfd0f4;
+      background: #ffffff;
+      color: #10224e;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.14s ease;
+    }
+
+    .mbgd_btn_v2:hover {
+      background: #f1f6ff;
+      border-color: #95b5ec;
+    }
+
+    .mbgd_btn_v2.primary {
+      background: #2d67ef;
+      border-color: #2d67ef;
+      color: white;
+    }
+
+    .mbgd_btn_v2.primary:hover {
+      background: #255add;
+      border-color: #255add;
+    }
+
+    .mbgd_label_v2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #5d7096;
+      letter-spacing: 0.04em;
+    }
+
+    .mbgd_inline_value_v2 {
+      min-width: 28px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #10224e;
+      text-align: center;
+    }
+
+    #mbgd_timeline_row_v2 {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #mbgd_timeline_row_v2 input[type="range"] {
+      flex: 1 1 420px;
+      accent-color: #2d67ef;
+    }
+
+    #mbgd_big_plot_panel_v2 {
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    #mbgd_big_plot_heading_v2 {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    #mbgd_big_plot_heading_v2 h2 {
+      margin: 0;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-size: 21px;
+      color: #0c2253;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    #mbgd_big_plot_heading_v2 p {
+      margin: 5px 0 0 0;
+      font-size: 13px;
+      color: #607398;
+      line-height: 1.5;
+    }
+
+    #mbgd_plot_status_v2 {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .mbgd_status_chip_v2 {
+      border: 1px solid #d9e5ff;
+      background: rgba(255,255,255,0.9);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #2952b6;
+      white-space: nowrap;
+    }
+
+    #mbgd_plot_wrap_v2 {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #d6e2ff;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    #mbgd_plot_canvas_v2 {
+      width: 100%;
+      height: auto;
+      display: block;
+      aspect-ratio: 1260 / 760;
+    }
+
+    #mbgd_summary_line_v2 {
+      margin-top: 12px;
+      font-size: 18px;
+      line-height: 1.75;
+      color: #475569;
+      text-align: center;
+    }
+
+    #mbgd_rhythm_panel_v2 {
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    #mbgd_rhythm_title_v2 {
+      margin: 0 0 12px 0;
+      font-family: "STIX Two Text", Georgia, serif;
+      font-size: 20px;
+      color: #0d2250;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .mbgd_rhythm_card_v2 {
+      border: 1px solid #dbeafe;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      transition: all 0.16s ease;
+      box-shadow: 0 10px 20px rgba(15,23,42,0.04);
+      cursor: pointer;
+    }
+
+    .mbgd_rhythm_card_v2.active {
+      background: #eef6ff;
+      border-color: #93c5fd;
+      transform: translateY(-1px);
+    }
+
+    .mbgd_rhythm_card_v2:last-child { margin-bottom: 0; }
+
+    .mbgd_rhythm_header_v2 {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .mbgd_rhythm_header_v2 h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+      color: #334155;
+      letter-spacing: 0.08em;
+    }
+
+    .mbgd_rhythm_header_v2 p {
+      margin: 0;
+      font-size: 14px;
+      color: #475569;
+    }
+
+    .mbgd_flow_row_v2, .mbgd_flow_multi_v2 {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mbgd_flow_line_v2 {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .mbgd_flow_line_v2:last-child { margin-bottom: 0; }
+
+    .mbgd_sample_box_v2 {
+      min-width: 46px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid #d6d3d1;
+      background: #fafaf9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #334155;
+      font-weight: 700;
+      transition: all 0.14s ease;
+    }
+
+    .mbgd_sample_box_v2.active {
+      background: #fff7cc;
+      border-color: #eab308;
+      box-shadow: 0 0 0 2px rgba(234,179,8,0.08) inset;
+      transform: translateY(-1px);
+    }
+
+    .mbgd_arrow_token_v2 {
+      font-size: 28px;
+      line-height: 1;
+      color: #334155;
+      padding: 0 4px;
+    }
+
+    .mbgd_update_pill_v2 {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      transition: all 0.14s ease;
+    }
+
+    .mbgd_update_pill_v2.active {
+      background: #dbeafe;
+      color: #1e3a8a;
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.10) inset;
+    }
+
+    #mbgd_bottom_stack_v2 {
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .mbgd_info_card_v2 {
+      border-radius: 22px;
+      padding: 20px 24px;
+    }
+
+    .mbgd_info_card_v2 h3 {
+      margin: 0 0 12px 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    #mbgd_intuition_card_v2 {
+      background: #eefbf5;
+      border: 1px solid #bbf7d0;
+    }
+
+    #mbgd_intuition_card_v2 h3 { color: #166534; }
+
+    #mbgd_formula_card_v2 {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+    }
+
+    #mbgd_formula_card_top_v2 {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    #mbgd_formula_card_v2 h3 { color: #1e40af; margin-bottom: 0; }
+
+    #mbgd_formula_badge_v2 {
+      font-size: 14px;
+      color: #2563eb;
+      font-weight: 700;
+    }
+
+    #mbgd_intuition_text_v2 {
+      font-size: 19px;
+      line-height: 1.8;
+      color: #475569;
+    }
+
+    #mbgd_formula_main_v2 {
+      font-size: 30px;
+      color: #111827;
+      line-height: 1.9;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    #mbgd_formula_sub_v2 {
+      font-size: 24px;
+      color: #334155;
+      line-height: 1.8;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    #mbgd_formula_note_v2 {
+      font-size: 18px;
+      line-height: 1.8;
+      color: #475569;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 760px) {
+      #mbgd_title_v2 { font-size: 29px; }
+      #mbgd_formula_main_v2 { font-size: 24px; }
+      #mbgd_formula_sub_v2 { font-size: 20px; }
+      #mbgd_intuition_text_v2, #mbgd_formula_note_v2, #mbgd_summary_line_v2 { font-size: 16px; }
+    }
+  
+    /* ═══════════════════════════════════════════
+       HARMONY OVERRIDES – flat, cardless, white
+       Matches single-neuron.html aesthetic
+    ═══════════════════════════════════════════ */
+
+    :root {
+      --bg: #fcfbfd;
+      --text-primary: #23212c;
+      --text-secondary: #585566;
+      --text-muted: #817d8f;
+      --accent: #6c5ce7;
+      --accent-soft: #efedff;
+      --rule: #e8e5ee;
+    }
+
+    /* Reset outer shell to match single-neuron bg */
+    #mbgd_root_v2 {
+      background: var(--bg) !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    #mbgd_app_v2 {
+      max-width: 1400px !important;
+      margin: 0 auto !important;
+      background: #ffffff !important;
+      border: 1px solid rgba(15,23,42,0.07) !important;
+      border-radius: 28px !important;
+      box-shadow: 0 18px 44px rgba(34,62,132,0.07) !important;
+      color: var(--text-primary) !important;
+    }
+
+    /* Header – clean, no extra bg */
+    #mbgd_header_v2 {
+      padding: 36px 40px 22px 40px !important;
+      border-bottom: 1px solid var(--rule) !important;
+      background: transparent !important;
+    }
+
+    #mbgd_title_v2 {
+      font-family: "Instrument Serif", Georgia, serif !important;
+      font-size: clamp(32px, 4vw, 52px) !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.02em !important;
+      color: var(--text-primary) !important;
+      line-height: 1.1 !important;
+    }
+
+    #mbgd_subtitle_v2 {
+      color: var(--text-secondary) !important;
+      font-size: 16px !important;
+      line-height: 1.75 !important;
+      margin-top: 10px !important;
+    }
+
+    /* Main wrap padding */
+    #mbgd_main_v2 {
+      padding: 0 40px 40px 40px !important;
+    }
+
+    /* ── Flat panels – no heavy cards ── */
+    .mbgd_panel_v2 {
+      background: transparent !important;
+      border: 1px solid var(--rule) !important;
+      border-radius: 20px !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+
+    /* ── Method chips – pill style with accent active ── */
+    .mbgd_chip_v2 {
+      border: 1px solid var(--rule) !important;
+      background: transparent !important;
+      color: var(--text-secondary) !important;
+      border-radius: 999px !important;
+      padding: 8px 18px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.1em !important;
+      transition: all 0.15s ease !important;
+    }
+
+    .mbgd_chip_v2:hover {
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+      background: var(--accent-soft) !important;
+    }
+
+    .mbgd_chip_v2.active {
+      background: var(--accent-soft) !important;
+      color: var(--accent) !important;
+      border-color: var(--accent) !important;
+      box-shadow: none !important;
+    }
+
+    /* ── Buttons ── */
+    .mbgd_btn_v2 {
+      border: 1px solid var(--rule) !important;
+      background: transparent !important;
+      color: var(--text-secondary) !important;
+      border-radius: 999px !important;
+      padding: 8px 18px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      transition: all 0.14s ease !important;
+    }
+
+    .mbgd_btn_v2:hover {
+      border-color: var(--text-secondary) !important;
+      color: var(--text-primary) !important;
+      background: transparent !important;
+    }
+
+    .mbgd_btn_v2.primary {
+      background: var(--accent) !important;
+      border-color: var(--accent) !important;
+      color: #fff !important;
+    }
+
+    .mbgd_btn_v2.primary:hover {
+      background: #5b4eca !important;
+      border-color: #5b4eca !important;
+    }
+
+    /* ── Labels ── */
+    .mbgd_label_v2 {
+      color: var(--text-muted) !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.12em !important;
+      text-transform: uppercase !important;
+    }
+
+    .mbgd_inline_value_v2 {
+      color: var(--accent) !important;
+      font-weight: 700 !important;
+      font-size: 14px !important;
+    }
+
+    /* range accent */
+    #mbgd_batch_slider_v2,
+    #mbgd_timeline_slider_v2 {
+      accent-color: var(--accent) !important;
+    }
+
+    /* ── Plot heading ── */
+    #mbgd_big_plot_heading_v2 h2 {
+      font-family: "Instrument Serif", Georgia, serif !important;
+      font-size: 24px !important;
+      font-weight: 400 !important;
+      color: var(--text-primary) !important;
+      letter-spacing: -0.01em !important;
+    }
+
+    #mbgd_big_plot_heading_v2 p {
+      color: var(--text-secondary) !important;
+      font-size: 14px !important;
+    }
+
+    /* Status chips */
+    .mbgd_status_chip_v2 {
+      border: 1px solid var(--rule) !important;
+      background: transparent !important;
+      color: var(--text-muted) !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+    }
+
+    /* Plot canvas wrapper */
+    #mbgd_plot_wrap_v2 {
+      background: #f8f7fc !important;
+      border: 1px solid var(--rule) !important;
+      border-radius: 16px !important;
+    }
+
+    /* Summary line */
+    #mbgd_summary_line_v2 {
+      color: var(--text-secondary) !important;
+      font-size: 16px !important;
+    }
+
+    /* ── Rhythm section ── */
+    #mbgd_rhythm_title_v2 {
+      font-family: "Instrument Serif", Georgia, serif !important;
+      font-size: 22px !important;
+      font-weight: 400 !important;
+      color: var(--text-primary) !important;
+      text-align: left !important;
+    }
+
+    .mbgd_rhythm_card_v2 {
+      background: transparent !important;
+      border: 1px solid var(--rule) !important;
+      border-radius: 16px !important;
+      box-shadow: none !important;
+    }
+
+    .mbgd_rhythm_card_v2.active {
+      background: var(--accent-soft) !important;
+      border-color: var(--accent) !important;
+      transform: none !important;
+    }
+
+    .mbgd_rhythm_header_v2 h3 {
+      color: var(--text-primary) !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.12em !important;
+      text-transform: uppercase !important;
+    }
+
+    .mbgd_rhythm_header_v2 p {
+      color: var(--text-muted) !important;
+      font-size: 14px !important;
+    }
+
+    /* sample boxes - Minimal Indicator */
+    .mbgd_sample_box_v2 {
+      background: transparent !important;
+      border: 1px solid var(--rule) !important;
+      border-radius: 8px !important;
+      color: var(--text-muted) !important;
+      transition: all 0.15s ease !important;
+    }
+
+    .mbgd_sample_box_v2.active {
+      background: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: var(--text-primary) !important;
+      box-shadow: 0 -3px 0 var(--accent) inset, 0 4px 10px rgba(0,0,0,0.03) !important;
+    }
+
+    /* update pill - Minimal Indicator */
+    .mbgd_update_pill_v2 {
+      background: transparent !important;
+      border: 1px solid var(--rule) !important;
+      color: var(--text-muted) !important;
+      border-radius: 8px !important;
+      transition: all 0.15s ease !important;
+    }
+
+    .mbgd_update_pill_v2.active {
+      background: #ffffff !important;
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+      box-shadow: 0 -3px 0 var(--accent) inset, 0 4px 10px rgba(108,92,231,0.08) !important;
+    }
+
+    /* ── Bottom info cards – replace colored boxes with single-neuron style ── */
+    #mbgd_bottom_stack_v2 {
+      margin-top: 28px !important;
+      max-width: 100% !important;
+      gap: 0 !important;
+    }
+
+    .mbgd_info_card_v2 {
+      background: transparent !important;
+      border: none !important;
+      border-top: 1px solid var(--rule) !important;
+      border-radius: 0 !important;
+      padding: 32px 0 !important;
+    }
+
+    .mbgd_info_card_v2 h3 {
+      font-family: "Instrument Serif", Georgia, serif !important;
+      font-size: 22px !important;
+      font-weight: 400 !important;
+      color: var(--text-primary) !important;
+      letter-spacing: -0.01em !important;
+    }
+
+    #mbgd_intuition_card_v2 {
+      background: transparent !important;
+      border: none !important;
+      border-top: 1px solid var(--rule) !important;
+    }
+
+    #mbgd_formula_card_v2 {
+      background: transparent !important;
+      border: none !important;
+      border-top: 1px solid var(--rule) !important;
+    }
+
+    #mbgd_intuition_text_v2 {
+      color: var(--text-secondary) !important;
+      font-size: 17px !important;
+      line-height: 1.8 !important;
+    }
+
+    #mbgd_formula_badge_v2 {
+      color: var(--text-muted) !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.12em !important;
+      text-transform: uppercase !important;
+    }
+
+    #mbgd_formula_main_v2,
+    #mbgd_formula_sub_v2 {
+      font-size: 1.2rem !important;
+      color: var(--text-primary) !important;
+      text-align: left !important;
+    }
+
+    #mbgd_formula_note_v2 {
+      color: var(--text-secondary) !important;
+      font-size: 16px !important;
+      line-height: 1.8 !important;
+    }
+
+    /* ─────────────────────────────────────────
+       TEACHING NOTES (appended at bottom)
+       Single-neuron reading-copy standard
+    ───────────────────────────────────────── */
+    .sn-teaching {
+      padding: 0 40px 80px 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+      font-family: "Inter", Arial, sans-serif;
+      color: var(--text-secondary);
+    }
+
+    .sn-section {
+      border-top: 1px solid var(--rule);
+      padding-top: 56px;
+      margin-top: 64px;
+    }
+
+    .sn-kicker {
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      margin: 0 0 20px;
+      text-transform: uppercase;
+    }
+
+    .sn-h2 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: clamp(26px, 3vw, 38px);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      line-height: 1.1;
+      margin: 0 0 24px;
+    }
+
+    .sn-reading {
+      font-size: 17px;
+      max-width: 790px;
+      line-height: 1.8;
+    }
+
+    .sn-reading p { margin: 0 0 22px; }
+    .sn-reading strong { color: var(--text-primary); font-weight: 600; }
+
+    /* formula grid */
+    .sn-formula-row {
+      display: grid;
+      grid-template-columns: minmax(230px, 0.9fr) minmax(260px, 1fr);
+      gap: 36px;
+      align-items: start;
+      border-bottom: 1px solid var(--rule);
+      padding: 30px 0;
+    }
+    .sn-formula-row:first-of-type { border-top: 1px solid var(--rule); }
+
+    .sn-formula {
+      color: var(--text-primary);
+      font-size: 1.08rem;
+      min-height: 54px;
+      overflow-x: auto;
+    }
+    .sn-formula mjx-container[display="true"] {
+      margin: 0 !important;
+      text-align: left !important;
+    }
+    .sn-formula-desc {
+      color: var(--text-secondary);
+      margin: 0;
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    /* paired pros/cons */
+    .sn-paired {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 70px;
+    }
+    .sn-list-label {
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      margin: 0 0 22px;
+      text-transform: uppercase;
+    }
+    .sn-list {
+      color: var(--text-secondary);
+      list-style: none;
+      margin: 0; padding: 0;
+    }
+    .sn-list li {
+      border-top: 1px solid var(--rule);
+      padding: 18px 0 20px 27px;
+      position: relative;
+      line-height: 1.6;
+    }
+    .sn-list li::before {
+      color: var(--accent);
+      content: "+";
+      left: 0;
+      position: absolute;
+    }
+    .sn-list.cons li::before { content: "−"; }
+
+    /* example grid */
+    .sn-example-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 70px;
+    }
+    .sn-example-grid p {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin: 0;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 900px) {
+      .sn-formula-row, .sn-paired, .sn-example-grid { display: block; }
+      .sn-formula-row .sn-formula-desc { margin-top: 18px; }
+      .sn-paired > div + div, .sn-example-grid > div + div { margin-top: 48px; }
+    }
+
+  </style>
+
+  <div id="mbgd_app_v2">
+    <div id="mbgd_header_v2">
+      <h1 id="mbgd_title_v2">Mini-batch Training and Batch Size Intuition</h1>
+      <p id="mbgd_subtitle_v2">
+        compare optimization paths and update rhythm: full batch should look smooth, mini-batch should look moderately wavy, stochastic should look visibly noisy — and all three should meet the same minimum
+      </p>
+    </div>
+
+    <div id="mbgd_main_v2">
+      <div id="mbgd_controls_panel_v2" class="mbgd_panel_v2">
+        <div id="mbgd_controls_top_v2">
+          <div id="mbgd_method_chips_v2">
+            <button class="mbgd_chip_v2" data-method="full">
+              <span class="mbgd_chip_dot_v2" style="background:#5b7bd5;"></span>FULL BATCH
+            </button>
+            <button class="mbgd_chip_v2" data-method="mini">
+              <span class="mbgd_chip_dot_v2" style="background:#49a388;"></span>MINI-BATCH
+            </button>
+            <button class="mbgd_chip_v2" data-method="stochastic">
+              <span class="mbgd_chip_dot_v2" style="background:#df875f;"></span>STOCHASTIC
+            </button>
+          </div>
+
+          <div id="mbgd_control_group_v2">
+            <span class="mbgd_label_v2">Mini-batch size</span>
+            <input id="mbgd_batch_slider_v2" type="range" min="2" max="6" step="1" value="4" style="width:180px;">
+            <span id="mbgd_batch_value_v2" class="mbgd_inline_value_v2">4</span>
+
+            <button id="mbgd_play_btn_v2" class="mbgd_btn_v2 primary">▶ Play</button>
+            <button id="mbgd_replay_btn_v2" class="mbgd_btn_v2">Replay</button>
+          </div>
+        </div>
+
+        <div id="mbgd_timeline_row_v2">
+          <span class="mbgd_label_v2">timeline</span>
+          <input id="mbgd_timeline_slider_v2" type="range" min="0" max="1" step="0.001" value="0">
+          <span id="mbgd_timeline_value_v2" class="mbgd_inline_value_v2" style="min-width:46px;">0%</span>
+        </div>
+      </div>
+
+      <div id="mbgd_big_plot_panel_v2" class="mbgd_panel_v2">
+        <div id="mbgd_big_plot_heading_v2">
+          <div>
+            <h2>large landscape comparison</h2>
+            <p>the three trajectories are intentionally separated: blue enters from upper-left, green from below, orange from the right — they only become close in the final basin region</p>
+          </div>
+          <div id="mbgd_plot_status_v2">
+            <div class="mbgd_status_chip_v2">same minimum</div>
+            <div class="mbgd_status_chip_v2">clear visual contrast</div>
+            <div class="mbgd_status_chip_v2">topic-first teaching layout</div>
+          </div>
+        </div>
+
+        <div id="mbgd_plot_wrap_v2">
+          <canvas id="mbgd_plot_canvas_v2" width="1260" height="760"></canvas>
+        </div>
+
+        <div id="mbgd_summary_line_v2"></div>
+      </div>
+
+      <div id="mbgd_rhythm_panel_v2" class="mbgd_panel_v2">
+        <h2 id="mbgd_rhythm_title_v2">compare update rhythm</h2>
+
+        <div id="mbgd_card_full_v2" class="mbgd_rhythm_card_v2">
+          <div class="mbgd_rhythm_header_v2">
+            <h3>FULL BATCH</h3>
+            <p>one update after the whole dataset</p>
+          </div>
+          <div id="mbgd_full_flow_v2" class="mbgd_flow_row_v2"></div>
+        </div>
+
+        <div id="mbgd_card_mini_v2" class="mbgd_rhythm_card_v2">
+          <div class="mbgd_rhythm_header_v2">
+            <h3>MINI-BATCH</h3>
+            <p>an update after each batch chunk</p>
+          </div>
+          <div id="mbgd_mini_flow_v2" class="mbgd_flow_multi_v2"></div>
+        </div>
+
+        <div id="mbgd_card_stochastic_v2" class="mbgd_rhythm_card_v2">
+          <div class="mbgd_rhythm_header_v2">
+            <h3>STOCHASTIC</h3>
+            <p>one sample, one update, very frequent updates</p>
+          </div>
+          <div id="mbgd_st_toggle_flow_v2" style="display:none;"></div>
+          <div id="mbgd_stochastic_flow_v2" class="mbgd_flow_multi_v2"></div>
+        </div>
+      </div>
+
+      <div id="mbgd_bottom_stack_v2">
+        <div id="mbgd_intuition_card_v2" class="mbgd_info_card_v2">
+          <h3>selected method intuition</h3>
+          <div id="mbgd_intuition_text_v2"></div>
+        </div>
+
+        <div id="mbgd_formula_card_v2" class="mbgd_info_card_v2">
+          <div id="mbgd_formula_card_top_v2">
+            <h3>selected method formula</h3>
+            <div id="mbgd_formula_badge_v2"></div>
+          </div>
+          <div id="mbgd_formula_main_v2"></div>
+          <div id="mbgd_formula_sub_v2"></div>
+          <div id="mbgd_formula_note_v2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      if (!window.__mathjax_loaded__) {
+        const mj = document.createElement("script");
+        mj.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        mj.async = true;
+        document.head.appendChild(mj);
+        window.__mathjax_loaded__ = true;
+      }
+
+      const methodButtons = Array.from(document.querySelectorAll(".mbgd_chip_v2"));
+      const batchSlider = document.getElementById("mbgd_batch_slider_v2");
+      const batchValue = document.getElementById("mbgd_batch_value_v2");
+      const playBtn = document.getElementById("mbgd_play_btn_v2");
+      const replayBtn = document.getElementById("mbgd_replay_btn_v2");
+      const timelineSlider = document.getElementById("mbgd_timeline_slider_v2");
+      const timelineValue = document.getElementById("mbgd_timeline_value_v2");
+
+      const fullFlow = document.getElementById("mbgd_full_flow_v2");
+      const miniFlow = document.getElementById("mbgd_mini_flow_v2");
+      const stochasticFlow = document.getElementById("mbgd_stochastic_flow_v2");
+
+      const cardFull = document.getElementById("mbgd_card_full_v2");
+      const cardMini = document.getElementById("mbgd_card_mini_v2");
+      const cardStochastic = document.getElementById("mbgd_card_stochastic_v2");
+
+      const summaryLine = document.getElementById("mbgd_summary_line_v2");
+      const intuitionText = document.getElementById("mbgd_intuition_text_v2");
+      const formulaBadge = document.getElementById("mbgd_formula_badge_v2");
+      const formulaMain = document.getElementById("mbgd_formula_main_v2");
+      const formulaSub = document.getElementById("mbgd_formula_sub_v2");
+      const formulaNote = document.getElementById("mbgd_formula_note_v2");
+
+      const canvas = document.getElementById("mbgd_plot_canvas_v2");
+      const ctx = canvas.getContext("2d");
+
+      const N = 12;
+      let batchSize = parseInt(batchSlider.value, 10);
+      let selectedMethod = "mini";
+      let progress = 0;
+      let playing = false;
+      let raf = null;
+      let lastTs = null;
+      let lastMathKey = "";
+
+      const COLORS = {
+        full: "#5b7bd5",
+        mini: "#49a388",
+        stochastic: "#df875f",
+        contour: "#ccd5e5",
+        contourFill1: "rgba(91,123,213,0.024)",
+        contourFill2: "rgba(91,123,213,0.014)",
+        text: "#334155",
+        sub: "#64748b",
+        minimum: "#c79a33",
+        minimumCore: "#fef3c7",
+        shadowBlue: "rgba(91,123,213,0.18)",
+        shadowGreen: "rgba(73,163,136,0.18)",
+        shadowOrange: "rgba(223,135,95,0.18)"
+      };
+
+      function ceilDiv(a, b) {
+        return Math.ceil(a / b);
+      }
+
+      function clamp(x, a, b) {
+        return Math.max(a, Math.min(b, x));
+      }
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function fitCanvasToDisplay() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        const cssW = rect.width;
+        const cssH = rect.height;
+        canvas.width = Math.round(cssW * dpr);
+        canvas.height = Math.round(cssH * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function worldToCanvas(p) {
+        const xmin = -3.3, xmax = 3.3, ymin = -2.7, ymax = 2.7;
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        const padLeft = 72;
+        const padRight = 136;
+        const padTop = 78;
+        const padBottom = 78;
+        const plotW = w - padLeft - padRight;
+        const plotH = h - padTop - padBottom;
+        const x = padLeft + (p[0] - xmin) / (xmax - xmin) * plotW;
+        const y = padTop + plotH - (p[1] - ymin) / (ymax - ymin) * plotH;
+        return [x, y];
+      }
+
+      function landscapePoint(level, t) {
+        const angle = Math.PI / 6.0;
+        const c = Math.cos(angle), s = Math.sin(angle);
+        const a = Math.sqrt(level / 1.0);
+        const b = Math.sqrt(level / 6.2);
+        const x0 = a * Math.cos(t);
+        const y0 = b * Math.sin(t);
+        return [c * x0 - s * y0, s * x0 + c * y0];
+      }
+
+      function catmullRomPoints(anchors, samplesPerSegment) {
+        const pts = [];
+        const p = anchors.map(a => [a[0], a[1]]);
+        const n = p.length;
+
+        for (let i = 0; i < n - 1; i++) {
+          const p0 = i === 0 ? p[i] : p[i - 1];
+          const p1 = p[i];
+          const p2 = p[i + 1];
+          const p3 = i + 2 < n ? p[i + 2] : p[i + 1];
+
+          for (let j = 0; j < samplesPerSegment; j++) {
+            const t = j / samplesPerSegment;
+            const t2 = t * t;
+            const t3 = t2 * t;
+
+            const x = 0.5 * (
+              (2 * p1[0]) +
+              (-p0[0] + p2[0]) * t +
+              (2*p0[0] - 5*p1[0] + 4*p2[0] - p3[0]) * t2 +
+              (-p0[0] + 3*p1[0] - 3*p2[0] + p3[0]) * t3
+            );
+
+            const y = 0.5 * (
+              (2 * p1[1]) +
+              (-p0[1] + p2[1]) * t +
+              (2*p0[1] - 5*p1[1] + 4*p2[1] - p3[1]) * t2 +
+              (-p0[1] + 3*p1[1] - 3*p2[1] + p3[1]) * t3
+            );
+
+            pts.push([x, y]);
+          }
+        }
+        pts.push(p[n - 1]);
+        return pts;
+      }
+
+      function buildFullAnchors() {
+        return [
+          [-2.95, 2.10],
+          [-2.55, 1.78],
+          [-2.18, 1.48],
+          [-1.82, 1.16],
+          [-1.48, 0.88],
+          [-1.13, 0.61],
+          [-0.82, 0.39],
+          [-0.56, 0.23],
+          [-0.34, 0.12],
+          [-0.18, 0.055],
+          [-0.07, 0.020],
+          [0.00, 0.00]
+        ];
+      }
+
+      function buildMiniAnchors(B) {
+        const steps = Math.max(11, ceilDiv(N, B) * 4 + 3);
+        const amp = 0.34 - (B - 2) * 0.045;
+        const anchors = [];
+
+        for (let i = 0; i < steps; i++) {
+          const t = i / (steps - 1);
+          const centerX = lerp(-0.22, -0.02, t);
+          const x =
+            centerX +
+            amp * Math.sin(t * Math.PI * 3.0) * Math.pow(1 - t, 0.90) +
+            0.05 * Math.sin(t * Math.PI * 8.2) * Math.pow(1 - t, 1.15);
+
+          const y =
+            lerp(-2.60, 0.00, t) +
+            0.12 * Math.sin(t * Math.PI * 1.4) * Math.pow(1 - t, 1.05);
+
+          anchors.push([x, y]);
+        }
+
+        anchors[anchors.length - 3] = [-0.12, -0.08];
+        anchors[anchors.length - 2] = [-0.04, -0.02];
+        anchors[anchors.length - 1] = [0.00, 0.00];
+        return anchors;
+      }
+
+      function buildStochasticAnchors() {
+        return [
+          [ 2.95, 1.10],
+          [ 2.72, 0.56],
+          [ 2.90, 0.95],
+          [ 2.38, 0.30],
+          [ 2.60, 0.86],
+          [ 2.05, 0.08],
+          [ 2.32, 0.52],
+          [ 1.72,-0.02],
+          [ 1.98, 0.40],
+          [ 1.35,-0.12],
+          [ 1.56, 0.24],
+          [ 1.02,-0.06],
+          [ 1.18, 0.18],
+          [ 0.72,-0.02],
+          [ 0.82, 0.11],
+          [ 0.46, 0.00],
+          [ 0.26, 0.05],
+          [ 0.10, 0.02],
+          [ 0.00, 0.00]
+        ];
+      }
+
+      function buildPaths() {
+        const fullAnchors = buildFullAnchors();
+        const miniAnchors = buildMiniAnchors(batchSize);
+        const stochasticAnchors = buildStochasticAnchors();
+
+        return {
+          full: {
+            anchors: fullAnchors,
+            points: catmullRomPoints(fullAnchors, 22),
+            color: COLORS.full,
+            shadow: COLORS.shadowBlue
+          },
+          mini: {
+            anchors: miniAnchors,
+            points: catmullRomPoints(miniAnchors, 18),
+            color: COLORS.mini,
+            shadow: COLORS.shadowGreen
+          },
+          stochastic: {
+            anchors: stochasticAnchors,
+            points: stochasticAnchors,
+            color: COLORS.stochastic,
+            shadow: COLORS.shadowOrange
+          }
+        };
+      }
+
+      function getPartialHead(points, reveal) {
+        const n = points.length - 1;
+        const exact = clamp(reveal, 0, 1) * n;
+        const fullSeg = Math.floor(exact);
+        const frac = exact - fullSeg;
+
+        if (fullSeg >= n) {
+          return points[n];
+        }
+        const p0 = points[fullSeg];
+        const p1 = points[fullSeg + 1];
+        return [lerp(p0[0], p1[0], frac), lerp(p0[1], p1[1], frac)];
+      }
+
+      function drawBackground() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+
+        const bg = ctx.createLinearGradient(0, 0, 0, h);
+        bg.addColorStop(0, "#ffffff");
+        bg.addColorStop(1, "#f8fbff");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        const glow = ctx.createRadialGradient(w * 0.50, h * 0.42, 0, w * 0.50, h * 0.42, h * 0.55);
+        glow.addColorStop(0, "rgba(122,157,235,0.05)");
+        glow.addColorStop(1, "rgba(122,157,235,0.0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      function drawLandscapeContours() {
+        const fillLevels = [3.15, 2.42, 1.78, 1.27, 0.86, 0.53, 0.28];
+        fillLevels.forEach((level, idx) => {
+          ctx.beginPath();
+          for (let i = 0; i <= 260; i++) {
+            const t = i / 260 * Math.PI * 2;
+            const p = landscapePoint(level, t);
+            const [x, y] = worldToCanvas(p);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = idx % 2 === 0 ? COLORS.contourFill1 : COLORS.contourFill2;
+          ctx.fill();
+        });
+
+        ctx.strokeStyle = COLORS.contour;
+        ctx.lineWidth = 1.7;
+        [0.22, 0.38, 0.58, 0.84, 1.18, 1.62, 2.18, 2.88, 3.42].forEach(level => {
+          ctx.beginPath();
+          for (let i = 0; i <= 280; i++) {
+            const t = i / 280 * Math.PI * 2;
+            const p = landscapePoint(level, t);
+            const [x, y] = worldToCanvas(p);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        });
+      }
+
+      function drawMethodLabels() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+
+        ctx.font = '700 16px Inter, sans-serif';
+        ctx.fillStyle = COLORS.full;
+        ctx.fillText("full batch: few, steady updates", 78, 120);
+
+        ctx.fillStyle = COLORS.mini;
+        ctx.fillText("mini-batch: practical middle ground", 84, h - 70);
+
+        ctx.fillStyle = COLORS.stochastic;
+        ctx.fillText("stochastic: noisy but frequent updates", w - 418, 152);
+      }
+
+      function drawDot(x, y, r, color, alpha) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawPath(points, color, shadowColor, alpha, width, reveal) {
+        if (points.length < 2 || reveal <= 0) return;
+
+        const n = points.length - 1;
+        const exact = clamp(reveal, 0, 1) * n;
+        const fullSeg = Math.floor(exact);
+        const frac = exact - fullSeg;
+
+        ctx.save();
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = shadowColor;
+        ctx.shadowBlur = alpha > 0.85 ? 12 : 0;
+
+        ctx.beginPath();
+        ctx.moveTo(points[0][0], points[0][1]);
+
+        for (let i = 1; i <= Math.max(1, fullSeg); i++) {
+          const idx = Math.min(i, n);
+          ctx.lineTo(points[idx][0], points[idx][1]);
+        }
+
+        let hx, hy;
+        if (fullSeg < n) {
+          const p0 = points[fullSeg];
+          const p1 = points[fullSeg + 1];
+          hx = lerp(p0[0], p1[0], frac);
+          hy = lerp(p0[1], p1[1], frac);
+          ctx.lineTo(hx, hy);
+        } else {
+          hx = points[n][0];
+          hy = points[n][1];
+        }
+
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.arc(hx, hy, alpha > 0.90 ? 5.0 : 4.0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawStepMarkers(anchors, color, alpha, reveal) {
+        const count = anchors.length;
+        const visible = Math.max(1, Math.floor(clamp(reveal, 0, 1) * count));
+        for (let i = 0; i < visible; i++) {
+          const [x, y] = worldToCanvas(anchors[i]);
+          drawDot(x, y, 3.0, color, alpha * 0.56);
+        }
+      }
+
+      function drawMinimum(paths) {
+        const [mx, my] = worldToCanvas([0, 0]);
+
+        const halo1 = ctx.createRadialGradient(mx, my, 0, mx, my, 22);
+        halo1.addColorStop(0, "rgba(199,154,51,0.92)");
+        halo1.addColorStop(0.55, "rgba(199,154,51,0.28)");
+        halo1.addColorStop(1, "rgba(199,154,51,0.0)");
+
+        ctx.beginPath();
+        ctx.fillStyle = halo1;
+        ctx.arc(mx, my, 22, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = COLORS.minimum;
+        ctx.arc(mx, my, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = COLORS.minimumCore;
+        ctx.arc(mx, my, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (progress >= 0.995) {
+          drawDot(mx, my, 3.6, COLORS.full, selectedMethod === "full" ? 0.95 : 0.40);
+          drawDot(mx, my, 3.2, COLORS.mini, selectedMethod === "mini" ? 0.95 : 0.40);
+          drawDot(mx, my, 2.8, COLORS.stochastic, selectedMethod === "stochastic" ? 0.95 : 0.42);
+        }
+
+        ctx.fillStyle = "#b45309";
+        ctx.font = '700 18px Inter, sans-serif';
+        ctx.fillText("minimum", mx + 18, my + 28);
+      }
+
+      function drawPlot(paths) {
+        fitCanvasToDisplay();
+        drawBackground();
+        drawLandscapeContours();
+        drawMethodLabels();
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = COLORS.text;
+        ctx.font = '700 31px "STIX Two Text", Georgia, serif';
+        ctx.fillText("optimization landscape and update path", canvas.clientWidth / 2, 42);
+        ctx.textAlign = "left";
+
+        const fullPts = paths.full.points.map(worldToCanvas);
+        const miniPts = paths.mini.points.map(worldToCanvas);
+        const stochasticPts = paths.stochastic.points.map(worldToCanvas);
+
+        drawPath(fullPts, COLORS.full, COLORS.shadowBlue, selectedMethod === "full" ? 1.0 : 0.26, selectedMethod === "full" ? 3.2 : 1.8, progress);
+        drawPath(miniPts, COLORS.mini, COLORS.shadowGreen, selectedMethod === "mini" ? 1.0 : 0.28, selectedMethod === "mini" ? 3.2 : 1.8, progress);
+        drawPath(stochasticPts, COLORS.stochastic, COLORS.shadowOrange, selectedMethod === "stochastic" ? 1.0 : 0.30, selectedMethod === "stochastic" ? 3.0 : 1.75, progress);
+
+        drawStepMarkers(paths.full.anchors, COLORS.full, selectedMethod === "full" ? 1.0 : 0.22, progress);
+        drawStepMarkers(paths.mini.anchors, COLORS.mini, selectedMethod === "mini" ? 1.0 : 0.22, progress);
+        drawStepMarkers(paths.stochastic.anchors, COLORS.stochastic, selectedMethod === "stochastic" ? 1.0 : 0.22, progress);
+
+        drawMinimum(paths);
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = COLORS.sub;
+        ctx.font = '16px Inter, sans-serif';
+        ctx.fillText("all three methods target the same basin, but the visible teaching contrast comes from their different update rhythm", canvas.clientWidth / 2, canvas.clientHeight - 30);
+      }
+
+      function sampleBox(label, active=false) {
+        return `<div class="mbgd_sample_box_v2 ${active ? 'active' : ''}">${label}</div>`;
+      }
+
+      function updatePill(active=false) {
+        return `<div class="mbgd_update_pill_v2 ${active ? 'active' : ''}">update</div>`;
+      }
+
+      function renderFlows() {
+        const fullBoxes = [];
+        for (let i = 0; i < N; i++) {
+          const t = (i + 1) / (N + 1);
+          fullBoxes.push(sampleBox("x" + (i + 1), progress >= t));
+        }
+        fullFlow.innerHTML = `${fullBoxes.join("")}<div class="mbgd_arrow_token_v2">→</div>${updatePill(progress > 0.93)}`;
+
+        const groupCount = ceilDiv(N, batchSize);
+        const lines = [];
+        for (let g = 0; g < groupCount; g++) {
+          const start = g * batchSize;
+          const size = Math.min(batchSize, N - start);
+          const localStart = g / groupCount;
+          const localEnd = (g + 1) / groupCount;
+          const localProgress = Math.min(Math.max((progress - localStart) / (localEnd - localStart), 0), 1);
+
+          const boxes = [];
+          for (let j = 0; j < size; j++) {
+            const boxThreshold = (j + 1) / (size + 1);
+            boxes.push(sampleBox("x" + (start + j + 1), localProgress >= boxThreshold));
+          }
+
+          lines.push(`
+            <div class="mbgd_flow_line_v2">
+              ${boxes.join("")}
+              <div class="mbgd_arrow_token_v2">→</div>
+              ${updatePill(localProgress > 0.88)}
+            </div>
+          `);
+        }
+        miniFlow.innerHTML = lines.join("");
+
+        const stochasticLines = [];
+        for (let i = 0; i < Math.min(8, N); i++) {
+          const rowStart = i / N;
+          const rowEnd = (i + 1) / N;
+          const rowProgress = Math.min(Math.max((progress - rowStart) / (rowEnd - rowStart), 0), 1);
+          stochasticLines.push(`
+            <div class="mbgd_flow_line_v2">
+              ${sampleBox("x" + (i + 1), rowProgress > 0.42)}
+              <div class="mbgd_arrow_token_v2">→</div>
+              ${updatePill(rowProgress > 0.82)}
+            </div>
+          `);
+        }
+        stochasticFlow.innerHTML = stochasticLines.join("") + `<div style="font-size:14px;color:#64748b;margin-top:4px;">... one update per sample until the epoch finishes</div>`;
+
+        cardFull.classList.toggle("active", selectedMethod === "full");
+        cardMini.classList.toggle("active", selectedMethod === "mini");
+        cardStochastic.classList.toggle("active", selectedMethod === "stochastic");
+      }
+
+      function setActiveMethodUI() {
+        methodButtons.forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.method === selectedMethod);
+        });
+      }
+
+      function updatesPerEpoch(method) {
+        if (method === "full") return 1;
+        if (method === "mini") return ceilDiv(N, batchSize);
+        return N;
+      }
+
+      function updateMath(main, sub, note) {
+        const key = main + "||" + sub + "||" + note + "||" + selectedMethod + "||" + batchSize;
+        if (key !== lastMathKey) {
+          formulaMain.innerHTML = main;
+          formulaSub.innerHTML = sub;
+          formulaNote.textContent = note;
+          lastMathKey = key;
+          if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise([formulaMain, formulaSub]).catch(() => {});
+          }
+        }
+      }
+
+      function renderBottomText() {
+        const upMini = updatesPerEpoch("mini");
+
+        if (selectedMethod === "full") {
+          summaryLine.textContent = "Full batch should read as the smoothest curve: it waits for the whole dataset, so it changes direction the least often.";
+          intuitionText.textContent =
+            "Full batch gradient descent computes one average gradient over the entire dataset before each update. Because every step uses all samples, the direction is the steadiest, so the path is smoothest and easiest to predict.";
+
+          formulaBadge.textContent = "focus: few, steady updates";
+          const main = String.raw`\[
+          g=\frac{1}{N}\sum_{i=1}^{N}\nabla_\theta \ell_i(\theta)
+          \]`;
+          const sub = String.raw`\[
+          \text{updates per epoch}=1
+          \]`;
+          const note = "One epoch gives only one parameter update. Noise is lowest, but responsiveness is also lowest.";
+          updateMath(main, sub, note);
+        } else if (selectedMethod === "mini") {
+          summaryLine.textContent = `Mini-batch training sits in the middle: with batch size ${batchSize}, it makes ${upMini} update(s) per epoch, so the path is gently wavy rather than perfectly smooth or highly noisy.`;
+          intuitionText.textContent =
+            `Mini-batch training updates after each chunk of size ${batchSize}. It reacts more often than full batch, but each step still averages several samples together. That is why the trajectory looks moderately wavy instead of extremely jagged.`;
+
+          formulaBadge.textContent = "focus: practical compromise";
+          const main = String.raw`\[
+          g_{\mathcal{B}}=\frac{1}{B}\sum_{i\in\mathcal{B}}\nabla_\theta \ell_i(\theta)
+          \]`;
+          const sub = String.raw`\[
+          \text{updates per epoch}=\left\lceil\frac{N}{B}\right\rceil
+          =\left\lceil\frac{12}{${batchSize}}\right\rceil
+          =${upMini}
+          \]`;
+          const note = `Here B=${batchSize}. Smaller B makes the green path wigglier; larger B makes it calmer.`;
+          updateMath(main, sub, note);
+        } else {
+          summaryLine.textContent = "Stochastic gradient descent should read as the noisiest path: it updates after every sample, so the trajectory jitters the most on the way into the basin.";
+          intuitionText.textContent =
+            "Stochastic gradient descent uses one sample at a time. That makes every update immediate, but each step is based on very limited information, so the direction changes a lot. The result is a visibly jagged path even though it still heads toward the same minimum.";
+
+          formulaBadge.textContent = "focus: noisy but frequent";
+          const main = String.raw`\[
+          g_i=\nabla_\theta \ell_i(\theta)
+          \]`;
+          const sub = String.raw`\[
+          \text{updates per epoch}=N=12
+          \]`;
+          const note = "SGD responds most often, but each step has the most variance.";
+          updateMath(main, sub, note);
+        }
+      }
+
+      function renderAll() {
+        batchValue.textContent = String(batchSize);
+        timelineValue.textContent = Math.round(progress * 100) + "%";
+        playBtn.textContent = playing ? "⏸ Pause" : "▶ Play";
+
+        setActiveMethodUI();
+        drawPlot(buildPaths());
+        renderFlows();
+        renderBottomText();
+      }
+
+      function tick(ts) {
+        if (!playing) return;
+        if (lastTs === null) lastTs = ts;
+        const dt = ts - lastTs;
+        lastTs = ts;
+
+        progress += dt / 7200;
+        progress = clamp(progress, 0, 1);
+
+        if (progress >= 1) {
+          progress = 1;
+          playing = false;
+          lastTs = null;
+        }
+
+        timelineSlider.value = String(progress);
+        renderAll();
+
+        if (playing) raf = requestAnimationFrame(tick);
+      }
+
+      methodButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedMethod = btn.dataset.method;
+          renderAll();
+        });
+      });
+
+      [cardFull, cardMini, cardStochastic].forEach((card, idx) => {
+        const methods = ["full", "mini", "stochastic"];
+        card.addEventListener("click", () => {
+          selectedMethod = methods[idx];
+          renderAll();
+        });
+      });
+
+      batchSlider.addEventListener("input", () => {
+        batchSize = parseInt(batchSlider.value, 10);
+        renderAll();
+      });
+
+      playBtn.addEventListener("click", () => {
+        playing = !playing;
+        if (playing) {
+          lastTs = null;
+          raf = requestAnimationFrame(tick);
+        } else if (raf) {
+          cancelAnimationFrame(raf);
+        }
+        renderAll();
+      });
+
+      replayBtn.addEventListener("click", () => {
+        if (raf) cancelAnimationFrame(raf);
+        progress = 0;
+        timelineSlider.value = "0";
+        playing = true;
+        lastTs = null;
+        renderAll();
+        raf = requestAnimationFrame(tick);
+      });
+
+      timelineSlider.addEventListener("input", () => {
+        progress = parseFloat(timelineSlider.value);
+        playing = false;
+        if (raf) cancelAnimationFrame(raf);
+        lastTs = null;
+        renderAll();
+      });
+
+      window.addEventListener("resize", renderAll);
+      renderAll();
+    })();
+  </script>
+</div>
+            </div>
+            <figcaption>
+              Use the method chips (Full Batch / Mini-Batch / Stochastic) and the batch-size slider to explore how batch size changes the optimization path and update rhythm.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section class="content-section" id="background">
+          <p class="section-label">Context</p>
+          <h2>Background</h2>
+          <div class="reading-copy">
+            <p>
+              Batch size controls how many training examples the model uses before taking one optimization step.
+            </p>
+            <p>
+              In <strong>full batch gradient descent</strong>, the model looks at the entire dataset before each update. The gradient is stable because it uses all training examples, but the model only updates once per epoch.
+            </p>
+            <p>
+              In <strong>stochastic gradient descent</strong>, the model updates after seeing one training example. This makes the path very responsive, but also very noisy because one sample may not represent the whole dataset well.
+            </p>
+            <p>
+              <strong>Mini-batch training</strong> sits between these two extremes. The model uses a small group of examples before each update, giving a practical balance between stability, speed, memory cost, and GPU efficiency.
+            </p>
+            <p>
+              The core idea is: batch size changes the gradient estimate &rarr; gradient estimate changes the update path &rarr; update path changes training behavior.
+            </p>
+          </div>
+        </section>
+
+        <section class="content-section" id="important-formulas">
+          <p class="section-label">Notation</p>
+          <h2>Important formulas</h2>
+
+          <div class="formula-line">
+            <div class="formula">\[ J(\theta) = \frac{1}{N} \sum_{i=1}^{N} \ell_i(\theta) \]</div>
+            <div>
+              <p style="margin:0 0 10px;"><strong>Dataset Loss.</strong> The average loss over the whole training dataset.</p>
+              <ul style="margin:0;padding:0;list-style:none;color:var(--text-secondary);font-size:15px;">
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(J(\theta)\) &mdash; average loss over the whole training dataset</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\theta\) &mdash; model parameters, such as weights and biases</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(N\) &mdash; total number of training examples</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\ell_i(\theta)\) &mdash; loss from the \(i\)-th training example</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="formula-line">
+            <div class="formula">\[ \theta_{t+1} = \theta_t - \eta\, g_t \]</div>
+            <div>
+              <p style="margin:0 0 10px;"><strong>Gradient Descent Update.</strong> The main parameter update rule. Batch size affects how \(g_t\) is estimated.</p>
+              <ul style="margin:0;padding:0;list-style:none;color:var(--text-secondary);font-size:15px;">
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\theta_t\) &mdash; parameters before the update</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\theta_{t+1}\) &mdash; parameters after the update</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\eta\) &mdash; learning rate, controls the step size</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(g_t\) &mdash; gradient estimate used at step \(t\)</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="formula-line">
+            <div class="formula">\[ g_{\text{full}} = \nabla_{\theta} J(\theta) = \frac{1}{N} \sum_{i=1}^{N} \nabla_{\theta}\ell_i(\theta) \]</div>
+            <div>
+              <p style="margin:0 0 10px;"><strong>Full Batch Gradient.</strong> Stable, but updates only once per epoch.</p>
+              <ul style="margin:0;padding:0;list-style:none;color:var(--text-secondary);font-size:15px;">
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(g_{\text{full}}\) &mdash; gradient computed using the entire dataset</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\nabla_{\theta}J(\theta)\) &mdash; gradient of the full dataset loss w.r.t. parameters</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\nabla_{\theta}\ell_i(\theta)\) &mdash; gradient from one training example</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="formula-line">
+            <div class="formula">\[ J_{\mathcal{B}}(\theta) = \frac{1}{B} \sum_{i \in \mathcal{B}} \ell_i(\theta) \]</div>
+            <div>
+              <p style="margin:0 0 10px;"><strong>Mini-Batch Loss.</strong> The loss most deep learning frameworks compute during one training step.</p>
+              <ul style="margin:0;padding:0;list-style:none;color:var(--text-secondary);font-size:15px;">
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(J_{\mathcal{B}}(\theta)\) &mdash; average loss over one mini-batch</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\mathcal{B}\) &mdash; the set of examples inside the current mini-batch</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(B\) &mdash; batch size: number of examples in the mini-batch</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(i \in \mathcal{B}\) &mdash; example \(i\) belongs to the current mini-batch</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="formula-line">
+            <div class="formula">\[ g_{\mathcal{B}} = \nabla_{\theta} J_{\mathcal{B}}(\theta) = \frac{1}{B} \sum_{i \in \mathcal{B}} \nabla_{\theta}\ell_i(\theta) \]</div>
+            <div>
+              <p style="margin:0 0 10px;"><strong>Mini-Batch Gradient.</strong> Not perfectly exact, but stable enough and much cheaper than full batch.</p>
+              <ul style="margin:0;padding:0;list-style:none;color:var(--text-secondary);font-size:15px;">
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(g_{\mathcal{B}}\) &mdash; gradient estimated from the current mini-batch</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(B\) &mdash; number of examples used to estimate the gradient</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\nabla_{\theta}\ell_i(\theta)\) &mdash; gradient contribution from one example</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="formula-line">
+            <div class="formula">\[ g_i = \nabla_{\theta}\ell_i(\theta) \qquad (B = 1) \]</div>
+            <div>
+              <p style="margin:0 0 10px;"><strong>Stochastic Gradient.</strong> The special case where \(B = 1\). Very frequent updates, but the gradient direction can be very noisy.</p>
+              <ul style="margin:0;padding:0;list-style:none;color:var(--text-secondary);font-size:15px;">
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(g_i\) &mdash; gradient estimated from one training example</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\ell_i(\theta)\) &mdash; loss from one example</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(i\) &mdash; the single example used for the update</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="formula-line">
+            <div class="formula">\[ \text{updates per epoch} = \left\lceil \frac{N}{B} \right\rceil \]</div>
+            <div>
+              <p style="margin:0 0 10px;"><strong>Updates Per Epoch.</strong> Smaller batch size gives more updates per epoch; larger gives fewer.</p>
+              <ul style="margin:0;padding:0;list-style:none;color:var(--text-secondary);font-size:15px;">
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(N\) &mdash; total number of training examples</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(B\) &mdash; batch size</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\lceil \cdot \rceil\) &mdash; ceiling function, rounds up to the nearest integer</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="formula-line">
+            <div class="formula">\[ \operatorname{Var}(g_{\mathcal{B}}) \approx \frac{\sigma^2}{B} \]</div>
+            <div>
+              <p style="margin:0 0 10px;"><strong>Gradient Noise.</strong> Larger batches produce less noisy estimates; smaller batches produce noisier but more responsive updates.</p>
+              <ul style="margin:0;padding:0;list-style:none;color:var(--text-secondary);font-size:15px;">
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\operatorname{Var}(g_{\mathcal{B}})\) &mdash; variance (noise level) of the mini-batch gradient</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(\sigma^2\) &mdash; approximate variance of gradients from individual samples</li>
+                <li style="border-top:1px solid var(--rule);padding:10px 0 10px 22px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">&middot;</span>\(B\) &mdash; batch size</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section" id="strengths-limits">
+          <p class="section-label">Tradeoffs</p>
+          <h2>Pros and cons</h2>
+
+          <p style="color:var(--text-muted);font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 18px;">Small Batch</p>
+          <div class="paired-list" style="margin-bottom:52px;">
+            <div>
+              <h3>Pros</h3>
+              <ul>
+                <li><strong>Frequent updates.</strong> The model updates many times per epoch, so it can react quickly during training.</li>
+                <li><strong>Lower memory cost.</strong> Small batches require less GPU memory.</li>
+                <li><strong>Helpful noise.</strong> The noisy update path can sometimes help the model avoid overly sharp solutions.</li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h3>Cons</h3>
+              <ul>
+                <li><strong>Noisy gradients.</strong> Each update may point in a less reliable direction.</li>
+                <li><strong>Less stable training.</strong> The loss curve may jump around more, especially early in training.</li>
+                <li><strong>Lower hardware efficiency.</strong> Very small batches may not fully use GPU parallelism.</li>
+              </ul>
+            </div>
+          </div>
+
+          <p style="color:var(--text-muted);font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 18px;border-top:1px solid var(--rule);padding-top:36px;">Large Batch</p>
+          <div class="paired-list" style="margin-bottom:52px;">
+            <div>
+              <h3>Pros</h3>
+              <ul>
+                <li><strong>Smoother gradients.</strong> The update direction is more stable because it uses more examples.</li>
+                <li><strong>Better GPU parallelism.</strong> Large batches can make efficient use of modern hardware.</li>
+                <li><strong>Cleaner loss curve.</strong> Training often looks smoother because the gradient estimate has less noise.</li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h3>Cons</h3>
+              <ul>
+                <li><strong>Higher memory cost.</strong> Large batches require more GPU memory.</li>
+                <li><strong>Fewer updates per epoch.</strong> The model updates less often during one pass through the dataset.</li>
+                <li><strong>May generalize worse.</strong> Very large batches can sometimes converge to sharper solutions if the learning rate is not tuned carefully.</li>
+              </ul>
+            </div>
+          </div>
+
+          <p style="color:var(--text-muted);font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 18px;border-top:1px solid var(--rule);padding-top:36px;">Mini-Batch</p>
+          <div class="paired-list">
+            <div>
+              <h3>Pros</h3>
+              <ul>
+                <li><strong>Practical balance.</strong> Mini-batches are stable enough, frequent enough, and efficient enough for most deep learning tasks.</li>
+                <li><strong>Flexible hyperparameter.</strong> Batch size can be adjusted without changing the model architecture.</li>
+                <li><strong>Standard workflow.</strong> Most neural networks are trained using mini-batches rather than pure full batch or pure stochastic updates.</li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h3>Cons</h3>
+              <ul>
+                <li><strong>Needs tuning.</strong> The best batch size depends on the dataset, model, memory limit, and learning rate.</li>
+                <li><strong>Interacts with learning rate.</strong> Changing batch size often requires changing the learning rate too.</li>
+                <li><strong>Not automatically better.</strong> Common sizes like 32, 64, or 128 are a starting point, not a universal rule.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section" id="example-guidance">
+          <p class="section-label">Practice</p>
+          <h2>Quick example</h2>
+          <div class="reading-copy">
+            <p>Suppose the dataset has \(N = 1000\) training examples.</p>
+          </div>
+          <div class="formula-line">
+            <div class="formula">\[ B = 1 \implies \left\lceil \frac{1000}{1} \right\rceil = 1000 \text{ updates / epoch} \]</div>
+            <p>Stochastic gradient descent. Very frequent updates but each gradient is noisy &mdash; only one example per step.</p>
+          </div>
+          <div class="formula-line">
+            <div class="formula">\[ B = 100 \implies \left\lceil \frac{1000}{100} \right\rceil = 10 \text{ updates / epoch} \]</div>
+            <p>Mini-batch training. Each update is more stable than using one example, but still more frequent than full batch.</p>
+          </div>
+          <div class="formula-line">
+            <div class="formula">\[ B = 1000 \implies \left\lceil \frac{1000}{1000} \right\rceil = 1 \text{ update / epoch} \]</div>
+            <p>Full batch gradient descent. The gradient is very stable, but the training path reacts slowly &mdash; only one update per epoch.</p>
+          </div>
+          <div class="reading-copy" style="margin-top:32px;">
+            <p>The goal is not always to use the largest batch. The goal is to choose a batch size that gives a good balance between stable gradients, frequent updates, memory cost, and generalization.</p>
+          </div>
+        </section>
+
+        <section class="content-section" id="common-mistakes">
+          <p class="section-label">Watch out</p>
+          <h2>Common mistakes</h2>
+          <div class="reading-copy">
+            <p><strong>Thinking one epoch means one update.</strong> One epoch means the model has seen the whole dataset once. With mini-batches, the model usually updates many times inside one epoch.</p>
+            <p><strong>Confusing batch size with dataset size.</strong> The dataset size \(N\) is the total number of training examples. The batch size \(B\) is only the number of examples used in one update step.</p>
+            <p><strong>Thinking larger batch is always better.</strong> Larger batches give smoother gradients, but they also need more memory and may not always generalize better.</p>
+            <p><strong>Keeping the same learning rate after changing batch size.</strong> Batch size changes the noise level of the gradient. When batch size changes significantly, the learning rate often needs to be tuned again.</p>
+            <p><strong>Forgetting that losses are often averaged.</strong> Many frameworks average the loss over the batch. Increasing batch size does not simply multiply the gradient magnitude, but it usually makes the gradient estimate less noisy.</p>
+          </div>
+        </section>
+
+        <section class="content-section" id="takeaway">
+          <p class="section-label">Summary</p>
+          <h2>Takeaway</h2>
+          <div class="reading-copy">
+            <p>Batch size controls how many examples the model uses before each parameter update.</p>
+            <p>Small batches give noisy but frequent updates. Large batches give smoother but less frequent updates.</p>
+            <p>Mini-batch training is the practical middle ground: it balances gradient stability, update frequency, memory cost, and GPU efficiency.</p>
+          </div>
+        </section>
+
+        <footer>Mini-Batch Training &amp; Batch Size / Topic design preview / Teaching content preserved</footer>
+      </main>
+    </div>
+
+    <button class="navigation-backdrop" id="navigation-backdrop" type="button" aria-label="Close section navigation"></button>
+    <button class="drawer-backdrop" id="drawer-backdrop" type="button" aria-label="Close calculation steps"></button>
+    <aside class="calculation-drawer" id="calculation-drawer" aria-hidden="true" inert>
+      <div
+        class="drawer-resizer"
+        id="drawer-resizer"
+        role="separator"
+        aria-label="Resize calculation steps"
+        aria-orientation="vertical"
+        tabindex="0"
+      ></div>
+      <div class="drawer-inner">
+        <header class="drawer-header">
+          <div>
+            <p class="section-label">Notes</p>
+            <h2 class="drawer-heading">Reference</h2>
+          </div>
+          <button class="drawer-close" id="calculation-drawer-close" type="button" aria-label="Close panel">
+            &times;
+          </button>
+        </header>
+
+        <!-- Right drawer: empty shell for mini-batch (no specific calculation panel yet) -->
+      </div>
+    </aside>
+
+    <script>
+      const navigationDrawer = document.getElementById("navigation-drawer");
+      const navigationToggle = document.getElementById("navigation-drawer-toggle");
+      const navigationBackdrop = document.getElementById("navigation-backdrop");
+      const navigationLinks = navigationDrawer.querySelectorAll("a");
+      const narrowLayout = window.matchMedia("(max-width: 980px)");
+      const calculationDrawer = document.getElementById("calculation-drawer");
+      const drawerToggle = document.getElementById("calculation-drawer-toggle");
+      const drawerClose = document.getElementById("calculation-drawer-close");
+      const drawerBackdrop = document.getElementById("drawer-backdrop");
+      const drawerResizer = document.getElementById("drawer-resizer");
+
+      // drawerFinalEquations removed (mini-batch has no activation panel)
+
+      function setNavigationOpen(isOpen) {
+        const isNarrow = narrowLayout.matches;
+        navigationDrawer.setAttribute("aria-hidden", String(!isOpen));
+        navigationToggle.setAttribute("aria-expanded", String(isOpen));
+        navigationToggle.querySelector(".visually-hidden").textContent = isOpen
+          ? "Collapse section navigation"
+          : "Open section navigation";
+        document.body.classList.toggle("navigation-collapsed", !isNarrow && !isOpen);
+        document.body.classList.toggle("navigation-mobile-open", isNarrow && isOpen);
+
+        if (isOpen) {
+          navigationDrawer.removeAttribute("inert");
+          if (isNarrow) {
+            setDrawerOpen(false);
+          }
+        } else {
+          navigationDrawer.setAttribute("inert", "");
+        }
+      }
+
+      function initializeNavigationForViewport() {
+        setNavigationOpen(!narrowLayout.matches);
+      }
+
+      function setDrawerOpen(isOpen) {
+        if (isOpen && narrowLayout.matches) {
+          setNavigationOpen(false);
+        }
+        calculationDrawer.classList.toggle("is-open", isOpen);
+        calculationDrawer.setAttribute("aria-hidden", String(!isOpen));
+        drawerToggle.setAttribute("aria-expanded", String(isOpen));
+        drawerToggle.querySelector(".visually-hidden").textContent = isOpen
+          ? "Close calculation steps"
+          : "Open calculation steps";
+        document.body.classList.toggle("drawer-open", isOpen);
+        if (isOpen) {
+          calculationDrawer.removeAttribute("inert");
+          drawerResizer.tabIndex = 0;
+        } else {
+          calculationDrawer.setAttribute("inert", "");
+          drawerResizer.tabIndex = -1;
+        }
+      }
+
+      function setDrawerWidth(width) {
+        const maximumWidth = Math.min(700, window.innerWidth - 28);
+        const clampedWidth = Math.max(300, Math.min(maximumWidth, width));
+        document.documentElement.style.setProperty("--drawer-width", `${clampedWidth}px`);
+        calculationDrawer.dataset.width = String(clampedWidth);
+      }
+
+      // Single-neuron-specific adapter functions removed for mini-batch
+
+      navigationToggle.addEventListener("click", () => {
+        setNavigationOpen(navigationDrawer.getAttribute("aria-hidden") === "true");
+      });
+      navigationBackdrop.addEventListener("click", () => setNavigationOpen(false));
+      navigationLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          if (narrowLayout.matches) {
+            setNavigationOpen(false);
+          }
+        });
+      });
+      narrowLayout.addEventListener("change", initializeNavigationForViewport);
+
+      drawerToggle.addEventListener("click", () => {
+        setDrawerOpen(calculationDrawer.getAttribute("aria-hidden") === "true");
+      });
+      drawerClose.addEventListener("click", () => {
+        setDrawerOpen(false);
+        drawerToggle.focus();
+      });
+      drawerBackdrop.addEventListener("click", () => setDrawerOpen(false));
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && calculationDrawer.getAttribute("aria-hidden") === "false") {
+          setDrawerOpen(false);
+          drawerToggle.focus();
+        }
+        if (
+          event.key === "Escape" &&
+          narrowLayout.matches &&
+          navigationDrawer.getAttribute("aria-hidden") === "false"
+        ) {
+          setNavigationOpen(false);
+          navigationToggle.focus();
+        }
+      });
+
+      drawerResizer.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault();
+          const delta = event.key === "ArrowLeft" ? 28 : -28;
+          setDrawerWidth(calculationDrawer.getBoundingClientRect().width + delta);
+        }
+      });
+
+      let activeResize = null;
+      drawerResizer.addEventListener("pointerdown", (event) => {
+        activeResize = {
+          x: event.clientX,
+          width: calculationDrawer.getBoundingClientRect().width,
+        };
+        drawerResizer.setPointerCapture(event.pointerId);
+      });
+      drawerResizer.addEventListener("pointermove", (event) => {
+        if (activeResize) {
+          setDrawerWidth(activeResize.width + activeResize.x - event.clientX);
+        }
+      });
+      drawerResizer.addEventListener("pointerup", () => {
+        activeResize = null;
+      });
+
+      initializeNavigationForViewport();
+      setDrawerOpen(false);
+
+      // Mini-batch prototype is embedded directly — no fetch needed.
+    </script>
+      <script>
+      // Typeset formula sections injected inline
+      (function waitForMathJax() {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise().catch(function() {});
+        } else {
+          setTimeout(waitForMathJax, 400);
+        }
+      })();
+    </script>
+  </body>
+</html>

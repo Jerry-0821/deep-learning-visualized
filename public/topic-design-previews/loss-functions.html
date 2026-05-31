@@ -1,0 +1,1759 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Loss Functions & Training Signal | Topic Design Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]],
+        },
+        svg: {
+          fontCache: "global",
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --bg: #fcfbfd;
+        --text-primary: #23212c;
+        --text-secondary: #585566;
+        --text-muted: #817d8f;
+        --accent: #6c5ce7;
+        --accent-soft: #efedff;
+        --rule: #e8e5ee;
+        --header-height: 70px;
+        --page-width: 1440px;
+        --reading-width: 1000px;
+        --navigation-width: 220px;
+        --drawer-width: 460px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text-primary);
+        font-family: "Inter", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .topbar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 20;
+        height: var(--header-height);
+        background: rgb(252 251 253 / 88%);
+        border-bottom: 1px solid rgb(232 229 238 / 70%);
+        backdrop-filter: blur(16px);
+      }
+
+      .topbar-inner {
+        align-items: center;
+        display: flex;
+        height: 100%;
+        justify-content: space-between;
+        margin: 0 auto;
+        max-width: var(--page-width);
+        padding: 0 42px;
+      }
+
+      .brand {
+        align-items: center;
+        display: flex;
+        font-size: 13px;
+        font-weight: 600;
+        gap: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .brand-dot {
+        background: var(--accent);
+        border-radius: 50%;
+        display: inline-block;
+        height: 8px;
+        width: 8px;
+      }
+
+      .preview-label {
+        color: var(--text-secondary);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .topbar-actions {
+        align-items: center;
+        display: flex;
+        gap: 26px;
+      }
+
+      .back-module-link {
+        border-left: 1px solid var(--rule);
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+        padding-left: 26px;
+      }
+
+      .back-module-link:hover {
+        color: var(--text-primary);
+      }
+
+      .page {
+        column-gap: 60px;
+        display: grid;
+        grid-template-columns: var(--navigation-width) minmax(0, var(--reading-width));
+        justify-content: center;
+        margin: 0 auto;
+        max-width: var(--page-width);
+        padding: calc(var(--header-height) + 72px) 42px 100px;
+        transition: column-gap 200ms ease;
+      }
+
+      body.navigation-collapsed .page {
+        column-gap: 0;
+        grid-template-columns: 0 minmax(0, var(--reading-width));
+      }
+
+      .navigation-drawer {
+        min-width: 0;
+        opacity: 1;
+        transform: translateX(0);
+        transition: opacity 180ms ease, transform 200ms ease, visibility 180ms ease;
+      }
+
+      body.navigation-collapsed .navigation-drawer {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-28px);
+        visibility: hidden;
+      }
+
+      .toc {
+        align-self: start;
+        color: var(--text-secondary);
+        position: sticky;
+        top: calc(var(--header-height) + 46px);
+      }
+
+      .toc-label,
+      .kicker,
+      .section-label {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        margin: 0 0 20px;
+        text-transform: uppercase;
+      }
+
+      .toc a {
+        border-left: 1px solid var(--rule);
+        color: var(--text-secondary);
+        display: block;
+        font-size: 14px;
+        line-height: 1.5;
+        padding: 10px 0 10px 18px;
+        transition: border-color 160ms ease, color 160ms ease;
+      }
+
+      .toc a:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .navigation-toggle {
+        align-items: center;
+        background: #181720;
+        border: 1px solid #494653;
+        border-radius: 11px;
+        color: #ffffff;
+        cursor: pointer;
+        display: inline-flex;
+        height: 46px;
+        justify-content: center;
+        left: 20px;
+        position: fixed;
+        top: calc(var(--header-height) + 22px);
+        transition: background 160ms ease, border-color 160ms ease;
+        width: 46px;
+        z-index: 36;
+      }
+
+      .navigation-toggle:hover,
+      .navigation-toggle[aria-expanded="false"] {
+        background: #23212c;
+        border-color: #6e6a7b;
+      }
+
+      .sidebar-icon {
+        display: block;
+        height: 20px;
+        stroke: currentColor;
+        width: 20px;
+      }
+
+      main {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .hero {
+        margin-bottom: 72px;
+        max-width: 900px;
+      }
+
+      .kicker {
+        color: var(--accent);
+        margin-bottom: 22px;
+      }
+
+      h1,
+      h2 {
+        font-family: "Instrument Serif", Georgia, serif;
+        font-weight: 400;
+        letter-spacing: -0.035em;
+        line-height: 1.04;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(4.25rem, 8.6vw, 7.6rem);
+      }
+
+      h2 {
+        font-size: clamp(2.35rem, 4vw, 3.35rem);
+        margin-bottom: 22px;
+      }
+
+      .lede {
+        color: var(--text-secondary);
+        font-size: clamp(1.08rem, 1.6vw, 1.25rem);
+        line-height: 1.75;
+        margin: 32px 0 36px;
+        max-width: 640px;
+      }
+
+      .hero-meta {
+        color: var(--text-muted);
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 12px;
+        gap: 20px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .hero-meta span + span::before {
+        color: var(--rule);
+        content: "/";
+        margin-right: 20px;
+      }
+
+      .content-section {
+        border-top: 1px solid var(--rule);
+        margin-top: 66px;
+        padding-top: 56px;
+        scroll-margin-top: calc(var(--header-height) + 36px);
+      }
+
+      .section-head {
+        align-items: baseline;
+        display: flex;
+        gap: 28px;
+        justify-content: space-between;
+        margin-bottom: 34px;
+      }
+
+      .section-head h2 {
+        margin-bottom: 0;
+      }
+
+      .reading-copy {
+        color: var(--text-secondary);
+        font-size: 17px;
+        max-width: 790px;
+      }
+
+      .reading-copy p {
+        margin: 0 0 22px;
+      }
+
+      .formula-line {
+        align-items: start;
+        border-bottom: 1px solid var(--rule);
+        display: grid;
+        gap: 36px;
+        grid-template-columns: minmax(230px, 0.9fr) minmax(260px, 1fr);
+        padding: 30px 0;
+      }
+
+      .formula-line:first-of-type {
+        border-top: 1px solid var(--rule);
+      }
+
+      .formula {
+        color: var(--text-primary);
+        font-size: 1.08rem;
+        min-height: 54px;
+      }
+
+      .formula mjx-container[display="true"] {
+        margin: 0 !important;
+        text-align: left !important;
+      }
+
+      .formula-line p {
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      .paired-list {
+        column-gap: 70px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .paired-list h3,
+      .small-heading {
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        margin: 0 0 22px;
+        text-transform: uppercase;
+      }
+
+      ul {
+        color: var(--text-secondary);
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      li {
+        border-top: 1px solid var(--rule);
+        padding: 18px 0 20px 27px;
+        position: relative;
+      }
+
+      li::before {
+        color: var(--accent);
+        content: "+";
+        left: 0;
+        position: absolute;
+      }
+
+      .cons li::before {
+        content: "-";
+      }
+
+      .example-grid {
+        column-gap: 70px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .example-grid p {
+        color: var(--text-secondary);
+        font-size: 16px;
+        margin: 0;
+      }
+
+      footer {
+        border-top: 1px solid var(--rule);
+        color: var(--text-muted);
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        margin-top: 76px;
+        padding-top: 30px;
+        text-transform: uppercase;
+      }
+
+      .navigation-backdrop {
+        background: rgb(35 33 44 / 18%);
+        border: 0;
+        display: none;
+        inset: var(--header-height) 0 0;
+        position: fixed;
+        z-index: 33;
+      }
+
+      .visually-hidden {
+        clip-path: inset(50%);
+        height: 1px;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
+
+      .drawer-toggle {
+        align-items: center;
+        background: transparent;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        color: var(--text-primary);
+        cursor: pointer;
+        display: inline-flex;
+        flex: 0 0 auto;
+        height: 46px;
+        justify-content: center;
+        position: fixed;
+        right: 24px;
+        top: calc(var(--header-height) + 22px);
+        transition: border-color 160ms ease, color 160ms ease, background 160ms ease, right 220ms ease;
+        width: 46px;
+        z-index: 36;
+      }
+
+      .drawer-toggle:hover,
+      .drawer-toggle[aria-expanded="true"] {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      body.drawer-open .drawer-toggle {
+        right: calc(var(--drawer-width) + 20px);
+      }
+
+      .menu-icon {
+        display: grid;
+        gap: 4px;
+        width: 18px;
+      }
+
+      .menu-icon span {
+        background: currentColor;
+        border-radius: 1px;
+        display: block;
+        height: 1.5px;
+        width: 100%;
+      }
+
+      .calculation-drawer {
+        background: var(--bg);
+        border-left: 1px solid var(--rule);
+        bottom: 0;
+        color: var(--text-primary);
+        position: fixed;
+        right: 0;
+        top: var(--header-height);
+        transform: translateX(calc(100% + 2px));
+        transition: transform 220ms ease;
+        width: var(--drawer-width);
+        z-index: 35;
+      }
+
+      .calculation-drawer.is-open {
+        box-shadow: -16px 0 38px rgb(35 33 44 / 8%);
+        transform: translateX(0);
+      }
+
+      .drawer-resizer {
+        bottom: 0;
+        cursor: ew-resize;
+        left: -9px;
+        position: absolute;
+        top: 0;
+        width: 18px;
+      }
+
+      .drawer-resizer::after {
+        background: var(--rule);
+        bottom: 0;
+        content: "";
+        left: 8px;
+        position: absolute;
+        top: 0;
+        transition: background 160ms ease;
+        width: 1px;
+      }
+
+      .drawer-resizer:focus-visible::after,
+      .drawer-resizer:hover::after {
+        background: var(--accent);
+      }
+
+      .drawer-inner {
+        height: 100%;
+        overflow-y: auto;
+        padding: 32px 38px 46px;
+      }
+      
+      .drawer-backdrop {
+        background: rgb(35 33 44 / 18%);
+        border: 0;
+        display: none;
+        inset: var(--header-height) 0 0;
+        position: fixed;
+        z-index: 30;
+      }
+
+      @media (max-width: 980px) {
+        .topbar-inner {
+          padding: 0 22px;
+        }
+
+        .preview-label {
+          display: none;
+        }
+
+        .back-module-link {
+          border-left: 0;
+          padding-left: 0;
+        }
+
+        .page {
+          display: block;
+          padding: calc(var(--header-height) + 46px) 22px 72px;
+        }
+
+        .navigation-drawer {
+          background: var(--bg);
+          border-right: 1px solid var(--rule);
+          bottom: 0;
+          box-shadow: 12px 0 34px rgb(35 33 44 / 8%);
+          left: 0;
+          opacity: 1;
+          padding: 86px 32px 32px;
+          position: fixed;
+          top: var(--header-height);
+          transform: translateX(-102%);
+          visibility: visible;
+          width: min(312px, calc(100vw - 38px));
+          z-index: 34;
+        }
+
+        body.navigation-mobile-open .navigation-drawer {
+          transform: translateX(0);
+        }
+
+        .toc {
+          display: block;
+          position: static;
+        }
+
+        .navigation-toggle {
+          left: 16px;
+          top: calc(var(--header-height) + 16px);
+        }
+
+        body.navigation-mobile-open .navigation-toggle {
+          left: min(244px, calc(100vw - 106px));
+        }
+
+        .section-head,
+        .formula-line,
+        .paired-list,
+        .example-grid {
+          display: block;
+        }
+
+        .formula-line p {
+          margin-top: 20px;
+        }
+
+        .paired-list > div + div,
+        .example-grid > div + div {
+          margin-top: 48px;
+        }
+
+        body.navigation-mobile-open .navigation-backdrop {
+          display: block;
+          left: min(312px, calc(100vw - 38px));
+        }
+
+        .drawer-toggle {
+          right: 16px;
+          top: calc(var(--header-height) + 16px);
+        }
+
+        body.drawer-open .drawer-toggle {
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .calculation-drawer {
+          top: var(--header-height);
+          width: min(var(--drawer-width), calc(100vw - 28px));
+        }
+
+        .drawer-inner {
+          padding: 28px 26px 42px;
+        }
+
+        body.drawer-open .drawer-backdrop {
+          display: block;
+        }
+      }
+
+      /* ========================================= */
+      /* Loss specific interactive styles (Flat)   */
+      /* ========================================= */
+      .loss-controls-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+      }
+      .control-group {
+        border-top: 1px solid var(--rule);
+        padding-top: 20px;
+      }
+      .control-top {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .control-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      .control-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+      .control-help {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-top: 16px;
+      }
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+      .chip-row, .seg-row, .class-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .chip, .seg-btn, .class-btn {
+        background: transparent;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 16px;
+        transition: all 160ms ease;
+      }
+      .chip:hover, .seg-btn:hover, .class-btn:hover {
+        color: var(--text-primary);
+        border-color: var(--text-muted);
+      }
+      .chip.active, .seg-btn.active, .class-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .chart-wrap {
+        border-bottom: 1px solid var(--rule);
+        border-top: 1px solid var(--rule);
+        height: 420px;
+        margin: 40px 0;
+        overflow: hidden;
+        width: 100%;
+        background: transparent;
+      }
+      .chart-wrap svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .process-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 30px;
+        margin-bottom: 40px;
+      }
+      .process-card {
+        border-top: 1px solid var(--rule);
+        padding-top: 16px;
+      }
+      .process-label {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+      }
+      .process-value {
+        color: var(--text-primary);
+        font-size: 32px;
+        line-height: 1;
+        font-family: "Instrument Serif", Georgia, serif;
+        margin-bottom: 12px;
+      }
+      .process-note {
+        color: var(--text-secondary);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .batch-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+        margin-bottom: 40px;
+      }
+      .batch-card {
+        border-top: 1px solid var(--rule);
+        padding-top: 16px;
+      }
+      .batch-title {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+      }
+      .batch-main {
+        color: var(--text-primary);
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .batch-loss {
+        color: var(--accent);
+        font-family: "Instrument Serif", Georgia, serif;
+        font-size: 28px;
+        line-height: 1;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .takeaway-box {
+        font-size: 16px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        padding-top: 12px;
+      }
+      .takeaway-box strong {
+        color: var(--text-primary);
+      }
+      
+      @media (max-width: 980px) {
+        .loss-controls-grid {
+          grid-template-columns: 1fr;
+        }
+        .process-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .batch-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    
+
+      .formula-title {
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 14px;
+      }
+
+      .teaching-table {
+        border-collapse: collapse;
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.65;
+        margin-top: 24px;
+        width: 100%;
+      }
+
+      .teaching-table th,
+      .teaching-table td {
+        border-bottom: 1px solid var(--rule);
+        padding: 14px 18px 14px 0;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .teaching-table th {
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .reading-copy strong,
+      .example-grid strong,
+      .paired-list strong {
+        color: var(--text-primary);
+      }
+
+      .takeaway-copy {
+        border-bottom: 1px solid var(--rule);
+        border-top: 1px solid var(--rule);
+        color: var(--text-secondary);
+        font-size: 17px;
+        line-height: 1.8;
+        margin-top: 30px;
+        padding: 24px 0;
+      }
+
+      .takeaway-copy p {
+        margin: 0 0 16px;
+      }
+
+      .takeaway-copy p:last-child {
+        margin-bottom: 0;
+      }
+
+      .inline-formula-note {
+        color: var(--text-muted);
+        display: block;
+        font-size: 14px;
+        margin-top: 8px;
+      }
+
+    </style>
+  </head>
+  <body class="navigation-open">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#">
+          <span class="brand-dot"></span>
+          Deep Learning Visualized
+        </a>
+        <div class="topbar-actions">
+          <span class="preview-label">Topic design preview</span>
+          <a class="back-module-link" href="/module/1">Back to module</a>
+        </div>
+      </div>
+    </header>
+
+    <button
+      class="navigation-toggle"
+      id="navigation-drawer-toggle"
+      type="button"
+      aria-controls="navigation-drawer"
+      aria-expanded="true"
+    >
+      <span class="visually-hidden">Collapse section navigation</span>
+      <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none">
+        <rect x="2.5" y="3" width="15" height="14" rx="3" stroke-width="1.5"></rect>
+        <path d="M8 3.5V16.5" stroke-width="1.5"></path>
+      </svg>
+    </button>
+
+    <div class="page">
+      <aside class="navigation-drawer" id="navigation-drawer" aria-hidden="false">
+        <nav class="toc" aria-label="Topic sections">
+          <p class="toc-label">On This Page</p>
+          <a href="#interactive-prototype">Interactive lesson</a>
+          <a href="#background">Background</a>
+          <a href="#important-formulas">Important formulas</a>
+          <a href="#strengths-limits">Pros / Cons</a>
+          <a href="#example-guidance">Example / Mistake</a>
+          <a href="#takeaway">Takeaway</a>
+        </nav>
+      </aside>
+
+      <main>
+        <section class="hero" aria-label="Topic introduction">
+          <p class="kicker">Module 01 / Training Signal</p>
+          <h1>Loss Functions &<br />Training Signal</h1>
+          <p class="lede">
+            How neural networks turn wrong predictions into gradients for learning.
+          </p>
+          <div class="hero-meta">
+            <span>Visual design preview</span>
+            <span>Original interaction preserved</span>
+          </div>
+        </section>
+<section class="content-section" id="interactive-prototype">
+          <div class="section-head">
+            <div>
+              <p class="section-label">Explore</p>
+              <h2>Interactive lesson</h2>
+            </div>
+            <div class="section-actions">
+              <button
+                class="drawer-toggle"
+                id="calculation-drawer-toggle"
+                type="button"
+                aria-controls="calculation-drawer"
+                aria-expanded="false"
+              >
+                <span class="visually-hidden">Open calculation steps</span>
+                <span class="menu-icon" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="loss-controls-grid">
+            <div class="control-group">
+              <div class="control-label" style="margin-bottom:12px;">Loss family</div>
+              <div class="chip-row">
+                <button class="chip active" data-mode="mse">MSE</button>
+                <button class="chip" data-mode="mae">MAE</button>
+                <button class="chip" data-mode="bce">Binary CE</button>
+                <button class="chip" data-mode="cce">Categorical CE</button>
+              </div>
+              <div class="control-help">Choose a loss that matches the prediction type and target format.</div>
+            </div>
+
+            <div class="control-group" id="regressionBlock">
+              <div class="control-top">
+                <div class="control-label">Regression values</div>
+                <div class="control-value" id="regressionReadout">ŷ = 1.20 · y = 2.40</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                  <div class="control-top" style="margin-bottom:8px;">
+                    <div class="control-label" style="font-weight:400;">Prediction ŷ</div>
+                    <div class="control-value" id="predValue">1.20</div>
+                  </div>
+                  <input type="range" id="predSlider" min="-4" max="4" step="0.1" value="1.2">
+                </div>
+                <div>
+                  <div class="control-top" style="margin-bottom:8px;">
+                    <div class="control-label" style="font-weight:400;">Target y</div>
+                    <div class="control-value" id="targetValue">2.40</div>
+                  </div>
+                  <input type="range" id="targetSlider" min="-4" max="4" step="0.1" value="2.4">
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group hidden" id="binaryBlock">
+              <div class="control-top">
+                <div class="control-label">Binary classification</div>
+                <div class="control-value" id="binaryReadout">p = 0.82 · label = 1</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                  <div class="control-top" style="margin-bottom:8px;">
+                    <div class="control-label" style="font-weight:400;">Predicted probability</div>
+                    <div class="control-value" id="probValue">0.82</div>
+                  </div>
+                  <input type="range" id="probSlider" min="0.01" max="0.99" step="0.01" value="0.82">
+                </div>
+                <div>
+                  <div class="control-label" style="margin-bottom:12px; font-weight:400;">True label</div>
+                  <div class="seg-row">
+                    <button class="seg-btn" id="labelZero">Label 0</button>
+                    <button class="seg-btn active" id="labelOne">Label 1</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group hidden" id="categoricalBlock">
+              <div class="control-top">
+                <div class="control-label">Multiclass classification</div>
+                <div class="control-value" id="categoricalReadout">true class prob = 0.72</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                  <div class="control-top" style="margin-bottom:8px;">
+                    <div class="control-label" style="font-weight:400;">Probability assigned to the true class</div>
+                    <div class="control-value" id="trueProbValue">0.72</div>
+                  </div>
+                  <input type="range" id="trueProbSlider" min="0.01" max="0.99" step="0.01" value="0.72">
+                </div>
+                <div>
+                  <div class="control-label" style="margin-bottom:12px; font-weight:400;">True class</div>
+                  <div class="class-row">
+                    <button class="class-btn active" data-class="0">Class 1</button>
+                    <button class="class-btn" data-class="1">Class 2</button>
+                    <button class="class-btn" data-class="2">Class 3</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="small-heading" style="margin-bottom: 24px;">Loss computation walkthrough</h3>
+          <div class="process-grid">
+            <div class="process-card">
+              <div class="process-label">Step 1</div>
+              <div class="process-value" id="stepPredValue">1.20</div>
+              <div class="process-note" id="stepPredNote">Current prediction from the model.</div>
+            </div>
+            <div class="process-card">
+              <div class="process-label">Step 2</div>
+              <div class="process-value" id="stepTruthValue">2.40</div>
+              <div class="process-note" id="stepTruthNote">Ground-truth target or label.</div>
+            </div>
+            <div class="process-card">
+              <div class="process-label">Step 3</div>
+              <div class="process-value" id="stepCompareValue">-1.20</div>
+              <div class="process-note" id="stepCompareNote">Comparison term used by the loss.</div>
+            </div>
+            <div class="process-card">
+              <div class="process-label">Step 4</div>
+              <div class="process-value" id="stepLossValue">1.44</div>
+              <div class="process-note" id="stepLossNote">Per-sample loss for this one example.</div>
+            </div>
+            <div class="process-card">
+              <div class="process-label">Step 5</div>
+              <div class="process-value" id="stepBatchValue">1.52</div>
+              <div class="process-note" id="stepBatchNote">Average loss across the current batch.</div>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <svg id="lossChart" viewBox="0 0 1000 420" preserveAspectRatio="none"></svg>
+          </div>
+
+          <h3 class="small-heading" style="margin-bottom: 24px; margin-top: 48px;">Mini-batch view</h3>
+          <div class="batch-grid" id="batchGrid"></div>
+        </section>
+
+
+        <section class="content-section" id="background">
+          <p class="section-label">Background</p>
+          <h2>Background</h2>
+          <div class="reading-copy">
+            <p>A neural network does not automatically know whether its prediction is good or bad. It only produces an output, such as a number, a probability, or a vector of class scores.</p>
+            <p>A <strong>loss function</strong> compares the model prediction \(\hat{y}\) with the true target \(y\), then turns the mistake into one scalar value.</p>
+            <p>The core idea is:</p>
+            <div class="formula">\[\text{prediction} \rightarrow \text{loss} \rightarrow \text{gradient} \rightarrow \text{update}\]</div>
+            <p>The loss tells the model <strong>how wrong it is</strong>. The gradient tells the optimizer <strong>how the weights should change</strong>.</p>
+            <p>During training, the model usually does not learn from one sample at a time. It learns from a <strong>mini-batch</strong>, where the losses from several samples are averaged into one training objective.</p>
+          </div>
+        </section>
+
+        <section class="content-section" id="important-formulas">
+          <p class="section-label">Notation</p>
+          <h2>Important formulas</h2>
+          <div class="formula-line">
+            <div>
+              <h3 class="formula-title">General loss</h3>
+              <div class="formula">\[L(\hat{y}, y)\]</div>
+            </div>
+            <p>The loss function compares the prediction \(\hat{y}\) with the true target \(y\).</p>
+          </div>
+          <div class="formula-line">
+            <div>
+              <h3 class="formula-title">Mini-batch loss</h3>
+              <div class="formula">\[J = \frac{1}{m}\sum_{i=1}^{m} L(\hat{y}^{(i)}, y^{(i)})\]</div>
+            </div>
+            <p>Where \(m\) is the number of samples in the mini-batch.</p>
+          </div>
+          <div class="formula-line">
+            <div>
+              <h3 class="formula-title">Mean Squared Error</h3>
+              <div class="formula">\[L = (\hat{y} - y)^2\]</div>
+            </div>
+            <p>Commonly used for regression tasks.</p>
+          </div>
+          <div class="formula-line">
+            <div>
+              <h3 class="formula-title">Binary Cross-Entropy</h3>
+              <div class="formula">\[L = -\left[y\log(\hat{y}) + (1-y)\log(1-\hat{y})\right]\]</div>
+            </div>
+            <p>Commonly used for binary classification.</p>
+          </div>
+          <div class="formula-line">
+            <div>
+              <h3 class="formula-title">Multi-class Cross-Entropy</h3>
+              <div class="formula">\[L = -\sum_{k=1}^{K} y_k \log(\hat{y}_k)\]</div>
+            </div>
+            <p>Commonly used for multi-class classification.</p>
+          </div>
+          <div class="formula-line">
+            <div>
+              <h3 class="formula-title">Training signal</h3>
+              <div class="formula">\[\frac{\partial J}{\partial W}\]</div>
+            </div>
+            <p>The gradient tells the optimizer how changing the weight \(W\) will change the loss. For Mean Squared Error: \(\frac{\partial L}{\partial \hat{y}} = 2(\hat{y} - y)\). This gradient is the signal that moves the model prediction in the right direction.</p>
+          </div>
+        </section>
+
+        <section class="content-section" id="strengths-limits">
+          <p class="section-label">Tradeoffs</p>
+          <h2>Pros and cons</h2>
+          <div class="paired-list">
+            <div>
+              <h3>Pros</h3>
+              <ul>
+                <li><strong>Gives the model a clear objective.</strong> The model knows what it is trying to minimize during training.</li>
+                <li><strong>Turns errors into gradients.</strong> Loss functions create differentiable signals that backpropagation can use.</li>
+                <li><strong>Works naturally with mini-batches.</strong> Losses from multiple samples can be averaged into one stable training objective.</li>
+                <li><strong>Can match different task types.</strong> Regression, binary classification, and multi-class classification each have suitable loss functions.</li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h3>Cons</h3>
+              <ul>
+                <li><strong>Lower loss does not always mean better real-world performance.</strong> A model can reduce training loss but still perform poorly on new data.</li>
+                <li><strong>Wrong loss can teach the wrong behavior.</strong> Using a loss that does not match the task can make training inefficient or misleading.</li>
+                <li><strong>Sensitive to outliers or imbalance.</strong> Some losses can be dominated by extreme values or majority classes.</li>
+                <li><strong>Not every metric is easy to optimize.</strong> Metrics like accuracy are useful for evaluation, but they are not always smooth enough for gradient-based training.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section" id="example-guidance">
+          <p class="section-label">Practice</p>
+          <h2>Quick example and common mistakes</h2>
+          <div class="example-grid">
+            <div>
+              <h3 class="small-heading">Quick Example</h3>
+              <p>Suppose a regression model predicts \(\hat{y} = 1.2\) and the true target is \(y = 2.4\). Using Mean Squared Error:</p>
+              <div class="formula">\[L = (\hat{y} - y)^2\]</div>
+              <div class="formula">\[L = (1.2 - 2.4)^2 = (-1.2)^2 = 1.44\]</div>
+              <p>The loss value is \(1.44\), but the model does not update weights directly from this number. Backpropagation first computes:</p>
+              <div class="formula">\[\frac{\partial L}{\partial \hat{y}} = 2(\hat{y} - y) = 2(1.2 - 2.4) = -2.4\]</div>
+              <p>The negative gradient means the prediction is too low. For a mini-batch, each sample has its own loss:</p>
+              <div class="formula">\[L_1 = 5.76,\quad L_2 = 2.40,\quad L_3 = 0.42,\quad L_4 = 0.02\]</div>
+              <div class="formula">\[J = \frac{5.76 + 2.40 + 0.42 + 0.02}{4} = 2.15\]</div>
+            </div>
+            <div>
+              <h3 class="small-heading">Common Mistakes</h3>
+              <ul>
+                <li><strong>Thinking loss is the same as accuracy.</strong> Accuracy only counts whether the prediction is right or wrong. Loss also measures how confident or how far away the prediction is.</li>
+                <li><strong>Using Mean Squared Error for every task.</strong> Mean Squared Error is natural for regression. For classification, cross-entropy is usually a better choice because it works directly with probabilities.</li>
+                <li><strong>Forgetting mini-batch averaging.</strong> Training usually optimizes the average loss across a mini-batch, not just the loss from one sample.</li>
+                <li><strong>Thinking the loss updates weights directly.</strong> The loss is only a scalar objective. Weights are updated after backpropagation computes gradients.</li>
+                <li><strong>Believing lower training loss always means a better model.</strong> A model can memorize the training data and achieve low training loss, but still fail on unseen examples.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section" id="takeaway">
+          <p class="section-label">Takeaway</p>
+          <h2>Takeaway</h2>
+          <div class="takeaway-copy">
+            <p>A loss function converts prediction errors into a scalar objective.</p>
+            <p>Backpropagation converts that objective into gradients.</p>
+            <p>Those gradients become the training signal that tells the optimizer how to update the model.</p>
+          </div>
+        </section>
+
+                <footer>Loss Functions / Topic design test / Teaching content preserved</footer>
+      </main>
+    </div>
+
+    <button class="navigation-backdrop" id="navigation-backdrop" type="button" aria-label="Close section navigation"></button>
+    <button class="drawer-backdrop" id="drawer-backdrop" type="button" aria-label="Close calculation steps"></button>
+    
+    <aside class="calculation-drawer" id="calculation-drawer" aria-hidden="true" inert>
+      <div
+        class="drawer-resizer"
+        id="drawer-resizer"
+        role="separator"
+        aria-label="Resize calculation steps"
+        aria-orientation="vertical"
+        tabindex="0"
+      ></div>
+      <div class="drawer-inner">
+        <h3 class="small-heading" style="margin-bottom: 24px; margin-top: 8px;">Current summary</h3>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: -16px; margin-bottom: 32px;">How the current example is being penalized</p>
+
+        <div id="modePill" style="display:inline-block; padding: 6px 14px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 32px;">
+          <span id="modePillText">Mean Squared Error</span>
+        </div>
+
+        <div class="process-grid" style="grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px;">
+          <div class="process-card" style="padding-top: 12px;">
+            <div class="process-label">Sample loss</div>
+            <div class="process-value" id="metricSampleLoss" style="font-size: 26px;">1.44</div>
+          </div>
+          <div class="process-card" style="padding-top: 12px;">
+            <div class="process-label">Batch loss</div>
+            <div class="process-value" id="metricBatchLoss" style="font-size: 26px;">1.52</div>
+          </div>
+          <div class="process-card" style="padding-top: 12px;">
+            <div class="process-label">Prediction</div>
+            <div class="process-value" id="metricPrediction" style="font-size: 26px;">1.20</div>
+          </div>
+          <div class="process-card" style="padding-top: 12px;">
+            <div class="process-label">Ground truth</div>
+            <div class="process-value" id="metricTruth" style="font-size: 26px;">2.40</div>
+          </div>
+        </div>
+
+        <ul style="margin-bottom: 40px;">
+          <li style="padding: 16px 0 16px 16px; border-top: 1px solid var(--rule);">
+            <strong style="color: var(--text-primary); display: block; margin-bottom: 4px; font-size: 14px;">Why this loss?</strong>
+            <span id="whyLossText" style="font-size: 14px;"></span>
+          </li>
+          <li style="padding: 16px 0 16px 16px; border-top: 1px solid var(--rule);">
+            <strong style="color: var(--text-primary); display: block; margin-bottom: 4px; font-size: 14px;">What the curve shows</strong>
+            <span id="curveText" style="font-size: 14px;"></span>
+          </li>
+          <li style="padding: 16px 0 16px 16px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);">
+            <strong style="color: var(--text-primary); display: block; margin-bottom: 4px; font-size: 14px;">Current penalty style</strong>
+            <span id="penaltyText" style="font-size: 14px;"></span>
+          </li>
+        </ul>
+
+        <h3 class="small-heading" style="margin-bottom: 16px;">Takeaway</h3>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: -8px; margin-bottom: 20px;">Teaching summary</p>
+        <div class="takeaway-box" id="takeawayBox" style="font-size: 14px; padding-top: 0; line-height: 1.6;"></div>
+      </div>
+    </aside>
+
+    <script>
+      const navigationDrawer = document.getElementById("navigation-drawer");
+      const navigationToggle = document.getElementById("navigation-drawer-toggle");
+      const navigationBackdrop = document.getElementById("navigation-backdrop");
+      const navigationLinks = navigationDrawer.querySelectorAll("a");
+      const narrowLayout = window.matchMedia("(max-width: 980px)");
+
+      const calculationDrawer = document.getElementById("calculation-drawer");
+      const drawerToggle = document.getElementById("calculation-drawer-toggle");
+      const drawerBackdrop = document.getElementById("drawer-backdrop");
+      const drawerResizer = document.getElementById("drawer-resizer");
+
+      function setNavigationOpen(isOpen) {
+        const isNarrow = narrowLayout.matches;
+        navigationDrawer.setAttribute("aria-hidden", String(!isOpen));
+        navigationToggle.setAttribute("aria-expanded", String(isOpen));
+        navigationToggle.querySelector(".visually-hidden").textContent = isOpen
+          ? "Collapse section navigation"
+          : "Open section navigation";
+        document.body.classList.toggle("navigation-collapsed", !isNarrow && !isOpen);
+        document.body.classList.toggle("navigation-mobile-open", isNarrow && isOpen);
+
+        if (isOpen) {
+          navigationDrawer.removeAttribute("inert");
+          if (isNarrow) {
+            setDrawerOpen(false);
+          }
+        } else {
+          navigationDrawer.setAttribute("inert", "");
+        }
+      }
+
+      function initializeNavigationForViewport() {
+        setNavigationOpen(!narrowLayout.matches);
+      }
+
+      function setDrawerOpen(isOpen) {
+        if (isOpen && narrowLayout.matches) {
+          setNavigationOpen(false);
+        }
+        calculationDrawer.classList.toggle("is-open", isOpen);
+        calculationDrawer.setAttribute("aria-hidden", String(!isOpen));
+        drawerToggle.setAttribute("aria-expanded", String(isOpen));
+        drawerToggle.querySelector(".visually-hidden").textContent = isOpen
+          ? "Close calculation steps"
+          : "Open calculation steps";
+        document.body.classList.toggle("drawer-open", isOpen);
+        if (isOpen) {
+          calculationDrawer.removeAttribute("inert");
+          drawerResizer.tabIndex = 0;
+        } else {
+          calculationDrawer.setAttribute("inert", "");
+          drawerResizer.tabIndex = -1;
+        }
+      }
+
+      function setDrawerWidth(width) {
+        const maximumWidth = Math.min(700, window.innerWidth - 28);
+        const clampedWidth = Math.max(300, Math.min(maximumWidth, width));
+        document.documentElement.style.setProperty("--drawer-width", `${clampedWidth}px`);
+        calculationDrawer.dataset.width = String(clampedWidth);
+      }
+
+      drawerToggle.addEventListener("click", () => {
+        setDrawerOpen(calculationDrawer.getAttribute("aria-hidden") === "true");
+      });
+      drawerBackdrop.addEventListener("click", () => setDrawerOpen(false));
+
+      drawerResizer.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault();
+          const delta = event.key === "ArrowLeft" ? 28 : -28;
+          setDrawerWidth(calculationDrawer.getBoundingClientRect().width + delta);
+        }
+      });
+
+      let activeResize = null;
+      drawerResizer.addEventListener("pointerdown", (event) => {
+        activeResize = {
+          x: event.clientX,
+          width: calculationDrawer.getBoundingClientRect().width,
+        };
+        drawerResizer.setPointerCapture(event.pointerId);
+      });
+      drawerResizer.addEventListener("pointermove", (event) => {
+        if (activeResize) {
+          setDrawerWidth(activeResize.width + activeResize.x - event.clientX);
+        }
+      });
+      drawerResizer.addEventListener("pointerup", () => {
+        activeResize = null;
+      });
+
+      navigationToggle.addEventListener("click", () => {
+        setNavigationOpen(navigationDrawer.getAttribute("aria-hidden") === "true");
+      });
+      navigationBackdrop.addEventListener("click", () => setNavigationOpen(false));
+      navigationLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          if (narrowLayout.matches) {
+            setNavigationOpen(false);
+          }
+        });
+      });
+      narrowLayout.addEventListener("change", initializeNavigationForViewport);
+      
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && calculationDrawer.getAttribute("aria-hidden") === "false") {
+          setDrawerOpen(false);
+          drawerToggle.focus();
+        }
+        if (
+          event.key === "Escape" &&
+          narrowLayout.matches &&
+          navigationDrawer.getAttribute("aria-hidden") === "false"
+        ) {
+          setNavigationOpen(false);
+          navigationToggle.focus();
+        }
+      });
+
+      initializeNavigationForViewport();
+      setDrawerOpen(false);
+
+      /* ========================================= */
+      /* Loss Functions Interactive Logic          */
+      /* ========================================= */
+      const svg = document.getElementById("lossChart");
+
+      const state = {
+        mode: "mse",
+        pred: 1.2,
+        target: 2.4,
+        label: 1,
+        prob: 0.82,
+        trueClass: 0,
+        trueProb: 0.72
+      };
+
+      const modeButtons = document.querySelectorAll('[data-mode]');
+      const classButtons = document.querySelectorAll('[data-class]');
+      const predSlider = document.getElementById("predSlider");
+      const targetSlider = document.getElementById("targetSlider");
+      const probSlider = document.getElementById("probSlider");
+      const trueProbSlider = document.getElementById("trueProbSlider");
+      const labelZero = document.getElementById("labelZero");
+      const labelOne = document.getElementById("labelOne");
+
+      function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+      function fmt(num, digits=2) { return Number(num).toFixed(digits); }
+      function fmtSigned(num, digits=2) {
+        const sign = num > 0 ? "+" : "";
+        return sign + Number(num).toFixed(digits);
+      }
+
+      function getCurrentValues() {
+        if (state.mode === "mse" || state.mode === "mae") {
+          return { prediction: state.pred, truth: state.target, compare: state.pred - state.target };
+        }
+        if (state.mode === "bce") {
+          return { prediction: state.prob, truth: state.label, compare: state.prob - state.label };
+        }
+        return { prediction: state.trueProb, truth: "Class " + (state.trueClass + 1), compare: 1 - state.trueProb };
+      }
+
+      function sampleLossFromValue(value) {
+        if (state.mode === "mse") return Math.pow(value - state.target, 2);
+        if (state.mode === "mae") return Math.abs(value - state.target);
+        if (state.mode === "bce") {
+          const p = clamp(value, 0.0001, 0.9999);
+          return -(state.label * Math.log(p) + (1 - state.label) * Math.log(1 - p));
+        }
+        const pTrue = clamp(value, 0.0001, 0.9999);
+        return -Math.log(pTrue);
+      }
+
+      function currentLoss() {
+        if (state.mode === "mse") return Math.pow(state.pred - state.target, 2);
+        if (state.mode === "mae") return Math.abs(state.pred - state.target);
+        if (state.mode === "bce") {
+          const p = clamp(state.prob, 0.0001, 0.9999);
+          return -(state.label * Math.log(p) + (1 - state.label) * Math.log(1 - p));
+        }
+        const pTrue = clamp(state.trueProb, 0.0001, 0.9999);
+        return -Math.log(pTrue);
+      }
+
+      function batchExamples() {
+        let baseValues = [];
+        if (state.mode === "mse" || state.mode === "mae") {
+          baseValues = [state.pred - 1.2, state.pred - 0.35, state.pred + 0.55, state.pred + 1.35].map(v => clamp(v, -4, 4));
+          return baseValues.map((v, i) => ({
+            title: "Sample " + (i + 1),
+            main: "ŷ = " + fmt(v) + " · y = " + fmt(state.target),
+            loss: sampleLossFromValue(v)
+          }));
+        }
+        if (state.mode === "bce") {
+          baseValues = [state.prob - 0.30, state.prob - 0.12, state.prob + 0.08, state.prob + 0.22].map(v => clamp(v, 0.01, 0.99));
+          return baseValues.map((v, i) => ({
+            title: "Sample " + (i + 1),
+            main: "p = " + fmt(v) + " · y = " + state.label,
+            loss: sampleLossFromValue(v)
+          }));
+        }
+        baseValues = [state.trueProb - 0.28, state.trueProb - 0.10, state.trueProb + 0.06, state.trueProb + 0.18].map(v => clamp(v, 0.01, 0.99));
+        return baseValues.map((v, i) => ({
+          title: "Sample " + (i + 1),
+          main: "p(true) = " + fmt(v),
+          loss: sampleLossFromValue(v)
+        }));
+      }
+
+      function batchLossValue() {
+        const samples = batchExamples();
+        return samples.reduce((acc, s) => acc + s.loss, 0) / samples.length;
+      }
+
+      function buildBatchCards() {
+        const wrap = document.getElementById("batchGrid");
+        wrap.innerHTML = "";
+        batchExamples().forEach(sample => {
+          const card = document.createElement("div");
+          card.className = "batch-card";
+          card.innerHTML = `
+            <div class="batch-title">${sample.title}</div>
+            <div class="batch-main">${sample.main}</div>
+            <div class="batch-loss">${fmt(sample.loss)}</div>
+          `;
+          wrap.appendChild(card);
+        });
+      }
+
+      function svgEl(tag, attrs={}) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+        return el;
+      }
+
+      function drawChart() {
+        svg.innerHTML = "";
+        const dims = { w:1000, h:420, ml:52, mr:22, mt:18, mb:40 };
+        let points = [];
+        let xMin = 0, xMax = 1, xTicks = [], currentX = 0, currentY = 0, xLabel = "";
+
+        if (state.mode === "mse") {
+          xMin = -4; xMax = 4; xTicks = [-4,-2,0,2,4]; xLabel = "Prediction ŷ";
+          for (let i=0;i<=220;i++) {
+            const x = xMin + (xMax - xMin) * (i / 220);
+            points.push({ x, y: Math.pow(x - state.target, 2) });
+          }
+          currentX = state.pred; currentY = currentLoss();
+        } else if (state.mode === "mae") {
+          xMin = -4; xMax = 4; xTicks = [-4,-2,0,2,4]; xLabel = "Prediction ŷ";
+          for (let i=0;i<=220;i++) {
+            const x = xMin + (xMax - xMin) * (i / 220);
+            points.push({ x, y: Math.abs(x - state.target) });
+          }
+          currentX = state.pred; currentY = currentLoss();
+        } else if (state.mode === "bce") {
+          xMin = 0.01; xMax = 0.99; xTicks = [0.1,0.3,0.5,0.7,0.9]; xLabel = "Predicted probability";
+          for (let i=0;i<=220;i++) {
+            const x = xMin + (xMax - xMin) * (i / 220);
+            const y = state.label === 1 ? -Math.log(x) : -Math.log(1 - x);
+            points.push({ x, y });
+          }
+          currentX = state.prob; currentY = currentLoss();
+        } else {
+          xMin = 0.01; xMax = 0.99; xTicks = [0.1,0.3,0.5,0.7,0.9]; xLabel = "Probability assigned to the true class";
+          for (let i=0;i<=220;i++) {
+            const x = xMin + (xMax - xMin) * (i / 220);
+            points.push({ x, y: -Math.log(x) });
+          }
+          currentX = state.trueProb; currentY = currentLoss();
+        }
+
+        const yMax = Math.max(1.3, ...points.map(p => p.y), currentY) * 1.12;
+        const xMap = x => dims.ml + ((x - xMin) / (xMax - xMin)) * (dims.w - dims.ml - dims.mr);
+        const yMap = y => dims.mt + (1 - (y / yMax)) * (dims.h - dims.mt - dims.mb);
+
+        const yTicks = [0, +(yMax*0.33).toFixed(1), +(yMax*0.66).toFixed(1), +yMax.toFixed(1)];
+        const grid = svgEl("g");
+        xTicks.forEach(v => {
+          grid.appendChild(svgEl("line", { x1:xMap(v), y1:dims.mt, x2:xMap(v), y2:dims.h-dims.mb, stroke:"var(--rule)", "stroke-width":1 }));
+        });
+        yTicks.forEach(v => {
+          grid.appendChild(svgEl("line", { x1:dims.ml, y1:yMap(v), x2:dims.w-dims.mr, y2:yMap(v), stroke:"var(--rule)", "stroke-width":1 }));
+        });
+        svg.appendChild(grid);
+
+        const axis = svgEl("g");
+        axis.appendChild(svgEl("line", { x1:dims.ml, y1:yMap(0), x2:dims.w-dims.mr, y2:yMap(0), stroke:"var(--text-muted)", "stroke-width":1.2 }));
+        axis.appendChild(svgEl("line", { x1:dims.ml, y1:dims.mt, x2:dims.ml, y2:dims.h-dims.mb, stroke:"var(--text-muted)", "stroke-width":1.2 }));
+        svg.appendChild(axis);
+
+        xTicks.forEach(v => {
+          const t = svgEl("text", { x:xMap(v), y:dims.h-12, "text-anchor":"middle", "font-size":12, fill:"var(--text-muted)" });
+          t.textContent = v;
+          svg.appendChild(t);
+        });
+
+        yTicks.forEach(v => {
+          const t = svgEl("text", { x:dims.ml-12, y:yMap(v)+4, "text-anchor":"end", "font-size":12, fill:"var(--text-muted)" });
+          t.textContent = v;
+          svg.appendChild(t);
+        });
+
+        const xLab = svgEl("text", { x:(dims.w-dims.ml-dims.mr)/2+dims.ml, y:dims.h-2, "text-anchor":"middle", "font-size":11, fill:"var(--text-muted)" });
+        xLab.textContent = xLabel;
+        svg.appendChild(xLab);
+
+        const path = points.map((p, i) => `${i===0 ? "M" : "L"} ${xMap(p.x).toFixed(2)} ${yMap(p.y).toFixed(2)}`).join(" ");
+        svg.appendChild(svgEl("path", {
+          d: path,
+          fill: "none",
+          stroke: "var(--accent)",
+          "stroke-width": 3,
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round"
+        }));
+
+        const cx = xMap(currentX);
+        const cy = yMap(currentY);
+        svg.appendChild(svgEl("line", {
+          x1: cx, y1: dims.mt, x2: cx, y2: dims.h-dims.mb,
+          stroke: "var(--text-muted)", "stroke-width": 1.5, "stroke-dasharray": "5 5"
+        }));
+        svg.appendChild(svgEl("line", {
+          x1: dims.ml, y1: cy, x2: cx, y2: cy,
+          stroke: "var(--accent)", "stroke-width": 2, "stroke-dasharray": "6 5", "opacity": 0.5
+        }));
+        svg.appendChild(svgEl("circle", {
+          cx, cy, r: 6,
+          fill: "#ffffff",
+          stroke: "var(--accent)",
+          "stroke-width": 3
+        }));
+
+        const bubble = svgEl("g");
+        bubble.appendChild(svgEl("rect", {
+          x: Math.min(cx + 12, dims.w - 120),
+          y: Math.max(cy - 42, 22),
+          rx: 6, ry: 6, width: 92, height: 32,
+          fill: "#ffffff",
+          stroke: "var(--rule)"
+        }));
+        const bubbleText = svgEl("text", {
+          x: Math.min(cx + 58, dims.w - 74),
+          y: Math.max(cy - 22, 42),
+          "text-anchor": "middle",
+          "font-size": 13,
+          fill: "var(--accent)",
+          "font-weight": 600
+        });
+        bubbleText.textContent = "Loss = " + fmt(currentY);
+        bubble.appendChild(bubbleText);
+        svg.appendChild(bubble);
+      }
+
+      function updateVisibility() {
+        const regressionVisible = state.mode === "mse" || state.mode === "mae";
+        document.getElementById("regressionBlock").classList.toggle("hidden", !regressionVisible);
+        document.getElementById("binaryBlock").classList.toggle("hidden", state.mode !== "bce");
+        document.getElementById("categoricalBlock").classList.toggle("hidden", state.mode !== "cce");
+      }
+
+      function updateButtons() {
+        modeButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.mode === state.mode));
+        classButtons.forEach(btn => btn.classList.toggle("active", Number(btn.dataset.class) === state.trueClass));
+        labelZero.classList.toggle("active", state.label === 0);
+        labelOne.classList.toggle("active", state.label === 1);
+      }
+
+      function updateFormulas() {
+        let formulaHTML = "";
+        let whyLoss = "";
+        let penalty = "";
+        let curveText = "";
+        let takeaway = "";
+
+        if (state.mode === "mse") {
+          formulaHTML = `\\[ L = (\\hat{y} - y)^2 \\]`;
+          whyLoss = "Useful when the target is a continuous number and large errors should be punished more strongly.";
+          penalty = "Squaring makes large misses grow quickly.";
+          curveText = "The loss curve is a parabola centered on the true target.";
+          takeaway = `<p>The model first predicts <strong>ŷ</strong>, compares it with the true value <strong>y</strong>, turns the gap into a squared penalty, and then averages across the batch. MSE is common when you care a lot about large continuous-value mistakes.</p>`;
+        } else if (state.mode === "mae") {
+          formulaHTML = `\\[ L = |\\hat{y} - y| \\]`;
+          whyLoss = "Useful for continuous targets when you want a direct, linear penalty on the size of the miss.";
+          penalty = "Each extra unit of error increases the loss by the same amount.";
+          curveText = "The curve forms a V-shape with its minimum at the true target.";
+          takeaway = `<p>MAE still compares prediction with truth, but it does not square the gap. That makes the training signal more robust to very large outliers while still rewarding predictions that move closer to the target.</p>`;
+        } else if (state.mode === "bce") {
+          formulaHTML = `\\[ L = -[y \\log(p) + (1 - y) \\log(1 - p)] \\]`;
+          whyLoss = "Designed for binary classification when the model outputs a probability between 0 and 1.";
+          penalty = "Confident wrong probabilities are punished very heavily.";
+          curveText = state.label === 1
+            ? "Because the true label is 1, the loss falls as p approaches 1."
+            : "Because the true label is 0, the loss falls as p approaches 0.";
+          takeaway = `<p>Binary cross-entropy is not about distance on a number line. It measures how much probability the model gave to the correct class. Wrong and confident probabilities create a sharp loss spike.</p>`;
+        } else {
+          formulaHTML = `\\[ L = -\\log(p_{\\text{true}}) \\]`;
+          whyLoss = "Used for multiclass classification where the model predicts a probability distribution over several classes.";
+          penalty = "The loss shrinks only when the correct class receives more probability mass.";
+          curveText = "The curve falls as the model assigns more probability to the true class.";
+          takeaway = `<p>In multiclass classification, the model may output many class probabilities, but the loss mainly focuses on one number: <strong>p(true class)</strong>. The higher that probability becomes, the lower the loss.</p>`;
+        }
+
+        const formulaBox = document.getElementById("formulaBox");
+        if (formulaBox) {
+          formulaBox.innerHTML = formulaHTML;
+        }
+        document.getElementById("whyLossText").textContent = whyLoss;
+        document.getElementById("penaltyText").textContent = penalty;
+        document.getElementById("curveText").textContent = curveText;
+        document.getElementById("takeawayBox").innerHTML = takeaway;
+        
+        if (formulaBox && window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise([formulaBox]).catch(() => {});
+        }
+      }
+
+      function updateText() {
+        const values = getCurrentValues();
+        const current = currentLoss();
+        const batchLoss = batchLossValue();
+
+        document.getElementById("regressionReadout").textContent = `ŷ = ${fmt(state.pred)} · y = ${fmt(state.target)}`;
+        document.getElementById("predValue").textContent = fmt(state.pred);
+        document.getElementById("targetValue").textContent = fmt(state.target);
+
+        document.getElementById("binaryReadout").textContent = `p = ${fmt(state.prob)} · label = ${state.label}`;
+        document.getElementById("probValue").textContent = fmt(state.prob);
+
+        document.getElementById("categoricalReadout").textContent = `true class prob = ${fmt(state.trueProb)}`;
+        document.getElementById("trueProbValue").textContent = fmt(state.trueProb);
+
+        document.getElementById("stepPredValue").textContent = state.mode === "cce" ? fmt(state.trueProb) : fmt(values.prediction);
+        document.getElementById("stepTruthValue").textContent = state.mode === "cce" ? values.truth : (typeof values.truth === "number" ? fmt(values.truth) : values.truth);
+        document.getElementById("stepCompareValue").textContent = state.mode === "cce" ? fmt(1 - state.trueProb) : fmtSigned(values.compare);
+        document.getElementById("stepLossValue").textContent = fmt(current);
+        document.getElementById("stepBatchValue").textContent = fmt(batchLoss);
+
+        document.getElementById("stepPredNote").textContent = state.mode === "cce" ? "Probability assigned to the true class." : "Current prediction from the model.";
+        document.getElementById("stepTruthNote").textContent = state.mode === "cce" ? "Ground-truth class identity." : "Ground-truth target or label.";
+        document.getElementById("stepCompareNote").textContent = {
+          mse: "Signed prediction error before squaring.",
+          mae: "Signed prediction error before taking absolute value.",
+          bce: "Difference between predicted probability and binary label.",
+          cce: "Missing probability mass on the true class."
+        }[state.mode];
+
+        document.getElementById("modePillText").textContent = {
+          mse: "Mean Squared Error",
+          mae: "Mean Absolute Error",
+          bce: "Binary Cross-Entropy",
+          cce: "Categorical Cross-Entropy"
+        }[state.mode];
+
+        document.getElementById("metricSampleLoss").textContent = fmt(current);
+        document.getElementById("metricBatchLoss").textContent = fmt(batchLoss);
+        document.getElementById("metricPrediction").textContent = state.mode === "cce" ? fmt(state.trueProb) : fmt(values.prediction);
+        document.getElementById("metricTruth").textContent = state.mode === "cce" ? values.truth : (typeof values.truth === "number" ? fmt(values.truth) : values.truth);
+
+        updateFormulas();
+        buildBatchCards();
+        drawChart();
+      }
+
+      function render() {
+        updateVisibility();
+        updateButtons();
+        updateText();
+      }
+
+      modeButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.mode = btn.dataset.mode;
+          render();
+        });
+      });
+
+      classButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.trueClass = Number(btn.dataset.class);
+          render();
+        });
+      });
+
+      labelZero.addEventListener("click", () => {
+        state.label = 0;
+        render();
+      });
+
+      labelOne.addEventListener("click", () => {
+        state.label = 1;
+        render();
+      });
+
+      predSlider.addEventListener("input", e => {
+        state.pred = Number(e.target.value);
+        render();
+      });
+
+      targetSlider.addEventListener("input", e => {
+        state.target = Number(e.target.value);
+        render();
+      });
+
+      probSlider.addEventListener("input", e => {
+        state.prob = Number(e.target.value);
+        render();
+      });
+
+      trueProbSlider.addEventListener("input", e => {
+        state.trueProb = Number(e.target.value);
+        render();
+      });
+
+      // Load MathJax dynamically
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js";
+      script.async = true;
+      document.head.appendChild(script);
+
+      script.onload = () => {
+        render();
+      };
+    </script>
+  </body>
+</html>

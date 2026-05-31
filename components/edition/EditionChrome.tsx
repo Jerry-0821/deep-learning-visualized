@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type EditionPage = "home" | "topics" | "blog";
+type EditionPage = "home" | "topics" | "blog" | "mindmap";
 
 export function EditionBackdrop() {
   return <div className="edition-atmosphere" aria-hidden="true" />;
@@ -25,6 +25,9 @@ export function EditionNav({ active }: { active: EditionPage }) {
           <Link className={`edition-nav-link ${active === "blog" ? "active" : ""}`} href="/blog">
             Blog
           </Link>
+          <Link className={`edition-nav-link ${active === "mindmap" ? "active" : ""}`} href="/mindmap">
+            Mindmap
+          </Link>
           <Link className="edition-nav-link" href="/about">
             About
           </Link>
@@ -48,6 +51,7 @@ export function EditionFooter() {
           <Link href="/#modules">Curriculum</Link>
           <Link href="/topics">Topics</Link>
           <Link href="/blog">Blog</Link>
+          <Link href="/mindmap">Mindmap</Link>
           <Link href="/about">About</Link>
         </nav>
         <div className="edition-footer-copy">Copyright 2026 Jerry Lau. Designed for clarity.</div>

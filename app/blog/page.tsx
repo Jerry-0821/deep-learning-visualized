@@ -33,12 +33,13 @@ export default function BlogPage() {
         <section className="edition-blog-grid" aria-label="Deep learning blog topics">
           {blogPosts.map((post, index) => {
             const tone = (index % 3) + 1;
+            const coverImage = post.coverImage ?? `/edition-art/blog-${post.slug}.svg`;
 
             return (
               <Link key={post.slug} className={`edition-topic-card edition-mod-${tone}`} href={`/blog/${post.slug}`}>
                 <div className="edition-card-stripe" />
                 <div className="edition-card-art">
-                  <img src={`/edition-art/blog-${post.slug}.svg`} alt="" aria-hidden="true" />
+                  <img src={coverImage} alt="" aria-hidden="true" />
                 </div>
                 <div className="edition-card-body">
                   <div className="edition-card-meta">

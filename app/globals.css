@@ -3456,6 +3456,20 @@ a {
   width: 100%;
 }
 
+.mindmap-route-root {
+  background: #f0eef8;
+  height: 100dvh;
+  overflow: hidden;
+  width: 100%;
+}
+
+.mindmap-route-frame {
+  border: 0;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
 /* Final-edition blog reading surfaces. Content stays in document flow with one left index. */
 .blog-reading-root {
   overflow-x: clip;

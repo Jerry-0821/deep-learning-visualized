@@ -48,6 +48,7 @@ export type BlogPost = {
   title: string;
   tag: string;
   description: string;
+  coverImage?: string;
   status?: "ready" | "draft";
   blocks: BlogBlock[];
 };
@@ -1163,6 +1164,362 @@ export const blogPosts: BlogPost[] = [
         paragraphs: [
           "Transfer learning is about reusing useful knowledge instead of starting from zero.",
           "The model keeps general features from a pretrained backbone and learns a new task-specific head. It is especially useful when the new dataset is small but related to what the pretrained model has already learned.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "momentum",
+    title: "Momentum",
+    tag: "Optimization",
+    description:
+      "Learn how Momentum gives gradient descent memory, reducing zig-zag movement and building speed in consistent directions.",
+    coverImage: "/blog/momentum/momentum-01-why-momentum-helps.png",
+    status: "ready",
+    blocks: [
+      {
+        type: "image",
+        src: "/blog/momentum/momentum-01-why-momentum-helps.png",
+        alt: "SGD zig-zag path compared with smoother Momentum path",
+        caption: "Image 1: Momentum reduces oscillation and preserves forward progress.",
+        size: "wide",
+      },
+      {
+        type: "text",
+        eyebrow: "Background",
+        heading: "Background",
+        paragraphs: [
+          "Plain SGD updates parameters using only the current gradient. This is simple, but it can be unstable when the loss surface has a narrow valley.",
+          "In a narrow valley, the gradient may be steep across the valley but weak along the valley. As a result, SGD can bounce from side to side instead of moving smoothly forward.",
+          "Momentum adds memory to the optimizer. Instead of trusting only the current gradient, it combines the current gradient with a running average of past gradients.",
+          "Momentum strengthens directions that stay consistent and weakens directions that keep flipping. This helps the optimizer move more smoothly through ravines and curved valleys.",
+        ],
+      },
+      {
+        type: "text",
+        eyebrow: "Idea",
+        heading: "Idea",
+        paragraphs: [
+          "The core idea is: current gradient plus past direction memory gives a smoother update direction.",
+          "If gradients keep pointing in a similar direction, the momentum buffer builds in that direction. If gradients keep flipping direction, the buffer weakens that oscillating direction.",
+          "Momentum is therefore not only about speed. It changes the optimization path by making consistent movement stronger and unstable movement weaker.",
+        ],
+      },
+      {
+        type: "image",
+        src: "/blog/momentum/momentum-02-direction-memory.png",
+        alt: "Momentum buffer combines previous momentum and current gradient",
+        caption: "Image 2: The momentum buffer stores direction memory before the parameter update.",
+        size: "wide",
+      },
+      {
+        type: "formula",
+        heading: "Important Formulas",
+        formulas: [
+          {
+            expression: "g_t=\\frac{1}{B}\\sum_{i\\in\\mathcal{B}_t}\\nabla_\\theta \\ell_i(\\theta_t)",
+            note: "Mini-batch gradient input. Momentum changes how gradients are remembered, not how this gradient is computed.",
+          },
+          {
+            expression: "\\theta_{t+1}=\\theta_t-\\eta g_t",
+            note: "Plain SGD reacts directly to the current mini-batch gradient.",
+          },
+          {
+            expression: "u_t=\\beta u_{t-1}+(1-\\beta)g_t",
+            note: "Momentum buffer: a smoothed gradient direction with memory.",
+          },
+          {
+            expression: "\\theta_{t+1}=\\theta_t-\\eta u_t",
+            note: "The parameter update uses the momentum buffer instead of the raw gradient.",
+          },
+          {
+            expression:
+              "u_t=(1-\\beta)g_t+(1-\\beta)\\beta g_{t-1}+(1-\\beta)\\beta^2 g_{t-2}+(1-\\beta)\\beta^3 g_{t-3}+\\cdots",
+            note: "Expanded memory view: recent gradients matter more, while older gradients fade gradually.",
+          },
+          {
+            expression: "u_{dW,t}^{[l]}=\\beta u_{dW,t-1}^{[l]}+(1-\\beta)dW_t^{[l]}",
+            note: "Layer-wise momentum buffer for weight gradients.",
+          },
+          {
+            expression: "u_{db,t}^{[l]}=\\beta u_{db,t-1}^{[l]}+(1-\\beta)db_t^{[l]}",
+            note: "Layer-wise momentum buffer for bias gradients.",
+          },
+          {
+            expression: "W_{t+1}^{[l]}=W_t^{[l]}-\\eta u_{dW,t}^{[l]}",
+            note: "Layer-wise weight update.",
+          },
+          {
+            expression: "b_{t+1}^{[l]}=b_t^{[l]}-\\eta u_{db,t}^{[l]}",
+            note: "Layer-wise bias update.",
+          },
+        ],
+      },
+      {
+        type: "list",
+        heading: "Symbols",
+        items: [
+          "g_t: mini-batch gradient at step t.",
+          "B: mini-batch size.",
+          "theta_t: model parameters before the update.",
+          "eta: learning rate.",
+          "u_t: momentum buffer, or smoothed gradient direction.",
+          "beta: momentum coefficient, often around 0.9.",
+          "dW_t and db_t: weight and bias gradients for one layer.",
+        ],
+      },
+      {
+        type: "table",
+        heading: "Pros",
+        columns: ["Pros", "Why it helps"],
+        rows: [
+          ["Reduces zig-zag movement", "Momentum smooths directions that change too quickly across steps."],
+          ["Speeds up consistent progress", "When gradients keep pointing in a useful direction, the buffer builds movement in that direction."],
+          ["Smooths mini-batch noise", "One noisy mini-batch has less control over the update direction."],
+          ["Simple and memory-efficient", "It only adds one extra buffer for each parameter."],
+          ["Strong practical baseline", "SGD with Momentum is still powerful when the learning rate is tuned well."],
+        ],
+      },
+      {
+        type: "table",
+        heading: "Cons",
+        columns: ["Cons", "Why it matters"],
+        rows: [
+          ["Adds one more hyperparameter", "The momentum coefficient beta must be chosen carefully."],
+          ["Can overshoot", "If the learning rate or momentum is too large, the optimizer may move past a good region."],
+          ["No per-parameter scaling", "Momentum smooths direction, but does not automatically resize each parameter step like RMSProp or Adam."],
+          ["Still needs learning-rate tuning", "Momentum helps the path, but a bad learning rate can still make training unstable."],
+          ["Notation varies", "Different books may write Momentum with different signs or scaling conventions."],
+        ],
+      },
+      {
+        type: "text",
+        eyebrow: "Example",
+        heading: "Quick Example",
+        paragraphs: [
+          "Suppose the optimizer is moving through a narrow valley. Let beta = 0.9, and assume the first two gradients are g_1 = (10, 1) and g_2 = (-9, 1).",
+          "The first coordinate changes direction sharply, but the second coordinate stays positive. Start with u_0 = (0, 0).",
+        ],
+      },
+      {
+        type: "formula",
+        heading: "Example Calculation",
+        formulas: [
+          {
+            expression: "u_1=0.9(0,0)+0.1(10,1)=(1,0.1)",
+            note: "The first update stores a small version of the first gradient.",
+          },
+          {
+            expression: "u_2=0.9(1,0.1)+0.1(-9,1)=(0,0.19)",
+            note: "The oscillating first coordinate cancels, while the consistent second coordinate accumulates.",
+          },
+        ],
+      },
+      {
+        type: "list",
+        heading: "Common Mistakes",
+        items: [
+          "Thinking Momentum changes how g_t is computed. It does not; it changes how current and past gradients are combined before the update.",
+          "Confusing beta with the learning rate. Eta controls step size; beta controls how much past direction is remembered.",
+          "Using too much Momentum with too large a learning rate, which can cause overshooting or unstable movement.",
+          "Confusing Momentum's u_t with Adam's v_t. Momentum stores direction memory; Adam's v_t usually stores squared-gradient magnitude.",
+          "Thinking Momentum only makes training faster. It also changes the path by reducing oscillation.",
+        ],
+      },
+      {
+        type: "text",
+        eyebrow: "Takeaway",
+        heading: "Takeaway",
+        paragraphs: [
+          "SGD follows the current gradient directly. Momentum gives SGD memory by keeping a moving average of past gradients.",
+          "Directions that stay consistent become stronger, while directions that keep flipping become weaker. This makes the optimization path smoother, especially in narrow valleys where plain SGD tends to zig-zag.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "rmsprop",
+    title: "RMSProp",
+    tag: "Optimization",
+    description:
+      "Learn how RMSProp gives each parameter an adaptive step size by tracking recent squared gradients.",
+    coverImage: "/blog/rmsprop/rmsprop-01-why-rmsprop-helps.png",
+    status: "ready",
+    blocks: [
+      {
+        type: "image",
+        src: "/blog/rmsprop/rmsprop-01-why-rmsprop-helps.png",
+        alt: "RMSProp balances parameter updates compared with plain SGD",
+        caption: "Image 1: RMSProp rescales each parameter using recent squared gradients.",
+        size: "wide",
+      },
+      {
+        type: "text",
+        eyebrow: "Background",
+        heading: "Background",
+        paragraphs: [
+          "Plain SGD uses one global learning rate for every parameter. This is simple, but it can be hard to tune when different parameters have very different gradient scales.",
+          "If one direction has very large gradients, SGD may take unstable steps in that direction. If another direction has small gradients, SGD may move too slowly there.",
+          "RMSProp solves this by tracking recent squared gradients. Instead of using the raw gradient directly, it divides each gradient component by a running root-mean-square scale.",
+          "RMSProp is different from Momentum. Momentum remembers direction. RMSProp remembers scale.",
+        ],
+      },
+      {
+        type: "text",
+        eyebrow: "Idea",
+        heading: "Idea",
+        paragraphs: [
+          "The core idea is: large recent gradients create a larger denominator, which creates a smaller effective step.",
+          "SGD uses one learning rate. RMSProp creates a different effective learning rate for each parameter by looking at the recent squared-gradient magnitude.",
+          "This makes RMSProp helpful on badly scaled surfaces, where one parameter direction can otherwise dominate the update.",
+        ],
+      },
+      {
+        type: "formula",
+        heading: "Important Formulas",
+        formulas: [
+          {
+            expression: "g_t=\\frac{1}{B}\\sum_{i\\in\\mathcal{B}_t}\\nabla_\\theta \\ell_i(\\theta_t)",
+            note: "Mini-batch gradient input. RMSProp starts with the same gradient as SGD.",
+          },
+          {
+            expression: "\\theta_{t+1}=\\theta_t-\\eta g_t",
+            note: "Plain SGD applies the same learning rate to every parameter.",
+          },
+          {
+            expression: "s_t=\\rho s_{t-1}+(1-\\rho)(g_t\\odot g_t)",
+            note: "Squared-gradient accumulator. It stores recent gradient magnitude, not direction.",
+          },
+          {
+            expression: "\\theta_{t+1}=\\theta_t-\\eta\\frac{g_t}{\\sqrt{s_t}+\\epsilon}",
+            note: "RMSProp scales the gradient element-wise before updating the parameters.",
+          },
+          {
+            expression: "\\eta_{\\text{eff},j}=\\frac{\\eta}{\\sqrt{s_{t,j}}+\\epsilon}",
+            note: "Effective learning rate for one parameter j.",
+          },
+          {
+            expression:
+              "s_t=(1-\\rho)(g_t\\odot g_t)+(1-\\rho)\\rho(g_{t-1}\\odot g_{t-1})+(1-\\rho)\\rho^2(g_{t-2}\\odot g_{t-2})+\\cdots",
+            note: "Expanded memory view: recent squared gradients matter more, while older ones fade.",
+          },
+          {
+            expression: "s_{dW,t}^{[l]}=\\rho s_{dW,t-1}^{[l]}+(1-\\rho)(dW_t^{[l]}\\odot dW_t^{[l]})",
+            note: "Layer-wise RMSProp accumulator for weight gradients.",
+          },
+          {
+            expression: "s_{db,t}^{[l]}=\\rho s_{db,t-1}^{[l]}+(1-\\rho)(db_t^{[l]}\\odot db_t^{[l]})",
+            note: "Layer-wise RMSProp accumulator for bias gradients.",
+          },
+          {
+            expression: "W_{t+1}^{[l]}=W_t^{[l]}-\\eta\\frac{dW_t^{[l]}}{\\sqrt{s_{dW,t}^{[l]}}+\\epsilon}",
+            note: "Layer-wise weight update.",
+          },
+          {
+            expression: "b_{t+1}^{[l]}=b_t^{[l]}-\\eta\\frac{db_t^{[l]}}{\\sqrt{s_{db,t}^{[l]}}+\\epsilon}",
+            note: "Layer-wise bias update.",
+          },
+        ],
+      },
+      {
+        type: "list",
+        heading: "Symbols",
+        items: [
+          "g_t: mini-batch gradient at step t.",
+          "eta: global learning rate.",
+          "s_t: running average of recent squared gradients.",
+          "rho: decay rate for the accumulator.",
+          "epsilon: small value for numerical stability.",
+          "odot: element-wise multiplication.",
+          "eta_eff,j: effective learning rate for parameter j.",
+        ],
+      },
+      {
+        type: "table",
+        heading: "Pros",
+        columns: ["Pros", "Why it helps"],
+        rows: [
+          ["Adaptive per-parameter scaling", "RMSProp adjusts each update based on recent gradient magnitude."],
+          ["Helpful on badly scaled surfaces", "It reduces unstable movement in directions with consistently large gradients."],
+          ["Less dependent on one perfect learning rate", "The global learning rate still matters, but each parameter gets its own effective step size."],
+          ["Important bridge to Adam", "Adam uses a similar squared-gradient accumulator as part of its adaptive scaling."],
+          ["Works with noisy mini-batches", "Recent squared-gradient memory smooths sudden gradient-scale changes."],
+        ],
+      },
+      {
+        type: "table",
+        heading: "Cons",
+        columns: ["Cons", "Why it matters"],
+        rows: [
+          ["Adds hyperparameters", "Rho, eta, and epsilon must be chosen sensibly."],
+          ["Can shrink useful directions too much", "Large accumulated squared gradients can make a parameter's effective step very small."],
+          ["No direction memory", "RMSProp rescales gradients, but Momentum is still the idea that smooths direction."],
+          ["Less transparent than SGD", "The effective learning rate changes per parameter over time."],
+          ["Often replaced by Adam", "Adam combines Momentum-like direction memory with RMSProp-like scaling."],
+        ],
+      },
+      {
+        type: "text",
+        eyebrow: "Example",
+        heading: "Quick Example",
+        paragraphs: [
+          "Suppose two parameters have the same global learning rate but very different gradient magnitudes. Let theta_t = (0, 0), g_t = (100, 1), and eta = 0.01.",
+          "Plain SGD would update by eta g_t = (1, 0.01), so the first parameter dominates the movement.",
+          "With RMSProp, use rho = 0.9, s_{t-1} = (0, 0), and ignore epsilon only for this simplified calculation. The squared-gradient accumulator becomes s_t = (1000, 0.1), so the root scale is approximately (31.62, 0.316).",
+        ],
+      },
+      {
+        type: "image",
+        src: "/blog/rmsprop/rmsprop-02-scales-each-parameter.png",
+        alt: "RMSProp scales raw gradients into balanced parameter updates",
+        caption: "Image 2: RMSProp turns uneven raw gradients into more balanced updates.",
+        size: "wide",
+      },
+      {
+        type: "formula",
+        heading: "Example Calculation",
+        formulas: [
+          {
+            expression: "\\eta g_t=0.01(100,1)=(1,0.01)",
+            note: "Plain SGD produces a highly imbalanced update.",
+          },
+          {
+            expression: "s_t=0.9(0,0)+0.1(10000,1)=(1000,0.1)",
+            note: "RMSProp stores recent squared-gradient magnitude.",
+          },
+          {
+            expression: "\\sqrt{s_t}\\approx(31.62,0.316)",
+            note: "The larger-gradient direction receives a larger denominator.",
+          },
+          {
+            expression: "\\frac{g_t}{\\sqrt{s_t}+\\epsilon}\\approx\\frac{(100,1)}{(31.62,0.316)}\\approx(3.16,3.16)",
+            note: "The scaled gradient becomes balanced.",
+          },
+          {
+            expression: "\\theta_{t+1}\\approx(0,0)-0.01(3.16,3.16)=(-0.0316,-0.0316)",
+            note: "The large-gradient direction no longer dominates the step.",
+          },
+        ],
+      },
+      {
+        type: "list",
+        heading: "Common Mistakes",
+        items: [
+          "Thinking RMSProp changes how g_t is computed. It does not; it changes how the gradient is scaled before the update.",
+          "Confusing RMSProp with Momentum. Momentum remembers past gradient directions; RMSProp remembers past squared-gradient magnitudes.",
+          "Forgetting that the square, square root, and division are element-wise operations.",
+          "Thinking RMSProp removes the need for learning-rate tuning. The global learning rate eta still matters.",
+          "Confusing RMSProp with Adam. Adam tracks both a first moment and a second moment, then applies bias correction.",
+        ],
+      },
+      {
+        type: "text",
+        eyebrow: "Takeaway",
+        heading: "Takeaway",
+        paragraphs: [
+          "RMSProp gives each parameter an adaptive step size by tracking recent squared gradients.",
+          "Directions with consistently large gradients receive smaller effective steps, while directions with smaller gradients are not suppressed as much.",
+          "Momentum remembers direction. RMSProp remembers scale. Adam later combines both ideas.",
         ],
       },
     ],
