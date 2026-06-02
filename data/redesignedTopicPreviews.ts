@@ -1,5 +1,6 @@
 const redesignedTopicPreviewPaths: Record<string, string> = {
   "neuron-structure": "/topic-design-previews/single-neuron.html",
+  "activation-functions-comparison": "/topic-design-previews/activation-functions-comparison.html",
   "attention-mechanism-intuition": "/topic-design-previews/attention-mechanism-intuition.html",
   "evaluation-metrics-confusion-matrix": "/topic-design-previews/evaluation-metrics-confusion-matrix.html",
   "bias-vs-variance-diagnosis": "/topic-design-previews/bias-vs-variance-diagnosis.html",

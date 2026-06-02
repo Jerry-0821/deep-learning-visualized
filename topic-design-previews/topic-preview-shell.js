@@ -169,6 +169,19 @@
   };
 
   const topicConfigs = {
+    "activation-functions-comparison": {
+      moduleLabel: "Module 01 / Foundation",
+      moduleUrl: "https://deep-learning-visualized.vercel.app/module/1",
+      title: "Activation Functions Comparison",
+      subtitle: "Compare how ReLU, Leaky ReLU, Sigmoid, and Tanh transform a neuron's raw score and control gradient flow.",
+      prototype: "../public/prototypes/activation-functions-comparison.html",
+      frameHeight: 2200,
+      freezeFrameAfterLoad: true,
+      drawerMode: "empty",
+      reservedReading: false,
+      readingMode: "activation-supplement",
+      frameTreatment: "activation-editorial",
+    },
     "attention-mechanism-intuition": {
       moduleLabel: "Module 02 / Attention",
       moduleUrl: "https://deep-learning-visualized.vercel.app/module/2",
@@ -1632,7 +1645,234 @@ Dev &rarr; Test = dev overfitting</pre>
       </section>`;
   }
 
+  function renderActivationSupplement() {
+    return `
+      <section class="content-section reading-copy" id="background">
+        <p class="section-kicker">Background</p>
+        <h2>Background</h2>
+        <p>A neuron first computes a raw score:</p>
+        <div class="lesson-formula compact">\\[ z = Wx + b \\]</div>
+        <p>If a network only stacks linear transformations, the whole model can still collapse into one larger linear transformation. More layers alone do not create the curved boundaries needed for complex patterns.</p>
+        <p>An activation function changes this. It takes the raw score \\(z\\) and transforms it into an activation output:</p>
+        <div class="lesson-formula compact">\\[ a = f(z) \\]</div>
+        <p>This is where nonlinearity enters the network.</p>
+        <p>Different activation functions shape the signal differently. ReLU keeps positive values and removes negative ones. Leaky ReLU keeps a small negative slope so gradients can still flow. Sigmoid compresses values into \\((0,1)\\). Tanh compresses values into \\((-1,1)\\) and is zero-centered.</p>
+        <p>The core idea is:</p>
+        <p><strong>activation curve \\(f(z)\\) shapes the forward signal, while derivative curve \\(f'(z)\\) controls the backward learning signal.</strong></p>
+      </section>
+
+      <section class="content-section reading-copy" id="important-formulas">
+        <p class="section-kicker">Important formulas</p>
+        <h2>Important formulas</h2>
+
+        <h3 class="reading-subheading">Neuron Transform</h3>
+        <div class="lesson-formula compact">\\[ z = Wx + b \\]</div>
+        <div class="lesson-formula compact">\\[ a = f(z) \\]</div>
+        <dl class="symbol-list">
+          <div><dt>\\(z\\)</dt><dd>The raw pre-activation score.</dd></div>
+          <div><dt>\\(W\\)</dt><dd>The weight matrix.</dd></div>
+          <div><dt>\\(x\\)</dt><dd>The input vector.</dd></div>
+          <div><dt>\\(b\\)</dt><dd>The bias term.</dd></div>
+          <div><dt>\\(a\\)</dt><dd>The activation output.</dd></div>
+          <div><dt>\\(f(z)\\)</dt><dd>The activation function.</dd></div>
+        </dl>
+        <p>The activation function is applied after the linear score \\(z\\).</p>
+
+        <h3 class="reading-subheading">Backward Signal Through an Activation</h3>
+        <div class="lesson-formula">\\[
+          \\frac{\\partial L}{\\partial z}
+          =
+          \\frac{\\partial L}{\\partial a}
+          \\odot f'(z)
+        \\]</div>
+        <dl class="symbol-list">
+          <div><dt>\\(L\\)</dt><dd>The loss function.</dd></div>
+          <div><dt>\\(\\frac{\\partial L}{\\partial a}\\)</dt><dd>The gradient arriving from later layers.</dd></div>
+          <div><dt>\\(\\frac{\\partial L}{\\partial z}\\)</dt><dd>The gradient passed backward through the activation.</dd></div>
+          <div><dt>\\(f'(z)\\)</dt><dd>The derivative of the activation function.</dd></div>
+          <div><dt>\\(\\odot\\)</dt><dd>Element-wise multiplication.</dd></div>
+        </dl>
+        <p>This is why the derivative curve matters. If \\(f'(z)\\) is close to zero, the learning signal becomes weak.</p>
+
+        <h3 class="reading-subheading">ReLU</h3>
+        <div class="lesson-formula compact">\\[ f(z)=\\max(0,z) \\]</div>
+        <div class="lesson-formula">\\[
+          f'(z)=
+          \\begin{cases}
+          0, & z<0 \\\\
+          1, & z>0
+          \\end{cases}
+        \\]</div>
+        <ul class="reading-list">
+          <li><span>Negative inputs are set to \\(0\\).</span></li>
+          <li><span>Positive inputs pass through unchanged.</span></li>
+          <li><span>The positive side has a strong constant gradient.</span></li>
+          <li><span>The negative side has zero gradient.</span></li>
+        </ul>
+        <p>At \\(z=0\\), the derivative is usually handled by convention in implementations.</p>
+
+        <h3 class="reading-subheading">Leaky ReLU</h3>
+        <div class="lesson-formula">\\[
+          f(z)=
+          \\begin{cases}
+          z, & z\\ge 0 \\\\
+          \\alpha z, & z<0
+          \\end{cases}
+        \\]</div>
+        <div class="lesson-formula">\\[
+          f'(z)=
+          \\begin{cases}
+          1, & z>0 \\\\
+          \\alpha, & z<0
+          \\end{cases}
+        \\]</div>
+        <dl class="symbol-list">
+          <div><dt>\\(\\alpha\\)</dt><dd>A small positive slope, often around \\(0.01\\).</dd></div>
+        </dl>
+        <ul class="reading-list">
+          <li><span>Positive inputs pass through unchanged.</span></li>
+          <li><span>Negative inputs are not killed completely.</span></li>
+          <li><span>The negative side keeps a small gradient.</span></li>
+        </ul>
+        <p>Leaky ReLU is designed to reduce the dying ReLU problem.</p>
+
+        <h3 class="reading-subheading">Sigmoid</h3>
+        <div class="lesson-formula compact">\\[
+          \\sigma(z)=\\frac{1}{1+e^{-z}}
+        \\]</div>
+        <div class="lesson-formula compact">\\[
+          \\sigma'(z)=\\sigma(z)(1-\\sigma(z))
+        \\]</div>
+        <dl class="symbol-list">
+          <div><dt>\\(\\sigma(z)\\)</dt><dd>The sigmoid output.</dd></div>
+        </dl>
+        <ul class="reading-list">
+          <li><span>The output range is \\((0,1)\\).</span></li>
+          <li><span>Large positive inputs approach \\(1\\).</span></li>
+          <li><span>Large negative inputs approach \\(0\\).</span></li>
+          <li><span>Gradients become small in saturated regions.</span></li>
+        </ul>
+        <p>Sigmoid is useful when the output should behave like a probability, but it is often less suitable for deep hidden layers.</p>
+
+        <h3 class="reading-subheading">Tanh</h3>
+        <div class="lesson-formula compact">\\[
+          \\tanh(z)=\\frac{e^z-e^{-z}}{e^z+e^{-z}}
+        \\]</div>
+        <div class="lesson-formula compact">\\[
+          \\frac{d}{dz}\\tanh(z)=1-\\tanh^2(z)
+        \\]</div>
+        <ul class="reading-list">
+          <li><span>The output range is \\((-1,1)\\).</span></li>
+          <li><span>The output is zero-centered.</span></li>
+          <li><span>Large positive inputs approach \\(1\\).</span></li>
+          <li><span>Large negative inputs approach \\(-1\\).</span></li>
+          <li><span>Gradients become small when \\(|z|\\) is large.</span></li>
+        </ul>
+        <p>Tanh is more centered than sigmoid, but it can still saturate.</p>
+      </section>
+
+      <section class="content-section reading-copy" id="strengths-limits">
+        <p class="section-kicker">Pros and Cons</p>
+        <h2>Pros and Cons</h2>
+        <div class="comparison-list">
+          <article>
+            <h3>ReLU</h3>
+            <h4>Pros</h4>
+            <p><strong>Simple and fast.</strong> ReLU is cheap to compute and easy to understand.</p>
+            <p><strong>Strong positive-side gradient.</strong> For \\(z>0\\), the derivative is \\(1\\), so gradients can flow well.</p>
+            <p><strong>Common hidden-layer choice.</strong> It often works well in deep networks.</p>
+            <h4>Cons</h4>
+            <p><strong>Can create dead neurons.</strong> If a neuron stays in the negative region, its gradient becomes zero.</p>
+            <p><strong>Not zero-centered.</strong> Outputs are always non-negative.</p>
+          </article>
+          <article>
+            <h3>Leaky ReLU</h3>
+            <h4>Pros</h4>
+            <p><strong>Keeps negative-side gradient.</strong> Negative inputs still receive a small gradient.</p>
+            <p><strong>Reduces dying ReLU risk.</strong> The neuron is less likely to become completely inactive.</p>
+            <p><strong>Still simple.</strong> It keeps the efficiency and shape of ReLU.</p>
+            <h4>Cons</h4>
+            <p><strong>Adds one hyperparameter.</strong> The slope \\(\\alpha\\) must be chosen.</p>
+            <p><strong>Negative-side signal is still small.</strong> It helps, but the negative region is still much weaker than the positive region.</p>
+          </article>
+          <article>
+            <h3>Sigmoid</h3>
+            <h4>Pros</h4>
+            <p><strong>Maps to probability range.</strong> The output is between \\(0\\) and \\(1\\), which is useful for binary probability outputs.</p>
+            <p><strong>Smooth curve.</strong> The function is continuous and differentiable.</p>
+            <h4>Cons</h4>
+            <p><strong>Saturates easily.</strong> For large positive or negative \\(z\\), the gradient becomes very small.</p>
+            <p><strong>Not zero-centered.</strong> Outputs are always positive, which can make optimization less convenient.</p>
+            <p><strong>Poor hidden-layer default.</strong> Using sigmoid in many hidden layers can slow learning.</p>
+          </article>
+          <article>
+            <h3>Tanh</h3>
+            <h4>Pros</h4>
+            <p><strong>Zero-centered output.</strong> The range \\((-1,1)\\) is often easier to optimize than sigmoid's \\((0,1)\\).</p>
+            <p><strong>Smooth bounded output.</strong> It can be useful when centered bounded values are needed.</p>
+            <h4>Cons</h4>
+            <p><strong>Still saturates.</strong> For large \\(|z|\\), gradients become very small.</p>
+            <p><strong>Can slow deep networks.</strong> Repeated saturation can weaken gradient flow across layers.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-section reading-copy" id="example-guidance">
+        <p class="section-kicker">Quick Example</p>
+        <h2>Quick Example</h2>
+        <p>Suppose the raw neuron score is:</p>
+        <div class="lesson-formula compact">\\[ z=-2 \\]</div>
+        <p>Different activations transform the same score differently:</p>
+        <table class="lesson-table example-table">
+          <thead><tr><th>Activation</th><th>Output</th></tr></thead>
+          <tbody>
+            <tr><td>ReLU</td><td>\\(0\\)</td></tr>
+            <tr><td>Leaky ReLU, \\(\\alpha=0.01\\)</td><td>\\(-0.02\\)</td></tr>
+            <tr><td>Sigmoid</td><td>\\(\\approx 0.12\\)</td></tr>
+            <tr><td>Tanh</td><td>\\(\\approx -0.96\\)</td></tr>
+          </tbody>
+        </table>
+        <p>The same raw score can be killed, slightly passed, compressed into probability range, or centered into \\((-1,1)\\).</p>
+        <p>Now compare a positive score:</p>
+        <div class="lesson-formula compact">\\[ z=2 \\]</div>
+        <table class="lesson-table example-table">
+          <thead><tr><th>Activation</th><th>Output</th></tr></thead>
+          <tbody>
+            <tr><td>ReLU</td><td>\\(2\\)</td></tr>
+            <tr><td>Leaky ReLU</td><td>\\(2\\)</td></tr>
+            <tr><td>Sigmoid</td><td>\\(\\approx 0.88\\)</td></tr>
+            <tr><td>Tanh</td><td>\\(\\approx 0.96\\)</td></tr>
+          </tbody>
+        </table>
+        <p>ReLU and Leaky ReLU keep positive values large. Sigmoid and Tanh compress them into bounded ranges.</p>
+        <p>This is why activation choice changes both the forward signal and the learning behavior.</p>
+      </section>
+
+      <section class="content-section reading-copy" id="common-mistake">
+        <p class="section-kicker">Common Mistakes</p>
+        <h2>Common Mistakes</h2>
+        <div class="mistake-list">
+          <article><h3>Mistake 1: Thinking activation only affects the forward pass</h3><p>Activation functions also affect backpropagation through \\(f'(z)\\). A good-looking output curve can still cause weak gradients.</p></article>
+          <article><h3>Mistake 2: Using sigmoid everywhere</h3><p>Sigmoid is useful for binary probability outputs, but using it in many hidden layers can cause saturation and slow learning.</p></article>
+          <article><h3>Mistake 3: Forgetting ReLU can die</h3><p>If a ReLU neuron keeps receiving negative \\(z\\) values, its output stays \\(0\\), and its gradient also stays \\(0\\).</p></article>
+          <article><h3>Mistake 4: Thinking bounded output is always better</h3><p>Sigmoid and Tanh have clean bounded ranges, but their gradients become small in saturated regions.</p></article>
+          <article><h3>Mistake 5: Confusing hidden-layer activation with output activation</h3><p>Hidden layers usually need activations that support gradient flow. The final layer depends on the task, such as binary classification, multi-class classification, or regression.</p></article>
+        </div>
+      </section>
+
+      <section class="content-section reading-copy" id="takeaway">
+        <p class="section-kicker">Takeaway</p>
+        <h2>Takeaway</h2>
+        <p>Activation functions turn raw linear scores into nonlinear signals.</p>
+        <p>The forward curve \\(f(z)\\) decides what value passes to the next layer. The derivative curve \\(f'(z)\\) decides how much learning signal flows backward.</p>
+        <p>ReLU and Leaky ReLU are common hidden-layer choices because they keep gradients active more easily. Sigmoid and Tanh are useful when bounded outputs are needed, but they can saturate and weaken gradient flow.</p>
+      </section>`;
+  }
+
   function readingSections() {
+    if (config.readingMode === "activation-supplement") {
+      return renderActivationSupplement();
+    }
     if (config.readingMode === "evaluation-supplement") {
       return renderEvaluationSupplement();
     }
@@ -1666,6 +1906,17 @@ Dev &rarr; Test = dev overfitting</pre>
   }
 
   function navigationLinks() {
+    if (config.readingMode === "activation-supplement") {
+      return [
+        ["interactive-prototype", "Interactive lesson"],
+        ["background", "Background"],
+        ["important-formulas", "Important formulas"],
+        ["strengths-limits", "Pros / Cons"],
+        ["example-guidance", "Quick Example"],
+        ["common-mistake", "Common Mistakes"],
+        ["takeaway", "Takeaway"],
+      ];
+    }
     if (config.readingMode === "evaluation-supplement") {
       return [
         ["interactive-prototype", "Interactive lesson"],
@@ -1752,6 +2003,7 @@ Dev &rarr; Test = dev overfitting</pre>
         "dropout-supplement",
         "convolution-supplement",
         "backpropagation-supplement",
+        "activation-supplement",
       ].includes(config.readingMode)
     ) return;
     window.MathJax = {
@@ -2601,6 +2853,186 @@ Dev &rarr; Test = dev overfitting</pre>
         #bpCacheTimeSlider { accent-color: #6c5ce7 !important; }
       `;
     }
+    if (config.frameTreatment === "activation-editorial") {
+      return `
+        body {
+          background: transparent !important;
+          color: #23212c !important;
+          font-family: Inter, Arial, sans-serif !important;
+        }
+        .wrap {
+          gap: 48px !important;
+          margin: 0 auto !important;
+          max-width: none !important;
+          padding: 0 !important;
+        }
+        section {
+          border-top: 1px solid #e8e5ee !important;
+          padding-top: 34px !important;
+        }
+        section:first-child {
+          border-top: 0 !important;
+          padding-top: 0 !important;
+        }
+        .phase-label {
+          background: transparent !important;
+          color: #6c5ce7 !important;
+          font-size: 11px !important;
+          letter-spacing: 0.18em !important;
+          margin-bottom: 10px !important;
+          padding: 0 !important;
+        }
+        .phase-title {
+          color: #23212c !important;
+          font-family: "Instrument Serif", Georgia, serif !important;
+          font-size: clamp(36px, 5.2vw, 64px) !important;
+          font-weight: 400 !important;
+          letter-spacing: -0.045em !important;
+          line-height: 0.98 !important;
+          margin-bottom: 18px !important;
+        }
+        .phase-title .hl {
+          background: linear-gradient(135deg, #6c5ce7, #00b894) !important;
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+        }
+        .phase-desc {
+          color: #585566 !important;
+          font-size: 17px !important;
+          line-height: 1.75 !important;
+          margin-bottom: 26px !important;
+          max-width: 760px !important;
+        }
+        .card {
+          background: transparent !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+        }
+        .scatter-wrap,
+        .dp-panel,
+        .p25-canvas-bg {
+          background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(247,245,255,0.72)) !important;
+          border: 1px solid #e8e5ee !important;
+          box-shadow: none !important;
+        }
+        .scatter-wrap,
+        .dp-panel {
+          border-radius: 18px !important;
+        }
+        .btn {
+          background: rgba(255,255,255,0.74) !important;
+          border-color: #dcd7ea !important;
+          border-radius: 999px !important;
+          box-shadow: none !important;
+          color: #585566 !important;
+          font-size: 13px !important;
+          font-weight: 600 !important;
+          padding: 9px 16px !important;
+        }
+        .btn:hover {
+          border-color: #6c5ce7 !important;
+          color: #23212c !important;
+          transform: translateY(-1px) !important;
+        }
+        .btn-primary,
+        .btn.active {
+          background: #6c5ce7 !important;
+          border-color: #6c5ce7 !important;
+          color: #ffffff !important;
+        }
+        .btn-ghost {
+          background: transparent !important;
+          color: #817d8f !important;
+        }
+        .selector-label,
+        .dp-panel-title,
+        .p25-tag,
+        .grad-title {
+          color: #817d8f !important;
+          letter-spacing: 0.15em !important;
+        }
+        .arrow-name,
+        .p25-fn-tag {
+          color: #6c5ce7 !important;
+        }
+        .track-line {
+          background: #cfc9e4 !important;
+        }
+        .track-head {
+          border-left-color: #cfc9e4 !important;
+        }
+        .explanation-box {
+          background: linear-gradient(135deg, rgba(108,92,231,0.08), rgba(0,184,148,0.06)) !important;
+          border: 1px solid #dcd7ea !important;
+          border-radius: 16px !important;
+          color: #585566 !important;
+          font-size: 15px !important;
+          margin-top: 24px !important;
+        }
+        .problem-box {
+          background: transparent !important;
+          border: 0 !important;
+          border-left: 2px solid #6c5ce7 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          padding: 4px 0 4px 24px !important;
+        }
+        .prob-badge {
+          background: rgba(108,92,231,0.09) !important;
+          color: #6c5ce7 !important;
+        }
+        .prob-badge.danger {
+          background: rgba(236,99,72,0.1) !important;
+          color: #d85f49 !important;
+        }
+        .prob-badge.success {
+          background: rgba(0,184,148,0.1) !important;
+          color: #00a783 !important;
+        }
+        .prob-title {
+          color: #23212c !important;
+          font-size: 19px !important;
+        }
+        .prob-text,
+        .p1-msg {
+          color: #585566 !important;
+          font-size: 15px !important;
+          line-height: 1.75 !important;
+        }
+        .formula,
+        .p25-formula {
+          background: rgba(108,92,231,0.08) !important;
+          border-radius: 7px !important;
+          color: #23212c !important;
+          font-family: Inter, Arial, sans-serif !important;
+          font-size: 12px !important;
+        }
+        .p25-grid {
+          gap: 20px !important;
+          padding: 0 !important;
+        }
+        .p25-head {
+          border-bottom-color: #e8e5ee !important;
+        }
+        .p25-name {
+          color: #23212c !important;
+          font-size: 15px !important;
+        }
+        .p25-canvas-bg {
+          border-radius: 14px !important;
+        }
+        .grad-bar {
+          background: linear-gradient(90deg, #d85f49 0%, #eeb86b 28%, #00b894 46%, #00b894 54%, #eeb86b 72%, #d85f49 100%) !important;
+        }
+        @media (max-width: 820px) {
+          .phase-title {
+            font-size: 42px !important;
+          }
+        }
+      `;
+    }
     if (config.frameTreatment === "gradient-editorial") {
       return `
         body { background: transparent !important; }
@@ -2694,9 +3126,11 @@ Dev &rarr; Test = dev overfitting</pre>
     frameDocument.head.appendChild(injected);
   }
 
-  function resizeFrame(frameDocument) {
+  function resizeFrame(frameDocument, resetViewport = false) {
     if (!frameDocument.documentElement || !frameDocument.body) return;
-    frame.style.height = "720px";
+    if (resetViewport) {
+      frame.style.height = "720px";
+    }
     const height = Math.max(720, frameDocument.documentElement.scrollHeight, frameDocument.body.scrollHeight);
     frame.style.height = `${height + 8}px`;
   }
@@ -2718,14 +3152,20 @@ Dev &rarr; Test = dev overfitting</pre>
       styleFrame(frameDocument);
       removeDuplicateOutputPanels(frameDocument);
       updateMirroredBlocks(frameDocument);
-      resizeFrame(frameDocument);
+      resizeFrame(frameDocument, true);
+      if (config.freezeFrameAfterLoad) {
+        window.setTimeout(() => resizeFrame(frameDocument, false), 300);
+        window.setTimeout(() => resizeFrame(frameDocument, false), 900);
+        window.setTimeout(() => resizeFrame(frameDocument, false), 1600);
+        return;
+      }
       frameRefreshInterval = window.setInterval(() => {
         if (!frame.isConnected || frame.contentDocument !== frameDocument || !frameDocument.body) {
           stopFrameRefresh();
           return;
         }
         updateMirroredBlocks(frameDocument);
-        resizeFrame(frameDocument);
+        resizeFrame(frameDocument, false);
       }, 120);
     });
     window.addEventListener("pagehide", stopFrameRefresh, { once: true });
