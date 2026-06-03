@@ -213,6 +213,21 @@
       readingMode: "bias-variance-supplement",
       interactionMode: "inline-bias-variance",
     },
+    "train-val-test-split": {
+      moduleLabel: "Module 03 / Evaluation",
+      moduleUrl: "https://deep-learning-visualized.vercel.app/module/3",
+      title: "Train / Val / Test Split",
+      subtitle: "Learn why dataset splitting is not just about percentages, but about building a trustworthy evaluation system.",
+      prototype: "../public/prototypes/train-val-test-split.html",
+      frameHeight: 5600,
+      frameExtraHeight: 16,
+      disableFrameScroll: true,
+      freezeFrameAfterLoad: true,
+      drawerMode: "empty",
+      reservedReading: false,
+      readingMode: "train-test-supplement",
+      frameTreatment: "train-test-editorial",
+    },
     "transfer-learning-intuition": {
       moduleLabel: "Module 03 / Transfer",
       moduleUrl: "https://deep-learning-visualized.vercel.app/module/3",
@@ -583,7 +598,9 @@
     if (config.interactionMode === "inline-bias-variance") {
       return renderBiasVarianceInteraction();
     }
-    return `<iframe class="prototype-frame" id="prototype-frame" title="${escapeHtml(config.title)} interactive prototype" src="${config.prototype}" style="height:${config.frameHeight}px"></iframe>`;
+    const scrolling = config.disableFrameScroll ? ` scrolling="no"` : "";
+    const overflowStyle = config.disableFrameScroll ? ";overflow:hidden" : "";
+    return `<iframe class="prototype-frame" id="prototype-frame" title="${escapeHtml(config.title)} interactive prototype" src="${config.prototype}" style="height:${config.frameHeight}px${overflowStyle}"${scrolling}></iframe>`;
   }
 
   function renderEvaluationSupplement() {
@@ -1007,6 +1024,184 @@ Dev &rarr; Test = dev overfitting</pre>
         \]</div>
         <p>tells us about <strong>dev overfitting</strong>.</p>
         <p>The biggest gap usually tells you what to fix first.</p>
+      </section>`;
+  }
+
+  function renderTrainTestSupplement() {
+    return String.raw`
+      <section class="content-section reading-copy" id="background">
+        <p class="section-kicker">Background</p>
+        <h2>Background</h2>
+        <p>A dataset split is not just a mechanical step before training. It decides what your model learns from, what you use to make decisions, and what number you can trust at the end.</p>
+        <p>The <strong>training set</strong> is used to fit the model's parameters. The model sees this data directly and updates its weights from it.</p>
+        <p>The <strong>validation set</strong>, sometimes called the dev set, is used to compare ideas. You use it to choose architectures, hyperparameters, preprocessing steps, thresholds, and data strategies.</p>
+        <p>The <strong>test set</strong> is the final honest check. It should stay locked during development. If you repeatedly look at the test score and adjust your model, the test set slowly becomes another validation set.</p>
+        <p>The most important idea is:</p>
+        <blockquote class="lesson-quote">train learns, validation chooses, test protects honesty.</blockquote>
+        <p>A good split is not only about ratios like 70/15/15. It must also reflect the users or data distribution you actually care about.</p>
+      </section>
+
+      <section class="content-section reading-copy" id="important-formulas">
+        <p class="section-kicker">Important Formulas</p>
+        <h2>Important formulas</h2>
+
+        <h3 class="reading-subheading">Split Separation</h3>
+        <div class="lesson-formula">\[
+          D =
+          D_{\text{train}}
+          \cup
+          D_{\text{val}}
+          \cup
+          D_{\text{test}}
+        \]</div>
+        <div class="lesson-formula compact">\[
+          D_{\text{train}},
+          D_{\text{val}},
+          D_{\text{test}}
+          \text{ should not overlap}
+        \]</div>
+        <ul class="symbol-list">
+          <li><strong>\(D\)</strong><span>The full dataset.</span></li>
+          <li><strong>\(D_{\text{train}}\)</strong><span>The training set.</span></li>
+          <li><strong>\(D_{\text{val}}\)</strong><span>The validation or dev set.</span></li>
+          <li><strong>\(D_{\text{test}}\)</strong><span>The test set.</span></li>
+          <li><strong>No overlap</strong><span>The same example should not appear in multiple splits.</span></li>
+        </ul>
+        <p>The first rule is separation. If data leaks across splits, the evaluation becomes too optimistic.</p>
+
+        <h3 class="reading-subheading">Train Learns Weights</h3>
+        <div class="lesson-formula">\[
+          \theta^*
+          =
+          \arg\min_{\theta}
+          L_{\text{train}}(\theta)
+        \]</div>
+        <ul class="symbol-list">
+          <li><strong>\(\theta\)</strong><span>The model parameters.</span></li>
+          <li><strong>\(\theta^*\)</strong><span>The learned parameters after training.</span></li>
+          <li><strong>\(L_{\text{train}}(\theta)\)</strong><span>The training loss.</span></li>
+        </ul>
+        <p>The training set is used to update model weights. It is where gradient descent happens.</p>
+
+        <h3 class="reading-subheading">Validation Chooses Ideas</h3>
+        <div class="lesson-formula">\[
+          m^*
+          =
+          \arg\min_{m\in\mathcal{M}}
+          L_{\text{val}}(m)
+        \]</div>
+        <ul class="symbol-list">
+          <li><strong>\(m\)</strong><span>A model idea, such as an architecture, hyperparameter setting, preprocessing choice, or threshold.</span></li>
+          <li><strong>\(\mathcal{M}\)</strong><span>The set of candidate model ideas.</span></li>
+          <li><strong>\(m^*\)</strong><span>The model idea selected by validation performance.</span></li>
+          <li><strong>\(L_{\text{val}}(m)\)</strong><span>The validation loss for model idea \(m\).</span></li>
+        </ul>
+        <p>Validation is not mainly for learning weights. It is for choosing which idea to trust.</p>
+
+        <h3 class="reading-subheading">Test Gives the Final Honest Score</h3>
+        <div class="lesson-formula">\[
+          \text{Final Score}
+          =
+          \text{Metric}_{\text{test}}(m^*)
+        \]</div>
+        <ul class="symbol-list">
+          <li><strong>\(m^*\)</strong><span>The model selected using the validation set.</span></li>
+          <li><strong>\(\text{Metric}_{\text{test}}\)</strong><span>The final metric measured on the test set.</span></li>
+        </ul>
+        <p>The test set should only be used after the model has already been chosen.</p>
+
+        <h3 class="reading-subheading">Val and Test Should Match Future Users</h3>
+        <div class="lesson-formula">\[
+          P_{\text{val}}(x,y),
+          \;
+          P_{\text{test}}(x,y)
+          \approx
+          P_{\text{future}}(x,y)
+        \]</div>
+        <ul class="symbol-list">
+          <li><strong>\(P_{\text{val}}(x,y)\)</strong><span>The validation data distribution.</span></li>
+          <li><strong>\(P_{\text{test}}(x,y)\)</strong><span>The test data distribution.</span></li>
+          <li><strong>\(P_{\text{future}}(x,y)\)</strong><span>The real-world data distribution you care about.</span></li>
+        </ul>
+        <p>If validation does not match future users, it may guide you toward the wrong model.</p>
+      </section>
+
+      <section class="content-section two-column" id="strengths-limits">
+        <div class="reading-copy">
+          <p class="section-kicker">Pros</p>
+          <h2>Pros</h2>
+          <div class="mistake-list">
+            <article><h3>Separates different jobs</h3><p>The training set learns parameters, the validation set guides decisions, and the test set gives the final estimate.</p></article>
+            <article><h3>Makes model comparison fairer</h3><p>Different model ideas can be compared using the same validation target.</p></article>
+            <article><h3>Helps detect overfitting</h3><p>If training performance is high but validation performance is poor, the model may not generalize.</p></article>
+            <article><h3>Protects the final score</h3><p>A locked test set gives a more honest estimate of real-world performance.</p></article>
+            <article><h3>Forces you to define the target distribution</h3><p>A good split makes you ask: "Who are the future users, and does my validation set represent them?"</p></article>
+          </div>
+        </div>
+        <div class="reading-copy">
+          <p class="section-kicker">Cons</p>
+          <h2>Cons</h2>
+          <div class="mistake-list">
+            <article><h3>Small validation sets can be noisy</h3><p>With limited data, one unlucky split can make a model look much better or worse than it really is.</p></article>
+            <article><h3>Random splitting can be wrong</h3><p>If the data has time order, groups, patients, users, or devices, a simple random split can leak information.</p></article>
+            <article><h3>A test set can be ruined</h3><p>If you look at the test set repeatedly and adjust the model, it stops being an honest final check.</p></article>
+            <article><h3>Future data can shift</h3><p>Even a carefully designed split may become outdated if real-world users or data sources change.</p></article>
+            <article><h3>Choosing the right method requires data knowledge</h3><p>Hold-out, K-Fold, Stratified K-Fold, Group K-Fold, and walk-forward validation solve different problems.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-section reading-copy" id="example-guidance">
+        <p class="section-kicker">Quick Example</p>
+        <h2>Quick Example</h2>
+        <p>Imagine you are building an image classifier.</p>
+        <p>Most future users upload blurry app photos:</p>
+        <div class="lesson-formula compact">\[
+          90\% \text{ app images}
+        \]</div>
+        <p>But your validation set is mostly clean web images:</p>
+        <div class="lesson-formula compact">\[
+          98\% \text{ web images}
+        \]</div>
+        <p>Now compare two models.</p>
+        <table class="lesson-table example-table">
+          <thead><tr><th>Model</th><th>Dev Score</th><th>Real-World Score</th></tr></thead>
+          <tbody>
+            <tr><td>Model A</td><td>\(94\%\)</td><td>\(41\%\)</td></tr>
+            <tr><td>Model B</td><td>\(87\%\)</td><td>\(79\%\)</td></tr>
+          </tbody>
+        </table>
+        <p>If you only look at the validation set, you choose Model A:</p>
+        <div class="lesson-formula compact">\[
+          94\% > 87\%
+        \]</div>
+        <p>But real users would prefer Model B:</p>
+        <div class="lesson-formula compact">\[
+          79\% > 41\%
+        \]</div>
+        <p>Model A did not fail because the training code was broken. It failed because the validation set was pointing at the wrong target.</p>
+        <p>A validation set is not just a score sheet. It is the compass used to choose the model.</p>
+      </section>
+
+      <section class="content-section reading-copy" id="common-mistake">
+        <p class="section-kicker">Common Mistakes</p>
+        <h2>Common Mistakes</h2>
+        <div class="mistake-list">
+          <article><h3>Mistake 1: Thinking the split is only about percentages</h3><p>A 70/15/15 split can be reasonable, but the ratio is not the main point. The main point is whether each split is doing the right job.</p></article>
+          <article><h3>Mistake 2: Making validation unlike future users</h3><p>If your validation set is clean but real users send noisy data, your validation score may reward the wrong model.</p></article>
+          <article><h3>Mistake 3: Looking at the test set many times</h3><p>Every time you check the test score and then change your model, the test set becomes less honest.</p></article>
+          <article><h3>Mistake 4: Using random split for grouped data</h3><p>If the same patient, user, store, or device appears in both train and validation, the model may appear better than it really is. Grouped data needs group-aware splitting.</p></article>
+          <article><h3>Mistake 5: Shuffling time-series data</h3><p>For time-series problems, future data should not appear in the training set when predicting the past. Time order must be respected.</p></article>
+          <article><h3>Mistake 6: Treating K-Fold as the final test</h3><p>K-Fold is useful for model selection, especially when data is small. But the K-Fold average is not a replacement for a final locked test set.</p></article>
+        </div>
+      </section>
+
+      <section class="content-section reading-copy takeaway" id="takeaway">
+        <p class="section-kicker">Takeaway</p>
+        <h2>Takeaway</h2>
+        <p>Train, validation, and test sets are not interchangeable.</p>
+        <p>The training set teaches the model. The validation set guides model decisions. The test set protects the final honest score.</p>
+        <p>A good split is not just random or percentage-based. It must match future users, avoid leakage, respect the structure of the data, and keep the test set locked until the end.</p>
       </section>`;
   }
 
@@ -2089,6 +2284,9 @@ Dev &rarr; Test = dev overfitting</pre>
     if (config.readingMode === "bias-variance-supplement") {
       return renderBiasVarianceSupplement();
     }
+    if (config.readingMode === "train-test-supplement") {
+      return renderTrainTestSupplement();
+    }
     if (config.readingMode === "transfer-learning-supplement") {
       return renderTransferLearningSupplement();
     }
@@ -2157,6 +2355,17 @@ Dev &rarr; Test = dev overfitting</pre>
         ["takeaway", "Takeaway"],
       ];
     }
+    if (config.readingMode === "train-test-supplement") {
+      return [
+        ["interactive-prototype", "Interactive lesson"],
+        ["background", "Background"],
+        ["important-formulas", "Important formulas"],
+        ["strengths-limits", "Pros / Cons"],
+        ["example-guidance", "Quick Example"],
+        ["common-mistake", "Common Mistakes"],
+        ["takeaway", "Takeaway"],
+      ];
+    }
     if (config.readingMode === "transfer-learning-supplement") {
       return [
         ["interactive-prototype", "Interactive lesson"],
@@ -2222,6 +2431,7 @@ Dev &rarr; Test = dev overfitting</pre>
       ![
         "evaluation-supplement",
         "bias-variance-supplement",
+        "train-test-supplement",
         "transfer-learning-supplement",
         "rnn-supplement",
         "gradient-supplement",
@@ -2782,6 +2992,8 @@ Dev &rarr; Test = dev overfitting</pre>
   const drawerBackdrop = document.getElementById("drawer-backdrop");
   const frame = document.getElementById("prototype-frame");
 
+  document.body.dataset.topicSlug = slug;
+
   typesetSupplementMath();
   initializeEvaluationInteraction();
   initializeBiasVarianceInteraction();
@@ -3258,6 +3470,83 @@ Dev &rarr; Test = dev overfitting</pre>
         }
       `;
     }
+    if (config.frameTreatment === "train-test-editorial") {
+      return `
+        body {
+          background: transparent !important;
+          color: #23212c !important;
+          font-family: Inter, Arial, sans-serif !important;
+        }
+        .wrap {
+          margin: 0 auto !important;
+          max-width: none !important;
+          padding: 0 !important;
+        }
+        section {
+          border-bottom: 1px solid #e8e5ee !important;
+          padding: 48px 0 !important;
+        }
+        section:first-child {
+          padding-top: 0 !important;
+        }
+        section[data-animate] {
+          transition-duration: 0.35s !important;
+        }
+        .phase-label,
+        .p1-col-label,
+        .p2-block-title,
+        .mc-tag,
+        .p5-setup-title,
+        .closing-code-label {
+          color: #6c5ce7 !important;
+          letter-spacing: 0.16em !important;
+        }
+        .phase-title {
+          color: #23212c !important;
+          font-family: "Instrument Serif", Georgia, serif !important;
+          font-size: clamp(38px, 5vw, 64px) !important;
+          font-weight: 400 !important;
+          letter-spacing: -0.045em !important;
+          line-height: 0.98 !important;
+          margin-bottom: 18px !important;
+        }
+        .phase-title .hl {
+          background: linear-gradient(135deg, #6c5ce7, #00b894) !important;
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+        }
+        .mt-btn,
+        .mt-result-btn,
+        .mt-expand-btn,
+        .p1-find-btn {
+          border-radius: 999px !important;
+          box-shadow: none !important;
+          font-weight: 600 !important;
+        }
+        .mt-result-btn,
+        .mt-expand-btn,
+        .p1-find-btn {
+          background: #6c5ce7 !important;
+          color: #ffffff !important;
+        }
+        .closing-big-title {
+          color: #23212c !important;
+          font-family: "Instrument Serif", Georgia, serif !important;
+          font-weight: 400 !important;
+        }
+        .closing-section {
+          padding-bottom: 28px !important;
+        }
+        @media (max-width: 820px) {
+          section {
+            padding: 36px 0 !important;
+          }
+          .phase-title {
+            font-size: 42px !important;
+          }
+        }
+      `;
+    }
     if (config.frameTreatment === "gradient-editorial") {
       return `
         body { background: transparent !important; }
@@ -3339,6 +3628,19 @@ Dev &rarr; Test = dev overfitting</pre>
     const injected = frameDocument.createElement("style");
     injected.textContent = `
       body { background: transparent !important; }
+      ${config.disableFrameScroll ? `
+        html,
+        body {
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+        }
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+          display: none !important;
+          height: 0 !important;
+          width: 0 !important;
+        }
+      ` : ""}
       ${config.decard ? `
         .card, .panel, .hero-panel, .control-block, .gap-card, .task-card,
         .mini-card, .formula-box, .vector-card, .side-shell {
@@ -3357,7 +3659,7 @@ Dev &rarr; Test = dev overfitting</pre>
       frame.style.height = "720px";
     }
     const height = Math.max(720, frameDocument.documentElement.scrollHeight, frameDocument.body.scrollHeight);
-    frame.style.height = `${height + 8}px`;
+    frame.style.height = `${Math.ceil(height) + 8 + (config.frameExtraHeight || 0)}px`;
   }
 
   if (frame) {
@@ -3379,9 +3681,9 @@ Dev &rarr; Test = dev overfitting</pre>
       updateMirroredBlocks(frameDocument);
       resizeFrame(frameDocument, true);
       if (config.freezeFrameAfterLoad) {
-        window.setTimeout(() => resizeFrame(frameDocument, false), 300);
-        window.setTimeout(() => resizeFrame(frameDocument, false), 900);
-        window.setTimeout(() => resizeFrame(frameDocument, false), 1600);
+        [300, 900, 1600, 2800, 4200, 6200].forEach((delay) => {
+          window.setTimeout(() => resizeFrame(frameDocument, false), delay);
+        });
         return;
       }
       frameRefreshInterval = window.setInterval(() => {

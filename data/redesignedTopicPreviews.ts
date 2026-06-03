@@ -4,6 +4,7 @@ const redesignedTopicPreviewPaths: Record<string, string> = {
   "attention-mechanism-intuition": "/topic-design-previews/attention-mechanism-intuition.html",
   "evaluation-metrics-confusion-matrix": "/topic-design-previews/evaluation-metrics-confusion-matrix.html",
   "bias-vs-variance-diagnosis": "/topic-design-previews/bias-vs-variance-diagnosis.html",
+  "train-val-test-split": "/topic-design-previews/train-val-test-split.html",
   "transfer-learning-intuition": "/topic-design-previews/transfer-learning-intuition.html",
   "loss-functions": "/topic-design-previews/loss-functions.html",
   "overfitting-vs-underfitting": "/topic-design-previews/overfitting-vs-underfitting.html",

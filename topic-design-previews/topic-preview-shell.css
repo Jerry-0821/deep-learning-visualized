@@ -282,6 +282,14 @@ h1 {
   scroll-margin-top: calc(var(--header-height) + 34px);
 }
 
+body[data-topic-slug="train-val-test-split"] #interactive-prototype {
+  margin-bottom: 32px;
+}
+
+body[data-topic-slug="train-val-test-split"] #background {
+  padding-top: 0;
+}
+
 .section-kicker {
   color: var(--text-muted);
   font-size: 12px;
