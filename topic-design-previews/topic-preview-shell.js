@@ -217,11 +217,13 @@
       moduleLabel: "Module 03 / Transfer",
       moduleUrl: "https://deep-learning-visualized.vercel.app/module/3",
       title: "Transfer Learning Intuition",
-      subtitle: "See how a model pretrained on Task A can reuse learned features, replace the head, and adapt to a smaller Task B.",
+      subtitle: "Learn how a pretrained backbone gives a model useful visual knowledge before it trains on a smaller target dataset.",
       prototype: "../public/prototypes/transfer-learning-intuition.html",
-      frameHeight: 3200,
+      frameHeight: 5500,
+      freezeFrameAfterLoad: true,
       drawerMode: "empty",
-      reservedReading: true,
+      reservedReading: false,
+      readingMode: "transfer-learning-supplement",
       decard: true,
     },
     "rnn-structure": {
@@ -1005,6 +1007,213 @@ Dev &rarr; Test = dev overfitting</pre>
         \]</div>
         <p>tells us about <strong>dev overfitting</strong>.</p>
         <p>The biggest gap usually tells you what to fix first.</p>
+      </section>`;
+  }
+
+  function renderTransferLearningSupplement() {
+    return String.raw`
+      <section class="content-section reading-copy" id="background">
+        <p class="section-kicker">Background</p>
+        <h2>Background</h2>
+        <p>Training a deep neural network from scratch means starting with random weights. The model must learn everything from the target dataset: edges, textures, shapes, and the final decision rule.</p>
+        <p>That is difficult when the target dataset is small.</p>
+        <p>Transfer learning changes the starting point. Instead of learning all visual features from scratch, we begin with a model that has already been trained on a large source task. The early and middle layers of that model often contain useful features such as edges, corners, textures, and object parts.</p>
+        <p>The final layer is different. It is usually specific to the original task's labels, so we remove it and attach a new head for the new task.</p>
+        <p>The core idea is:</p>
+        <blockquote class="lesson-quote">reuse the pretrained backbone &rarr; replace the old head &rarr; train on the target task</blockquote>
+        <p>Transfer learning is not copying the final answer from another task. It is reusing a better starting point.</p>
+      </section>
+
+      <section class="content-section reading-copy" id="important-formulas">
+        <p class="section-kicker">Important Formulas</p>
+        <h2>Important Formulas</h2>
+
+        <h3 class="reading-subheading">Model as Backbone + Head</h3>
+        <div class="lesson-formula">\[
+          f(x)=c_{\psi}(h_{\phi}(x))
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(x\)</dt><dd>The input example, such as an image.</dd></div>
+          <div><dt>\(h_{\phi}(x)\)</dt><dd>The backbone, or feature extractor.</dd></div>
+          <div><dt>\(\phi\)</dt><dd>The backbone parameters.</dd></div>
+          <div><dt>\(c_{\psi}\)</dt><dd>The classification head.</dd></div>
+          <div><dt>\(\psi\)</dt><dd>The head parameters.</dd></div>
+          <div><dt>\(f(x)\)</dt><dd>The final model prediction.</dd></div>
+        </dl>
+        <p>The backbone turns raw input into useful features. The head turns those features into task-specific outputs.</p>
+
+        <h3 class="reading-subheading">Pretraining on Task A</h3>
+        <div class="lesson-formula">\[
+          (\phi_A,\psi_A)
+          =
+          \arg\min_{\phi,\psi}
+          \frac{1}{N_A}
+          \sum_{i=1}^{N_A}
+          \ell
+          \left(
+          c_{\psi}(h_{\phi}(x_i^A)),\ y_i^A
+          \right)
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(A\)</dt><dd>The source task.</dd></div>
+          <div><dt>\(N_A\)</dt><dd>The number of training examples in Task A.</dd></div>
+          <div><dt>\(x_i^A\)</dt><dd>The \(i\)-th input from Task A.</dd></div>
+          <div><dt>\(y_i^A\)</dt><dd>The label for the \(i\)-th Task A example.</dd></div>
+          <div><dt>\(\ell(\cdot)\)</dt><dd>The loss function.</dd></div>
+          <div><dt>\(\phi_A\)</dt><dd>The pretrained backbone parameters.</dd></div>
+          <div><dt>\(\psi_A\)</dt><dd>The old head parameters.</dd></div>
+        </dl>
+        <p>Pretraining teaches the backbone general patterns from a large dataset.</p>
+
+        <h3 class="reading-subheading">Replace the Old Head</h3>
+        <div class="lesson-formula">\[
+          f_B(x)=c_{\psi_B}(h_{\phi_A}(x))
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(B\)</dt><dd>The new target task.</dd></div>
+          <div><dt>\(\phi_A\)</dt><dd>The pretrained backbone reused from Task A.</dd></div>
+          <div><dt>\(\psi_B\)</dt><dd>The new head parameters for Task B.</dd></div>
+          <div><dt>\(c_{\psi_B}\)</dt><dd>The new task-specific classification head.</dd></div>
+          <div><dt>\(f_B(x)\)</dt><dd>The model prediction for Task B.</dd></div>
+        </dl>
+        <p>The old head \(\psi_A\) is removed because it only knows the labels from Task A.</p>
+
+        <h3 class="reading-subheading">Frozen Backbone Training</h3>
+        <div class="lesson-formula compact">\[
+          \phi=\phi_A
+        \]</div>
+        <div class="lesson-formula">\[
+          \psi_{B,t+1}
+          =
+          \psi_{B,t}
+          -
+          \eta
+          \nabla_{\psi_B}L_B
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(\phi=\phi_A\)</dt><dd>The pretrained backbone is kept fixed.</dd></div>
+          <div><dt>\(\psi_{B,t}\)</dt><dd>The new head parameters before the update.</dd></div>
+          <div><dt>\(\psi_{B,t+1}\)</dt><dd>The new head parameters after the update.</dd></div>
+          <div><dt>\(\eta\)</dt><dd>The learning rate.</dd></div>
+          <div><dt>\(L_B\)</dt><dd>The loss on Task B.</dd></div>
+        </dl>
+        <p>When the backbone is frozen, only the new head learns. This is useful when the target dataset is very small.</p>
+
+        <h3 class="reading-subheading">Fine-Tuning</h3>
+        <div class="lesson-formula">\[
+          \phi_{t+1}
+          =
+          \phi_t
+          -
+          \eta_{\phi}
+          \nabla_{\phi}L_B
+        \]</div>
+        <div class="lesson-formula">\[
+          \psi_{B,t+1}
+          =
+          \psi_{B,t}
+          -
+          \eta_{\psi}
+          \nabla_{\psi_B}L_B
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(\phi_t\)</dt><dd>The backbone parameters before fine-tuning.</dd></div>
+          <div><dt>\(\phi_{t+1}\)</dt><dd>The backbone parameters after fine-tuning.</dd></div>
+          <div><dt>\(\psi_{B,t}\)</dt><dd>The head parameters before the update.</dd></div>
+          <div><dt>\(\eta_{\phi}\)</dt><dd>The learning rate for the backbone.</dd></div>
+          <div><dt>\(\eta_{\psi}\)</dt><dd>The learning rate for the new head.</dd></div>
+        </dl>
+        <p>Fine-tuning updates the backbone and the new head. Often, the backbone uses a smaller learning rate because it already contains useful features.</p>
+
+        <h3 class="reading-subheading">When Transfer Learning Helps</h3>
+        <div class="lesson-formula compact">\[
+          N_A \gg N_B
+        \]</div>
+        <div class="lesson-formula">\[
+          \text{features from Task A}
+          \approx
+          \text{useful features for Task B}
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(N_A\)</dt><dd>The source-task dataset size.</dd></div>
+          <div><dt>\(N_B\)</dt><dd>The target-task dataset size.</dd></div>
+          <div><dt>\(N_A \gg N_B\)</dt><dd>Task A has much more data than Task B.</dd></div>
+          <div><dt>Similar features</dt><dd>The two tasks share useful low-level or mid-level patterns.</dd></div>
+        </dl>
+        <p>Transfer learning works best when the source task has much more data and the learned features are reusable for the target task.</p>
+      </section>
+
+      <section class="content-section reading-copy" id="strengths-limits">
+        <p class="section-kicker">Pros and Cons</p>
+        <h2>Pros and Cons</h2>
+        <div class="pros-cons-grid">
+          <article>
+            <h3>Pros</h3>
+            <p><strong>Better starting point.</strong> The model starts with useful features instead of random weights.</p>
+            <p><strong>Works well with small datasets.</strong> The target task does not need to teach the model every low-level pattern from scratch.</p>
+            <p><strong>Faster training.</strong> Training usually becomes faster because the backbone already understands general structure.</p>
+            <p><strong>Can reduce overfitting.</strong> Freezing the backbone can help when the target dataset is small.</p>
+            <p><strong>Practical for real projects.</strong> Many image, text, and audio models are built by adapting pretrained models rather than training from zero.</p>
+          </article>
+          <article>
+            <h3>Cons</h3>
+            <p><strong>Source and target tasks may differ too much.</strong> If Task A and Task B are unrelated, the pretrained features may not help.</p>
+            <p><strong>Old head cannot usually be reused.</strong> The original classifier is tied to the original labels, so it must usually be replaced.</p>
+            <p><strong>Freezing too much can limit adaptation.</strong> If the backbone is never allowed to adjust, it may not fit the target domain well.</p>
+            <p><strong>Fine-tuning too aggressively can overfit.</strong> Updating the whole model with a high learning rate can damage useful pretrained features.</p>
+            <p><strong>Pretrained does not always mean better.</strong> The benefit depends on dataset size, task similarity, and how fine-tuning is done.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-section reading-copy" id="example-guidance">
+        <p class="section-kicker">Quick Example</p>
+        <h2>Quick Example</h2>
+        <p>Imagine a hospital has:</p>
+        <div class="lesson-formula compact">\[
+          N_B=8{,}000
+        \]</div>
+        <p>labeled X-ray images.</p>
+        <p>Training from scratch means the model must learn basic visual features and the disease classifier from only those 8,000 images. It may overfit because the dataset is too small for learning every layer from random initialization.</p>
+        <p>With transfer learning, the model starts from a backbone pretrained on a much larger image dataset:</p>
+        <div class="lesson-formula compact">\[
+          h_{\phi_A}(x)
+        \]</div>
+        <p>The old head is removed:</p>
+        <div class="lesson-formula compact">\[
+          c_{\psi_A}
+        \]</div>
+        <p>A new head is added for the hospital's task:</p>
+        <div class="lesson-formula compact">\[
+          c_{\psi_B}
+        \]</div>
+        <p>Then the model trains on the X-ray dataset:</p>
+        <div class="lesson-formula compact">\[
+          f_B(x)=c_{\psi_B}(h_{\phi_A}(x))
+        \]</div>
+        <p>In an illustrative scenario, training from scratch might reach around \(61\%\) validation accuracy, while transfer learning might reach around \(89\%\). The exact numbers are not fixed benchmarks. The important idea is:</p>
+        <blockquote class="lesson-quote">same target data, better starting point</blockquote>
+        <p>The pretrained backbone already contains useful visual features, so the small dataset can focus more on learning the new task.</p>
+      </section>
+
+      <section class="content-section reading-copy" id="common-mistake">
+        <p class="section-kicker">Common Mistakes</p>
+        <h2>Common Mistakes</h2>
+        <div class="mistake-list">
+          <article><h3>Mistake 1: Thinking transfer learning copies the whole model</h3><p>Transfer learning usually keeps the backbone but replaces the old head. The old head was trained for the original labels, not the new task.</p></article>
+          <article><h3>Mistake 2: Freezing everything and expecting learning to happen</h3><p>If every parameter is frozen, the model cannot adapt. At minimum, the new head must be trained.</p></article>
+          <article><h3>Mistake 3: Fine-tuning the whole backbone too early</h3><p>When the target dataset is small, updating the entire backbone too aggressively can overfit or damage useful pretrained features.</p></article>
+          <article><h3>Mistake 4: Ignoring task similarity</h3><p>Transfer learning works best when Task A and Task B share useful patterns. If the domains are completely different, transfer may help less.</p></article>
+          <article><h3>Mistake 5: Assuming pretrained always means better</h3><p>A pretrained model is a strong starting point, not a guarantee. The final result still depends on the dataset, domain, architecture, and training strategy.</p></article>
+        </div>
+      </section>
+
+      <section class="content-section reading-copy" id="takeaway">
+        <p class="section-kicker">Takeaway</p>
+        <h2>Takeaway</h2>
+        <p>Transfer learning works by separating general feature learning from task-specific classification.</p>
+        <p>The pretrained backbone provides reusable features such as edges, textures, and shapes. The old head is replaced because it only understands the original task's labels.</p>
+        <p>Instead of starting from random weights, the model starts with useful prior knowledge, then adapts to the new task by training a new head and optionally fine-tuning the backbone.</p>
       </section>`;
   }
 
@@ -1880,6 +2089,9 @@ Dev &rarr; Test = dev overfitting</pre>
     if (config.readingMode === "bias-variance-supplement") {
       return renderBiasVarianceSupplement();
     }
+    if (config.readingMode === "transfer-learning-supplement") {
+      return renderTransferLearningSupplement();
+    }
     if (config.readingMode === "rnn-supplement") {
       return renderRnnSupplement();
     }
@@ -1945,6 +2157,17 @@ Dev &rarr; Test = dev overfitting</pre>
         ["takeaway", "Takeaway"],
       ];
     }
+    if (config.readingMode === "transfer-learning-supplement") {
+      return [
+        ["interactive-prototype", "Interactive lesson"],
+        ["background", "Background"],
+        ["important-formulas", "Important formulas"],
+        ["strengths-limits", "Pros / Cons"],
+        ["example-guidance", "Quick Example"],
+        ["common-mistake", "Common Mistakes"],
+        ["takeaway", "Takeaway"],
+      ];
+    }
     if (config.readingMode === "rnn-supplement") {
       return [
         ["interactive-prototype", "Interactive lesson"],
@@ -1999,6 +2222,7 @@ Dev &rarr; Test = dev overfitting</pre>
       ![
         "evaluation-supplement",
         "bias-variance-supplement",
+        "transfer-learning-supplement",
         "rnn-supplement",
         "gradient-supplement",
         "dropout-supplement",
