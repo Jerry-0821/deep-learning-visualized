@@ -231,6 +231,7 @@
       subtitle: "Compare one-to-one, one-to-many, many-to-one, and many-to-many RNN layouts for sequence tasks.",
       prototype: "../prototypes/rnn-structure.html",
       frameHeight: 2600,
+      freezeFrameAfterLoad: true,
       drawerMode: "mirror",
       reservedReading: false,
       readingMode: "rnn-supplement",
