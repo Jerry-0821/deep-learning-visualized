@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type EditionPage = "home" | "topics" | "blog" | "mindmap" | "about";
+type EditionPage = "home" | "topics" | "formula-hub" | "blog" | "mindmap" | "about";
 
 export function EditionBackdrop() {
   return <div className="edition-atmosphere" aria-hidden="true" />;
@@ -21,6 +21,9 @@ export function EditionNav({ active }: { active: EditionPage }) {
           </Link>
           <Link className={`edition-nav-link ${active === "topics" ? "active" : ""}`} href="/topics">
             Topics
+          </Link>
+          <Link className={`edition-nav-link ${active === "formula-hub" ? "active" : ""}`} href="/formula-hub">
+            Formula Hub
           </Link>
           <Link className={`edition-nav-link ${active === "blog" ? "active" : ""}`} href="/blog">
             Blog
@@ -50,6 +53,7 @@ export function EditionFooter() {
         <nav className="edition-footer-links" aria-label="Footer navigation">
           <Link href="/#modules">Curriculum</Link>
           <Link href="/topics">Topics</Link>
+          <Link href="/formula-hub">Formula Hub</Link>
           <Link href="/blog">Blog</Link>
           <Link href="/mindmap">Mindmap</Link>
           <Link href="/about">About</Link>
