@@ -312,6 +312,21 @@
         { selector: "#convFilterExplain", up: 1 },
       ],
     },
+    "feature-map-visualization": {
+      moduleLabel: "Module 02 / Vision",
+      moduleUrl: "/module/2",
+      title: "CNN Feature Map Visualization",
+      subtitle: "Learn how filters turn raw pixels into pattern-response maps that deeper CNN layers can reuse.",
+      prototype: "../prototypes/feature-map-visualization.html",
+      frameHeight: 5200,
+      frameExtraHeight: 16,
+      disableFrameScroll: true,
+      freezeFrameAfterLoad: true,
+      drawerMode: "empty",
+      reservedReading: false,
+      readingMode: "feature-map-supplement",
+      frameTreatment: "feature-map-editorial",
+    },
     dropout: {
       moduleLabel: "Module 01 / Regularisation",
       moduleUrl: "/module/1",
@@ -1680,6 +1695,207 @@ Dev &rarr; Test = dev overfitting</pre>
       </section>`;
   }
 
+  function renderFeatureMapSupplement() {
+    return String.raw`
+      <section class="content-section reading-copy" id="background">
+        <p class="section-kicker">Background</p>
+        <h2>Background</h2>
+        <p>Raw pixels are not enough for understanding an image.</p>
+        <p>Two images can have similar pixel statistics but completely different meanings. Two images of the same object can also look very different at the pixel level because of noise, lighting, rotation, or small shifts.</p>
+        <p>A CNN solves this by transforming raw pixels into <strong>feature maps</strong>.</p>
+        <p>A feature map is not just a smaller image. It is a map of where a filter found a specific pattern.</p>
+        <p>For example, an edge filter produces bright values where it detects edges. A blur filter produces smoother regions. A texture filter may respond strongly to repeated local patterns.</p>
+        <p>The core idea is:</p>
+        <blockquote class="lesson-quote">filter slides over image &rarr; dot product at each location &rarr; response map</blockquote>
+        <p>One filter creates one feature map. Many filters create many feature maps. Deeper layers combine earlier maps into more abstract representations.</p>
+      </section>
+
+      <section class="content-section reading-copy" id="important-formulas">
+        <p class="section-kicker">Important formulas</p>
+        <h2>Important Formulas</h2>
+
+        <h3 class="reading-subheading">Single Filter Response</h3>
+        <div class="lesson-formula">\[
+          Z(i,j)
+          =
+          \sum_{u=0}^{k_h-1}
+          \sum_{v=0}^{k_w-1}
+          X(i+u,j+v)K(u,v)
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(X\)</dt><dd>The input image or input feature map.</dd></div>
+          <div><dt>\(K\)</dt><dd>The filter, also called a kernel.</dd></div>
+          <div><dt>\(k_h, k_w\)</dt><dd>The filter height and width.</dd></div>
+          <div><dt>\(Z(i,j)\)</dt><dd>The raw response at output location \((i,j)\).</dd></div>
+          <div><dt>\((u,v)\)</dt><dd>Positions inside the filter window.</dd></div>
+        </dl>
+        <p>At each location, the filter covers a small patch of the input and computes a dot product. That result becomes one value in the feature map.</p>
+
+        <h3 class="reading-subheading">Feature Map After Bias and Activation</h3>
+        <div class="lesson-formula compact">\[
+          A(i,j) = f(Z(i,j)+b)
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(A(i,j)\)</dt><dd>The activated feature map value.</dd></div>
+          <div><dt>\(Z(i,j)\)</dt><dd>The raw convolution response.</dd></div>
+          <div><dt>\(b\)</dt><dd>The bias term for this filter.</dd></div>
+          <div><dt>\(f\)</dt><dd>The activation function, often ReLU.</dd></div>
+        </dl>
+        <p>The raw response is usually passed through an activation function. This keeps strong useful responses and suppresses weak or negative ones.</p>
+
+        <h3 class="reading-subheading">One Filter Creates One Feature Map</h3>
+        <div class="lesson-formula compact">\[
+          A^{(m)} = f(X*K^{(m)}+b^{(m)})
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(A^{(m)}\)</dt><dd>The feature map produced by filter \(m\).</dd></div>
+          <div><dt>\(K^{(m)}\)</dt><dd>The \(m\)-th filter.</dd></div>
+          <div><dt>\(b^{(m)}\)</dt><dd>The bias for filter \(m\).</dd></div>
+          <div><dt>\(*\)</dt><dd>The sliding filter operation.</dd></div>
+        </dl>
+        <p>Each filter looks for a different pattern. One filter may respond to vertical edges, another to horizontal edges, and another to texture or blur.</p>
+
+        <h3 class="reading-subheading">Many Filters Create Many Channels</h3>
+        <div class="lesson-formula">\[
+          \text{Output} = [A^{(1)},A^{(2)},\ldots,A^{(M)}]
+        \]</div>
+        <div class="lesson-formula compact">\[
+          \text{Output shape}
+          =
+          H_{\text{out}}
+          \times
+          W_{\text{out}}
+          \times
+          M
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(M\)</dt><dd>The number of filters in the layer.</dd></div>
+          <div><dt>\(A^{(m)}\)</dt><dd>The feature map from filter \(m\).</dd></div>
+          <div><dt>\(H_{\text{out}}\)</dt><dd>The output height.</dd></div>
+          <div><dt>\(W_{\text{out}}\)</dt><dd>The output width.</dd></div>
+        </dl>
+        <p>A convolutional layer does not usually output one map. It outputs a stack of maps, one for each filter.</p>
+
+        <h3 class="reading-subheading">Output Size</h3>
+        <div class="lesson-formula">\[
+          \begin{aligned}
+            H_{\text{out}}
+            &=
+            \left\lfloor
+            \frac{H+2P-k_h}{S}
+            \right\rfloor
+            +1 \\
+            W_{\text{out}}
+            &=
+            \left\lfloor
+            \frac{W+2P-k_w}{S}
+            \right\rfloor
+            +1
+          \end{aligned}
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>\(H,W\)</dt><dd>The input height and width.</dd></div>
+          <div><dt>\(k_h,k_w\)</dt><dd>The filter height and width.</dd></div>
+          <div><dt>\(P\)</dt><dd>The padding size.</dd></div>
+          <div><dt>\(S\)</dt><dd>The stride.</dd></div>
+          <div><dt>\(\lfloor \cdot \rfloor\)</dt><dd>The floor operation.</dd></div>
+        </dl>
+        <p>Stride, padding, and filter size determine how large the output feature map will be.</p>
+
+        <h3 class="reading-subheading">Deeper Layers</h3>
+        <div class="lesson-formula compact">\[
+          \text{deeper layer}
+          \Rightarrow
+          \text{larger receptive field}
+          \Rightarrow
+          \text{more abstract pattern}
+        \]</div>
+        <dl class="symbol-list">
+          <div><dt>Receptive field</dt><dd>The region of the original image that affects one feature-map value.</dd></div>
+          <div><dt>Early layers</dt><dd>Usually respond to local patterns such as edges and corners.</dd></div>
+          <div><dt>Deeper layers</dt><dd>Combine earlier responses into broader shapes, object parts, or semantic regions.</dd></div>
+        </dl>
+        <p>Deeper feature maps are often less spatially precise, but more meaningful.</p>
+      </section>
+
+      <section class="content-section two-column" id="strengths-limits">
+        <div>
+          <p class="reading-heading">Pros</p>
+          <ul class="reading-list explanatory-list">
+            <li><strong>Turns pixels into pattern responses</strong><span>Feature maps show where useful visual patterns appear.</span></li>
+            <li><strong>Preserves spatial structure</strong><span>A bright location in a feature map still corresponds to a location in the input.</span></li>
+            <li><strong>Allows many views of the same image</strong><span>Different filters produce different maps, each emphasizing a different pattern.</span></li>
+            <li><strong>Builds hierarchy</strong><span>Early maps detect simple features. Deeper maps combine them into larger and more abstract features.</span></li>
+            <li><strong>Helps interpretation</strong><span>Feature maps give a partial view of what a CNN layer is responding to.</span></li>
+          </ul>
+        </div>
+        <div>
+          <p class="reading-heading">Cons</p>
+          <ul class="reading-list explanatory-list">
+            <li><strong>Not always human-interpretable</strong><span>Real learned feature maps can be messy and harder to name than hand-crafted edge filters.</span></li>
+            <li><strong>Deep maps lose spatial precision</strong><span>Later layers may highlight broad regions instead of exact edges or pixels.</span></li>
+            <li><strong>Brightness is not full explanation</strong><span>A bright activation means strong response, but it does not prove the model's final decision depends only on that region.</span></li>
+            <li><strong>Simulations are cleaner than real CNNs</strong><span>Hand-crafted filters are useful for learning the concept, but real networks learn their own filters from data.</span></li>
+            <li><strong>Too many maps to inspect manually</strong><span>Modern CNN layers can have dozens or hundreds of feature maps.</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="content-section reading-copy" id="example-guidance">
+        <p class="section-kicker">Quick example</p>
+        <h2>Quick Example</h2>
+        <p>Suppose a filter is looking for a vertical edge.</p>
+        <p>Input patch:</p>
+        <div class="lesson-formula">\[
+          X_{\text{patch}}
+          =
+          \begin{bmatrix}
+            0 & 0 & 1 \\
+            0 & 0 & 1 \\
+            0 & 0 & 1
+          \end{bmatrix}
+        \]</div>
+        <p>Vertical edge filter:</p>
+        <div class="lesson-formula">\[
+          K
+          =
+          \begin{bmatrix}
+            -1 & 0 & 1 \\
+            -2 & 0 & 2 \\
+            -1 & 0 & 1
+          \end{bmatrix}
+        \]</div>
+        <p>The filter response is:</p>
+        <div class="lesson-formula compact">\[
+          Z(i,j) = \sum X_{\text{patch}}\odot K
+        \]</div>
+        <p>The left side of the patch is dark, and the right side is bright. This matches what the vertical edge filter is looking for, so the dot product becomes large.</p>
+        <p>That location in the feature map becomes bright.</p>
+        <p>Now imagine sliding the same filter across the whole image. Every position gets its own response value. The final result is a feature map showing where vertical edges appear.</p>
+      </section>
+
+      <section class="content-section" id="common-mistake">
+        <p class="section-kicker">Common mistakes</p>
+        <h2>Common Mistakes</h2>
+        <div class="metric-reading-list">
+          <article><h3>Mistake 1: Thinking a feature map is just a smaller image</h3><p>A feature map is not just a resized version of the input. It is a response map showing where a filter detected a pattern.</p></article>
+          <article><h3>Mistake 2: Thinking one layer produces one map</h3><p>One filter produces one feature map. A convolutional layer usually has many filters, so it produces many maps.</p></article>
+          <article><h3>Mistake 3: Forgetting that location still matters</h3><p>If a feature map is bright at one location, it means the filter responded strongly around that location in the input.</p></article>
+          <article><h3>Mistake 4: Thinking deeper maps are always clearer</h3><p>Deeper maps can be more abstract, but they may look blurrier and less spatially precise.</p></article>
+          <article><h3>Mistake 5: Confusing simulated maps with learned CNN maps</h3><p>Hand-crafted filters are useful for learning. Real CNN filters are learned from data, and their feature maps may not look as clean.</p></article>
+          <article><h3>Mistake 6: Treating feature maps as complete model explanations</h3><p>Feature maps show layer responses, not the full reasoning process of the model.</p></article>
+        </div>
+      </section>
+
+      <section class="content-section takeaway-section reading-copy" id="takeaway">
+        <p class="section-kicker">Takeaway</p>
+        <h2>Takeaway</h2>
+        <p>A feature map records where a filter finds a pattern.</p>
+        <p>One filter creates one map. Many filters create a stack of maps, where each map describes the same input in a different way.</p>
+        <p>Early feature maps detect local patterns like edges and textures. Deeper feature maps combine earlier responses into larger and more abstract representations.</p>
+      </section>`;
+  }
+
   function renderDropoutSupplement() {
     return String.raw`
       <section class="content-section reading-copy" id="background">
@@ -2296,6 +2512,9 @@ Dev &rarr; Test = dev overfitting</pre>
     if (config.readingMode === "gradient-supplement") {
       return renderGradientSupplement();
     }
+    if (config.readingMode === "feature-map-supplement") {
+      return renderFeatureMapSupplement();
+    }
     if (config.readingMode === "dropout-supplement") {
       return renderDropoutSupplement();
     }
@@ -2400,6 +2619,17 @@ Dev &rarr; Test = dev overfitting</pre>
         ["takeaway", "Takeaway"],
       ];
     }
+    if (config.readingMode === "feature-map-supplement") {
+      return [
+        ["interactive-prototype", "Interactive lesson"],
+        ["background", "Background"],
+        ["important-formulas", "Important formulas"],
+        ["strengths-limits", "Pros / Cons"],
+        ["example-guidance", "Quick Example"],
+        ["common-mistake", "Common Mistakes"],
+        ["takeaway", "Takeaway"],
+      ];
+    }
     if (["dropout-supplement", "convolution-supplement", "backpropagation-supplement"].includes(config.readingMode)) {
       return [
         ["interactive-prototype", "Interactive lesson"],
@@ -2435,6 +2665,7 @@ Dev &rarr; Test = dev overfitting</pre>
         "transfer-learning-supplement",
         "rnn-supplement",
         "gradient-supplement",
+        "feature-map-supplement",
         "dropout-supplement",
         "convolution-supplement",
         "backpropagation-supplement",
@@ -3248,6 +3479,38 @@ Dev &rarr; Test = dev overfitting</pre>
         }
       `;
     }
+    if (config.frameTreatment === "feature-map-editorial") {
+      return `
+        body {
+          background: transparent !important;
+          color: #23212c !important;
+        }
+        .phase-label {
+          color: #6c5ce7 !important;
+          letter-spacing: 0.16em !important;
+        }
+        .phase-title {
+          color: #23212c !important;
+          font-family: Inter, Arial, sans-serif !important;
+          letter-spacing: -0.04em !important;
+        }
+        .phase-title .hl {
+          background: linear-gradient(135deg, #6c5ce7, #00b894) !important;
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+        }
+        .btn-blue,
+        .btn-pill.active {
+          background: #6c5ce7 !important;
+          border-color: #6c5ce7 !important;
+          color: #ffffff !important;
+        }
+        .btn-blue:hover,
+        .btn-pill:hover {
+          box-shadow: 0 8px 20px rgba(108, 92, 231, 0.18) !important;
+        }
+      `;
+    }
     if (config.frameTreatment === "backpropagation-editorial") {
       return `
         body { background: transparent !important; }
@@ -3653,13 +3916,10 @@ Dev &rarr; Test = dev overfitting</pre>
     frameDocument.head.appendChild(injected);
   }
 
-  function resizeFrame(frameDocument, resetViewport = false) {
-    if (!frameDocument.documentElement || !frameDocument.body) return;
-    if (resetViewport) {
-      frame.style.height = "720px";
-    }
-    const height = Math.max(720, frameDocument.documentElement.scrollHeight, frameDocument.body.scrollHeight);
-    frame.style.height = `${Math.ceil(height) + 8 + (config.frameExtraHeight || 0)}px`;
+  function lockFrameHeight() {
+    if (!frame) return;
+    const lockedHeight = Math.max(720, config.frameHeight || 720);
+    frame.style.height = `${lockedHeight}px`;
   }
 
   if (frame) {
@@ -3679,11 +3939,13 @@ Dev &rarr; Test = dev overfitting</pre>
       styleFrame(frameDocument);
       removeDuplicateOutputPanels(frameDocument);
       updateMirroredBlocks(frameDocument);
-      resizeFrame(frameDocument, true);
+      lockFrameHeight();
       if (config.freezeFrameAfterLoad) {
-        [300, 900, 1600, 2800, 4200, 6200].forEach((delay) => {
-          window.setTimeout(() => resizeFrame(frameDocument, false), delay);
-        });
+        window.setTimeout(() => {
+          removeDuplicateOutputPanels(frameDocument);
+          updateMirroredBlocks(frameDocument);
+          lockFrameHeight();
+        }, 300);
         return;
       }
       frameRefreshInterval = window.setInterval(() => {
@@ -3692,7 +3954,7 @@ Dev &rarr; Test = dev overfitting</pre>
           return;
         }
         updateMirroredBlocks(frameDocument);
-        resizeFrame(frameDocument, false);
+        lockFrameHeight();
       }, 120);
     });
     window.addEventListener("pagehide", stopFrameRefresh, { once: true });

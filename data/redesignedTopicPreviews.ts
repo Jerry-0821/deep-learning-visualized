@@ -13,6 +13,7 @@ const redesignedTopicPreviewPaths: Record<string, string> = {
   "rnn-structure": "/topic-design-previews/rnn-structure.html",
   "backpropagation-intuition": "/topic-design-previews/backpropagation-intuition.html",
   "convolution-operation": "/topic-design-previews/convolution-operation.html",
+  "feature-map-visualization": "/topic-design-previews/feature-map-visualization.html",
   "dropout": "/topic-design-previews/dropout.html",
   "gradient-descent-learning-rate": "/topic-design-previews/gradient-descent-learning-rate.html",
 };
