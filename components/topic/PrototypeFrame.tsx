@@ -10,7 +10,7 @@ type PrototypeFrameProps = {
 
 export function PrototypeFrame({ src, title, fallbackHeight }: PrototypeFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const stableHeight = Math.max(fallbackHeight, 720);
+  const initialHeight = Math.max(fallbackHeight, 720);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -19,7 +19,24 @@ export function PrototypeFrame({ src, title, fallbackHeight }: PrototypeFramePro
     }
 
     const lockHeight = () => {
-      iframe.style.height = `${stableHeight}px`;
+      let measuredHeight = 0;
+      try {
+        const doc = iframe.contentDocument;
+        const body = doc?.body;
+        if (doc && body) {
+          const bodyTop = body.getBoundingClientRect().top;
+          measuredHeight = Array.from(body.children).reduce((maxBottom, child) => {
+            const rect = child.getBoundingClientRect();
+            const style = doc.defaultView?.getComputedStyle(child);
+            const marginBottom = style ? Number.parseFloat(style.marginBottom) || 0 : 0;
+            return Math.max(maxBottom, rect.bottom - bodyTop + marginBottom);
+          }, 0);
+        }
+      } catch {
+        measuredHeight = 0;
+      }
+      const nextHeight = Math.max(720, Math.ceil(measuredHeight || initialHeight));
+      iframe.style.height = `${nextHeight}px`;
     };
 
     lockHeight();
@@ -30,7 +47,7 @@ export function PrototypeFrame({ src, title, fallbackHeight }: PrototypeFramePro
       iframe.removeEventListener("load", lockHeight);
       window.removeEventListener("resize", lockHeight);
     };
-  }, [stableHeight, src]);
+  }, [initialHeight, src]);
 
   return (
     <iframe
@@ -39,7 +56,7 @@ export function PrototypeFrame({ src, title, fallbackHeight }: PrototypeFramePro
       src={src}
       title={title}
       loading="eager"
-      style={{ height: `${stableHeight}px` }}
+      style={{ height: `${initialHeight}px` }}
     />
   );
 }

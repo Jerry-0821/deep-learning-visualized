@@ -3916,9 +3916,20 @@ Dev &rarr; Test = dev overfitting</pre>
     frameDocument.head.appendChild(injected);
   }
 
-  function lockFrameHeight() {
+  function lockFrameHeight(frameDocument) {
     if (!frame) return;
-    const lockedHeight = Math.max(720, config.frameHeight || 720);
+    let measuredHeight = 0;
+    if (frameDocument?.body) {
+      const bodyTop = frameDocument.body.getBoundingClientRect().top;
+      measuredHeight = Array.from(frameDocument.body.children).reduce((maxBottom, child) => {
+        const rect = child.getBoundingClientRect();
+        const style = frameDocument.defaultView?.getComputedStyle(child);
+        const marginBottom = style ? Number.parseFloat(style.marginBottom) || 0 : 0;
+        return Math.max(maxBottom, rect.bottom - bodyTop + marginBottom);
+      }, 0);
+    }
+    const fallback = config.frameHeight || 720;
+    const lockedHeight = Math.max(720, Math.ceil(measuredHeight || fallback) + (config.frameExtraHeight || 0));
     frame.style.height = `${lockedHeight}px`;
   }
 
@@ -3939,12 +3950,12 @@ Dev &rarr; Test = dev overfitting</pre>
       styleFrame(frameDocument);
       removeDuplicateOutputPanels(frameDocument);
       updateMirroredBlocks(frameDocument);
-      lockFrameHeight();
+      lockFrameHeight(frameDocument);
       if (config.freezeFrameAfterLoad) {
         window.setTimeout(() => {
           removeDuplicateOutputPanels(frameDocument);
           updateMirroredBlocks(frameDocument);
-          lockFrameHeight();
+          lockFrameHeight(frameDocument);
         }, 300);
         return;
       }
@@ -3954,7 +3965,6 @@ Dev &rarr; Test = dev overfitting</pre>
           return;
         }
         updateMirroredBlocks(frameDocument);
-        lockFrameHeight();
       }, 120);
     });
     window.addEventListener("pagehide", stopFrameRefresh, { once: true });
