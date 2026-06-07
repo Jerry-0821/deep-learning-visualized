@@ -4805,26 +4805,26 @@ a {
   overflow-y: visible;
 }
 
+.blog-reading-root .edition-nav-inner {
+  max-width: none;
+  padding-inline: 54px;
+}
+
 .blog-reading-layout {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: 224px minmax(0, 780px);
-  gap: clamp(42px, 6vw, 82px);
-  align-items: start;
-  max-width: 1160px;
+  display: block;
+  max-width: 780px;
   margin: 0 auto;
-  padding: 58px 42px 108px;
-  transition: grid-template-columns 0.22s ease;
-}
-
-.blog-reading-layout.navigation-collapsed {
-  grid-template-columns: 54px minmax(0, 780px);
+  padding: 58px 28px 108px;
 }
 
 .blog-reading-rail {
-  position: sticky;
-  top: 92px;
+  position: fixed;
+  top: 132px;
+  left: max(28px, calc((100vw - var(--edition-max)) / 2 + 28px));
+  z-index: 35;
+  width: 190px;
   min-height: 52px;
 }
 
