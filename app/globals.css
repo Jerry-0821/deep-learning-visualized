@@ -4821,10 +4821,10 @@ a {
 
 .blog-reading-rail {
   position: fixed;
-  top: 132px;
-  left: max(28px, calc((100vw - var(--edition-max)) / 2 + 28px));
+  top: 122px;
+  left: 20px;
   z-index: 35;
-  width: 190px;
+  width: 330px;
   min-height: 52px;
 }
 
@@ -4835,10 +4835,10 @@ a {
   gap: 3px;
   width: 46px;
   height: 46px;
-  border: 0;
-  border-radius: 13px;
-  background: var(--edition-purple);
-  box-shadow: 0 8px 22px rgba(108, 92, 231, 0.2);
+  border: 1px solid #494653;
+  border-radius: 11px;
+  background: #181720;
+  box-shadow: none;
   cursor: pointer;
 }
 
@@ -4858,7 +4858,9 @@ a {
 }
 
 .blog-reading-navigation {
+  width: 220px;
   margin-top: 34px;
+  margin-left: 120px;
   opacity: 1;
   transform: translateX(0);
   transition: opacity 0.18s ease, transform 0.18s ease;
@@ -4867,7 +4869,7 @@ a {
 .blog-reading-layout.navigation-collapsed .blog-reading-navigation {
   visibility: hidden;
   opacity: 0;
-  transform: translateX(-10px);
+  transform: translateX(-18px);
 }
 
 .blog-reading-navigation-title {
