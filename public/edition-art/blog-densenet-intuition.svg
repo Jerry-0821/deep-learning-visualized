@@ -1,0 +1,49 @@
+<svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow-dense" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#00b894"/>
+    </marker>
+    <linearGradient id="dense-blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef5ff"/>
+      <stop offset="1" stop-color="#f9fbff"/>
+    </linearGradient>
+    <linearGradient id="dense-teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e9fbf8"/>
+      <stop offset="1" stop-color="#f9fffd"/>
+    </linearGradient>
+    <linearGradient id="dense-green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0fae9"/>
+      <stop offset="1" stop-color="#fbfff8"/>
+    </linearGradient>
+    <linearGradient id="dense-purple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4efff"/>
+      <stop offset="1" stop-color="#fbf9ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="22" y="26" width="58" height="86" rx="14" fill="url(#dense-blue)" stroke="#6c8ff5" stroke-width="1.8"/>
+  <rect x="118" y="26" width="58" height="86" rx="14" fill="url(#dense-teal)" stroke="#00b894" stroke-width="1.8"/>
+  <rect x="214" y="26" width="58" height="86" rx="14" fill="url(#dense-green)" stroke="#75a95b" stroke-width="1.8"/>
+
+  <text x="51" y="55" text-anchor="middle" fill="#6c5ce7" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="800">L0</text>
+  <text x="147" y="55" text-anchor="middle" fill="#00a98f" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="800">L1</text>
+  <text x="243" y="55" text-anchor="middle" fill="#5f8a44" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="800">L2</text>
+
+  <rect x="39" y="72" width="24" height="26" rx="5" fill="#dbeafe" stroke="#6c8ff5"/>
+  <rect x="130" y="72" width="18" height="26" rx="5" fill="#dbeafe" stroke="#6c8ff5"/>
+  <rect x="151" y="72" width="18" height="26" rx="5" fill="#cff7ef" stroke="#00b894"/>
+  <rect x="224" y="72" width="14" height="26" rx="4" fill="#dbeafe" stroke="#6c8ff5"/>
+  <rect x="241" y="72" width="14" height="26" rx="4" fill="#cff7ef" stroke="#00b894"/>
+  <rect x="258" y="72" width="14" height="26" rx="4" fill="#e2f3d9" stroke="#75a95b"/>
+
+  <path d="M80 70 H112" stroke="#00b894" stroke-width="2" marker-end="url(#arrow-dense)"/>
+  <path d="M176 70 H208" stroke="#00b894" stroke-width="2" marker-end="url(#arrow-dense)"/>
+  <path d="M58 116 C90 142, 144 142, 224 116" stroke="#6c5ce7" stroke-width="1.7" stroke-dasharray="4 5" opacity="0.75"/>
+  <path d="M150 116 C172 133, 207 133, 248 116" stroke="#00b894" stroke-width="1.7" stroke-dasharray="4 5" opacity="0.75"/>
+
+  <rect x="272" y="66" width="14" height="40" rx="5" fill="url(#dense-purple)" stroke="#a29bfe"/>
+  <rect x="291" y="58" width="14" height="48" rx="5" fill="url(#dense-purple)" stroke="#a29bfe"/>
+  <path d="M272 86 H264" stroke="#00b894" stroke-width="2" marker-end="url(#arrow-dense)"/>
+
+  <text x="160" y="135" text-anchor="middle" fill="#5f5a78" font-size="10" font-family="Inter, Arial, sans-serif" font-weight="700">concatenate old features + add new ones</text>
+</svg>
