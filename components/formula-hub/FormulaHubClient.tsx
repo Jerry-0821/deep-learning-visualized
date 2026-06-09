@@ -8,6 +8,7 @@ import {
   formulaHubEntryAliasesById,
   formulaHubEntries,
   formulaHubEntriesById,
+  getFormulaRelationGroups,
   searchFormulaEntries,
   type FormulaCategory,
   type FormulaEntryType,
@@ -575,6 +576,7 @@ function FormulaDrawerContent({
     .map((id) => formulaHubEntriesById[id])
     .filter(Boolean)
     .slice(0, 3);
+  const relationGroups = getFormulaRelationGroups(entry);
   const steps = entry.steps ?? [];
 
   return (
@@ -648,7 +650,32 @@ function FormulaDrawerContent({
         ))}
       </div>
 
-      {relatedEntries.length > 0 ? (
+      {relationGroups.length > 0 ? (
+        <>
+          <div className="dsec">Connection Map</div>
+          <div className="connection-map">
+            {relationGroups.map((group) => (
+              <div className="connection-group" key={`${entry.id}-${group.type}`}>
+                <div className="connection-type">{group.label}</div>
+                {group.relations.map((relation) => (
+                  <button
+                    className="connection-row"
+                    key={`${entry.id}-${relation.type}-${relation.targetId}`}
+                    type="button"
+                    onClick={() => onSelectRelated(relation.targetId)}
+                  >
+                    <div>
+                      <div className="connection-name">{relation.target.title}</div>
+                      {relation.label ? <div className="connection-note">{relation.label}</div> : null}
+                    </div>
+                    <span className="rel-arrow">&gt;</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </>
+      ) : relatedEntries.length > 0 ? (
         <>
           <div className="dsec">
             <div className="related-header">

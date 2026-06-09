@@ -25,10 +25,11 @@ const topicCount = (topicDefinitionSection.match(/\n\s+\{\n\s+id: /g) ?? []).len
 assert.ok(topicCount >= 50, "Formula Hub should expose PDF-node formula topics, not a tiny formula sample.");
 
 assert.ok(
-  topicModel.includes('id: "adam-update-rule"') &&
+    topicModel.includes('id: "adam-update-rule"') &&
     topicModel.includes('title: "Adam Optimization Flow"') &&
-    topicModel.includes('id: "adam-bias-correction-m"') &&
-    topicModel.includes('id: "adam-bias-correction-v"'),
+    topicModel.includes('id: "adam-first-moment-bias-correction"') &&
+    topicModel.includes('id: "adam-second-moment-bias-correction"') &&
+    topicModel.includes('id: "adam-parameter-update"'),
   "Adam should be a full Formula Topic with explicit bias-correction steps.",
 );
 
@@ -54,6 +55,7 @@ assert.ok(
 
 const requiredTopicIds = [
   "dense-layer-weight-gradient",
+  "optimizer-family-core",
   "adam-update-rule",
   "rmsprop-update-rule",
   "momentum-update-rule",

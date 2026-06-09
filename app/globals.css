@@ -4755,6 +4755,49 @@ a {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.formula-page-connections {
+  display: grid;
+  gap: 18px;
+}
+
+.formula-page-connection-group h3 {
+  margin: 0 0 10px;
+  color: var(--edition-purple);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.formula-page-connection-group > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.formula-page-connection-group a {
+  border: 1px solid rgba(118, 101, 188, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--edition-copy);
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.formula-page-connection-group a span {
+  display: block;
+  color: var(--edition-text);
+  font-weight: 700;
+}
+
+.formula-page-connection-group a small {
+  display: block;
+  margin-top: 6px;
+  color: var(--edition-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .formula-page-related a,
 .formula-page-link-row a {
   border: 1px solid rgba(118, 101, 188, 0.12);
@@ -4795,6 +4838,10 @@ a {
   }
 
   .formula-page-related {
+    grid-template-columns: 1fr;
+  }
+
+  .formula-page-connection-group > div {
     grid-template-columns: 1fr;
   }
 }
@@ -6332,6 +6379,64 @@ a {
 .formula-v6-root .related {
   display: flex;
   flex-direction: column;
+}
+
+.formula-v6-root .connection-map {
+  display: grid;
+  gap: 12px;
+}
+
+.formula-v6-root .connection-group {
+  border-bottom: 1px solid rgba(108, 92, 231, 0.06);
+  padding-bottom: 8px;
+}
+
+.formula-v6-root .connection-group:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.formula-v6-root .connection-type {
+  margin-bottom: 5px;
+  color: var(--purple);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.formula-v6-root .connection-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  padding: 7px 0;
+  text-align: left;
+  transition: opacity 0.12s, background 0.12s;
+}
+
+.formula-v6-root .connection-row:hover {
+  background: rgba(108, 92, 231, 0.035);
+  opacity: 0.75;
+}
+
+.formula-v6-root .connection-name {
+  color: var(--copy);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.formula-v6-root .connection-note {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.35;
 }
 
 .formula-v6-root .rel-row {

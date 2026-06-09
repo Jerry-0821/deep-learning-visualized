@@ -10,6 +10,7 @@ import {
   formulaHubEntries,
   formulaHubEntriesById,
   getFormulaBlogLinks,
+  getFormulaRelationGroups,
   getFormulaTopicLinks,
   type FormulaHubEntry,
 } from "@/data/formulaHub";
@@ -61,6 +62,7 @@ function FormulaShapeText({ value }: { value: string }) {
 
 function FormulaDetailPageBody({ entry }: { entry: FormulaHubEntry }) {
   const relatedEntries = entry.relatedFormulaIds.map((id) => formulaHubEntriesById[id]).filter(Boolean).slice(0, 6);
+  const relationGroups = getFormulaRelationGroups(entry);
   const topicLinks = getFormulaTopicLinks(entry);
   const blogLinks = getFormulaBlogLinks(entry);
 
@@ -72,6 +74,7 @@ function FormulaDetailPageBody({ entry }: { entry: FormulaHubEntry }) {
         {entry.steps && entry.steps.length > 1 ? <a href="#formula-flow">Formula flow</a> : null}
         {entry.shape ? <a href="#formula-shape">Shape check</a> : null}
         <a href="#formula-symbols-detail">Symbols</a>
+        {relationGroups.length > 0 ? <a href="#formula-connections">Connections</a> : null}
         {relatedEntries.length > 0 ? <a href="#formula-related">Related</a> : null}
       </aside>
 
@@ -156,6 +159,30 @@ function FormulaDetailPageBody({ entry }: { entry: FormulaHubEntry }) {
             ))}
           </div>
         </section>
+
+        {relationGroups.length > 0 ? (
+          <section className="formula-page-section" id="formula-connections">
+            <div className="formula-page-section-heading">
+              <p>Connection Map</p>
+              <span>{relationGroups.reduce((total, group) => total + group.relations.length, 0)} links</span>
+            </div>
+            <div className="formula-page-connections">
+              {relationGroups.map((group) => (
+                <div className="formula-page-connection-group" key={`${entry.id}-${group.type}`}>
+                  <h3>{group.label}</h3>
+                  <div>
+                    {group.relations.map((relation) => (
+                      <Link key={`${entry.id}-${relation.type}-${relation.targetId}`} href={`/formula-hub/${relation.targetId}`}>
+                        <span>{relation.target.title}</span>
+                        {relation.label ? <small>{relation.label}</small> : null}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {relatedEntries.length > 0 ? (
           <section className="formula-page-section" id="formula-related">
