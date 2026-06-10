@@ -477,6 +477,235 @@
     "relatedFormulaIds": ["momentum-update-rule", "rmsprop-update-rule", "sgd-update"]
   },
   {
+    "id": "initialization-parameter-shapes",
+    "title": "Initialization Parameter Shapes",
+    "category": "Initialization",
+    "type": "shape",
+    "useCase": "Initialization",
+    "latex": "W^{[l]}\\in\\mathbb{R}^{n^{[l]}\\times n^{[l-1]}},\\quad b^{[l]}\\in\\mathbb{R}^{n^{[l]}\\times 1},\\quad fan_{in}=n^{[l-1]},\\ fan_{out}=n^{[l]}",
+    "plainTextFormula": "W[l] shape n[l] x n[l-1], b[l] shape n[l] x 1, fan_in = n[l-1], fan_out = n[l]",
+    "description": "Defines the layer-wise weight, bias, fan-in, and fan-out shapes used by all initialization rules.",
+    "aliases": ["initialization shapes", "fan in", "fan out", "weight initialization shape", "parameter shape"],
+    "symbols": [
+      { "symbol": "W^{[l]}", "meaning": "Layer l weights", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["W[l]"] },
+      { "symbol": "b^{[l]}", "meaning": "Layer l bias", "shape": "n^{[l]} \\times 1", "aliases": ["b[l]"] },
+      { "symbol": "fan_{in}", "meaning": "Input width of the layer", "shape": "n^{[l-1]}", "aliases": ["fan in"] },
+      { "symbol": "fan_{out}", "meaning": "Output width of the layer", "shape": "n^{[l]}", "aliases": ["fan out"] }
+    ],
+    "shape": { "input": ["layer widths n^{[l-1]} and n^{[l]}"], "output": "W^{[l]} and b^{[l]} shapes", "explanation": "Initialization samples one value for every trainable weight and bias entry." },
+    "topicSlugs": ["neuron-structure"],
+    "blogSlugs": [],
+    "pdfSection": "8.1 Parameter Shapes",
+    "pdfPage": 15,
+    "relatedFormulaIds": ["small-random-initialization", "dense-parameter-count"]
+  },
+  {
+    "id": "zero-initialization",
+    "title": "Zero Initialization",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "Initialization warning",
+    "latex": "W^{[l]}=0,\\quad b^{[l]}=0",
+    "plainTextFormula": "W[l] = 0, b[l] = 0",
+    "description": "A reference initialization that is safe for biases but causes a hidden-unit symmetry problem when all hidden-layer weight matrices start at zero.",
+    "aliases": ["zero init", "zero weights", "symmetry problem", "hidden unit symmetry"],
+    "symbols": [
+      { "symbol": "W^{[l]}", "meaning": "Layer l weights", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["weights"] },
+      { "symbol": "b^{[l]}", "meaning": "Layer l bias", "shape": "n^{[l]} \\times 1", "aliases": ["bias"] }
+    ],
+    "shape": { "input": ["W^{[l]} and b^{[l]} parameter shapes"], "output": "all parameter entries set to zero", "explanation": "The tensor shapes are valid, but hidden-layer weights should not all share the same initial value." },
+    "topicSlugs": ["neuron-structure"],
+    "blogSlugs": [],
+    "pdfSection": "8.2 Zero Initialization",
+    "pdfPage": 15,
+    "relatedFormulaIds": ["small-random-initialization", "bias-initialization"]
+  },
+  {
+    "id": "small-random-initialization",
+    "title": "Small Random Initialization",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "Symmetry breaking",
+    "latex": "W^{[l]}\\sim\\mathcal{N}(0,\\sigma^2),\\quad b^{[l]}=0",
+    "plainTextFormula": "W[l] sampled from N(0, sigma^2), b[l] = 0",
+    "description": "Samples small random weights to break hidden-unit symmetry while keeping biases at zero.",
+    "aliases": ["small random weights", "random initialization", "gaussian initialization", "symmetry breaking"],
+    "symbols": [
+      { "symbol": "\\sigma^2", "meaning": "Initialization variance", "shape": "scalar", "aliases": ["variance"] },
+      { "symbol": "W^{[l]}", "meaning": "Layer l weights", "shape": "n^{[l]} \\times n^{[l-1]}" },
+      { "symbol": "b^{[l]}", "meaning": "Layer l bias", "shape": "n^{[l]} \\times 1" }
+    ],
+    "shape": { "input": ["W^{[l]} parameter shape"], "output": "random W^{[l]} with same shape", "explanation": "Random sampling changes initial values while preserving the layer's parameter dimensions." },
+    "topicSlugs": ["neuron-structure"],
+    "blogSlugs": [],
+    "pdfSection": "8.3 Small Random Initialization",
+    "pdfPage": 16,
+    "relatedFormulaIds": ["xavier-glorot-variance", "he-variance", "zero-initialization"]
+  },
+  {
+    "id": "xavier-glorot-variance",
+    "title": "Xavier / Glorot Variance",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "Tanh or sigmoid-style initialization",
+    "latex": "\\operatorname{Var}(W^{[l]})=\\frac{2}{fan_{in}+fan_{out}}",
+    "plainTextFormula": "Var(W[l]) = 2 / (fan_in + fan_out)",
+    "description": "Chooses variance using both fan-in and fan-out to stabilize signal scale in tanh or sigmoid-style networks.",
+    "aliases": ["xavier", "glorot", "glorot variance", "xavier variance"],
+    "symbols": [
+      { "symbol": "fan_{in}", "meaning": "Input width", "shape": "n^{[l-1]}", "aliases": ["fan in"] },
+      { "symbol": "fan_{out}", "meaning": "Output width", "shape": "n^{[l]}", "aliases": ["fan out"] }
+    ],
+    "shape": { "input": ["fan_{in}, fan_{out}: scalar layer widths"], "output": "variance scalar", "explanation": "The variance parameter controls the distribution used to sample the whole weight matrix." },
+    "topicSlugs": ["activation-functions-comparison"],
+    "blogSlugs": [],
+    "pdfSection": "8.4 Xavier / Glorot Initialization",
+    "pdfPage": 16,
+    "relatedFormulaIds": ["xavier-normal-initialization", "xavier-uniform-initialization", "he-variance"]
+  },
+  {
+    "id": "xavier-normal-initialization",
+    "title": "Xavier Normal Initialization",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "Normal Xavier initialization",
+    "latex": "W^{[l]}\\sim\\mathcal{N}\\left(0,\\frac{2}{fan_{in}+fan_{out}}\\right)",
+    "plainTextFormula": "W[l] sampled from N(0, 2/(fan_in + fan_out))",
+    "description": "Samples weights from a normal distribution using the Glorot variance.",
+    "aliases": ["xavier normal", "glorot normal"],
+    "symbols": [
+      { "symbol": "W^{[l]}", "meaning": "Layer l weights", "shape": "n^{[l]} \\times n^{[l-1]}" }
+    ],
+    "shape": { "input": ["W^{[l]} parameter shape"], "output": "normal Xavier weight matrix", "explanation": "Every weight entry is sampled independently with the Xavier variance." },
+    "topicSlugs": ["activation-functions-comparison"],
+    "blogSlugs": [],
+    "pdfSection": "8.4 Xavier / Glorot Initialization",
+    "pdfPage": 16,
+    "relatedFormulaIds": ["xavier-glorot-variance", "xavier-uniform-initialization"]
+  },
+  {
+    "id": "xavier-uniform-initialization",
+    "title": "Xavier Uniform Initialization",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "Uniform Xavier initialization",
+    "latex": "W^{[l]}\\sim\\mathcal{U}\\left(-\\sqrt{\\frac{6}{fan_{in}+fan_{out}}},\\sqrt{\\frac{6}{fan_{in}+fan_{out}}}\\right)",
+    "plainTextFormula": "W[l] sampled from U(-sqrt(6/(fan_in+fan_out)), sqrt(6/(fan_in+fan_out)))",
+    "description": "Samples weights from the uniform Xavier / Glorot interval.",
+    "aliases": ["xavier uniform", "glorot uniform"],
+    "symbols": [
+      { "symbol": "\\mathcal{U}", "meaning": "Uniform distribution", "shape": "distribution", "aliases": ["uniform"] },
+      { "symbol": "W^{[l]}", "meaning": "Layer l weights", "shape": "n^{[l]} \\times n^{[l-1]}" }
+    ],
+    "shape": { "input": ["fan_{in}, fan_{out}: scalar layer widths"], "output": "uniform Xavier weight matrix", "explanation": "The interval is chosen so the sampled weights have the Xavier variance scale." },
+    "topicSlugs": ["activation-functions-comparison"],
+    "blogSlugs": [],
+    "pdfSection": "8.4 Xavier / Glorot Initialization",
+    "pdfPage": 16,
+    "relatedFormulaIds": ["xavier-glorot-variance", "xavier-normal-initialization"]
+  },
+  {
+    "id": "xavier-simplified-variance",
+    "title": "Course Simplified Xavier Variance",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "Course-style Xavier convention",
+    "latex": "\\operatorname{Var}(W^{[l]})=\\frac{1}{fan_{in}}",
+    "plainTextFormula": "Var(W[l]) = 1 / fan_in",
+    "description": "A simplified Xavier-style convention used in some course notes.",
+    "aliases": ["simplified xavier", "course xavier", "1 over fan in"],
+    "symbols": [
+      { "symbol": "fan_{in}", "meaning": "Input width", "shape": "n^{[l-1]}", "aliases": ["fan in"] }
+    ],
+    "shape": { "input": ["fan_{in}: scalar input width"], "output": "variance scalar", "explanation": "The simplified rule depends only on the number of incoming units." },
+    "topicSlugs": ["activation-functions-comparison"],
+    "blogSlugs": [],
+    "pdfSection": "8.4 Xavier / Glorot Initialization",
+    "pdfPage": 16,
+    "relatedFormulaIds": ["xavier-glorot-variance"]
+  },
+  {
+    "id": "he-variance",
+    "title": "He Initialization Variance",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "ReLU-style initialization",
+    "latex": "\\operatorname{Var}(W^{[l]})=\\frac{2}{fan_{in}}",
+    "plainTextFormula": "Var(W[l]) = 2 / fan_in",
+    "description": "Chooses variance using fan-in for ReLU-style hidden layers.",
+    "aliases": ["he initialization", "kaiming initialization", "relu initialization", "he variance"],
+    "symbols": [
+      { "symbol": "fan_{in}", "meaning": "Input width", "shape": "n^{[l-1]}", "aliases": ["fan in"] }
+    ],
+    "shape": { "input": ["fan_{in}: scalar input width"], "output": "variance scalar", "explanation": "The variance scale is larger than simplified Xavier to match ReLU-style activations." },
+    "topicSlugs": ["activation-functions-comparison"],
+    "blogSlugs": [],
+    "pdfSection": "8.5 He Initialization",
+    "pdfPage": 16,
+    "relatedFormulaIds": ["he-normal-initialization", "he-scaled-random-matrix", "relu-activation"]
+  },
+  {
+    "id": "he-normal-initialization",
+    "title": "He Normal Initialization",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "Normal He initialization",
+    "latex": "W^{[l]}\\sim\\mathcal{N}\\left(0,\\frac{2}{fan_{in}}\\right)",
+    "plainTextFormula": "W[l] sampled from N(0, 2/fan_in)",
+    "description": "Samples ReLU-style weights from a normal distribution with He variance.",
+    "aliases": ["he normal", "kaiming normal"],
+    "symbols": [
+      { "symbol": "W^{[l]}", "meaning": "Layer l weights", "shape": "n^{[l]} \\times n^{[l-1]}" }
+    ],
+    "shape": { "input": ["W^{[l]} parameter shape"], "output": "normal He weight matrix", "explanation": "Every weight entry is sampled independently with He variance." },
+    "topicSlugs": ["activation-functions-comparison"],
+    "blogSlugs": [],
+    "pdfSection": "8.5 He Initialization",
+    "pdfPage": 16,
+    "relatedFormulaIds": ["he-variance", "he-scaled-random-matrix"]
+  },
+  {
+    "id": "he-scaled-random-matrix",
+    "title": "He Scaled Random Matrix",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "Standard-deviation form",
+    "latex": "W^{[l]}=\\sqrt{\\frac{2}{n^{[l-1]}}}R^{[l]},\\quad R^{[l]}\\sim\\mathcal{N}(0,1)",
+    "plainTextFormula": "W[l] = sqrt(2/n[l-1]) R[l], R[l] sampled from N(0,1)",
+    "description": "Writes He initialization as a scaled standard-normal random matrix.",
+    "aliases": ["he scaled random matrix", "sqrt 2 over n", "kaiming scaled random"],
+    "symbols": [
+      { "symbol": "R^{[l]}", "meaning": "Standard normal random matrix", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["random matrix"] },
+      { "symbol": "n^{[l-1]}", "meaning": "Number of units in the previous layer", "shape": "scalar", "aliases": ["fan in"] }
+    ],
+    "shape": { "input": ["R^{[l]}: n^{[l]} \\times n^{[l-1]}"], "output": "W^{[l]}: same shape as R^{[l]}", "explanation": "The scalar scale factor changes variance but not matrix shape." },
+    "topicSlugs": ["activation-functions-comparison"],
+    "blogSlugs": [],
+    "pdfSection": "8.5 He Initialization",
+    "pdfPage": 16,
+    "relatedFormulaIds": ["he-variance", "he-normal-initialization"]
+  },
+  {
+    "id": "bias-initialization",
+    "title": "Bias Initialization",
+    "category": "Initialization",
+    "type": "formula",
+    "useCase": "Bias initialization",
+    "latex": "b^{[l]}=0,\\quad b^{[l]}\\in\\mathbb{R}^{n^{[l]}\\times 1}",
+    "plainTextFormula": "b[l] = 0, b[l] shape n[l] x 1",
+    "description": "Initializes biases to zero; random weights already break hidden-unit symmetry.",
+    "aliases": ["bias init", "bias zero initialization", "b equals zero"],
+    "symbols": [
+      { "symbol": "b^{[l]}", "meaning": "Layer l bias", "shape": "n^{[l]} \\times 1", "aliases": ["bias"] }
+    ],
+    "shape": { "input": ["layer width n^{[l]}"], "output": "b^{[l]}: n^{[l]} \\times 1", "explanation": "Bias initialization preserves the layer's bias-column shape." },
+    "topicSlugs": ["neuron-structure"],
+    "blogSlugs": [],
+    "pdfSection": "8.6 Bias Initialization",
+    "pdfPage": 17,
+    "relatedFormulaIds": ["small-random-initialization", "zero-initialization"]
+  },
+  {
     "id": "l2-regularized-cost",
     "title": "L2 Regularized Cost",
     "category": "Regularization",
@@ -484,18 +713,88 @@
     "useCase": "Regularization",
     "latex": "J_{reg}=J+\\frac{\\lambda}{2m}\\sum_{l=1}^{L}\\lVert W^{[l]}\\rVert_F^2",
     "plainTextFormula": "J_reg = J + lambda/(2m) sum_l ||W[l]||_F^2",
-    "description": "Adds a weight-size penalty to discourage overly large parameters.",
+    "description": "Adds a weight-size penalty to discourage overly large parameters; bias terms are usually not included.",
     "aliases": ["L2 regularization", "weight decay objective", "regularized cost"],
     "symbols": [
       { "symbol": "\\lambda", "meaning": "Regularization strength", "shape": "scalar", "aliases": ["lambda"] },
-      { "symbol": "W^{[l]}", "meaning": "Layer weights", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["weights"] }
+      { "symbol": "W^{[l]}", "meaning": "Layer weights", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["weights"] },
+      { "symbol": "\\lVert W^{[l]}\\rVert_F^2", "meaning": "Squared Frobenius norm of layer weights", "shape": "scalar", "aliases": ["weight norm", "Frobenius norm"] }
     ],
     "shape": { "input": ["W^{[l]}: layer weight matrices"], "output": "J_{reg}: scalar", "explanation": "All layer penalties are summed into one scalar cost." },
     "topicSlugs": ["overfitting-vs-underfitting"],
     "blogSlugs": [],
     "pdfSection": "9.1 L2 Regularized Cost",
     "pdfPage": 17,
-    "relatedFormulaIds": ["bias-variance-decomposition"]
+    "relatedFormulaIds": ["l2-gradient-term", "l2-weight-decay-update", "bias-variance-decomposition"]
+  },
+  {
+    "id": "l2-gradient-term",
+    "title": "L2 Regularized Weight Gradient",
+    "category": "Regularization",
+    "type": "derivative",
+    "useCase": "L2 regularization",
+    "latex": "dW^{[l]}_{reg}=dW^{[l]}+\\frac{\\lambda}{m}W^{[l]}",
+    "plainTextFormula": "dW_reg[l] = dW[l] + lambda/m W[l]",
+    "description": "Adds the derivative of the L2 weight penalty to the ordinary weight gradient.",
+    "aliases": ["L2 gradient", "regularized dW", "lambda over m W"],
+    "symbols": [
+      { "symbol": "dW^{[l]}_{reg}", "meaning": "Regularized weight gradient", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["regularized dW"] },
+      { "symbol": "dW^{[l]}", "meaning": "Unregularized weight gradient", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["dW"] },
+      { "symbol": "\\lambda", "meaning": "Regularization strength", "shape": "scalar", "aliases": ["lambda"] },
+      { "symbol": "m", "meaning": "Batch size", "shape": "scalar", "aliases": ["number of examples"] },
+      { "symbol": "W^{[l]}", "meaning": "Layer weights", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["weights"] }
+    ],
+    "shape": { "input": ["dW^{[l]}: n^{[l]} \\times n^{[l-1]}", "W^{[l]}: n^{[l]} \\times n^{[l-1]}"], "output": "dW^{[l]}_{reg}: n^{[l]} \\times n^{[l-1]}", "explanation": "The penalty term has the same shape as dW, so the gradient shape is preserved." },
+    "topicSlugs": ["overfitting-vs-underfitting", "gradient-descent-learning-rate"],
+    "blogSlugs": [],
+    "pdfSection": "9.2 L2 Gradient Term",
+    "pdfPage": 17,
+    "relatedFormulaIds": ["l2-regularized-cost", "l2-weight-decay-update", "dense-layer-weight-gradient"]
+  },
+  {
+    "id": "l2-weight-decay-update",
+    "title": "L2 Weight Decay Update",
+    "category": "Regularization",
+    "type": "update-rule",
+    "useCase": "Weight decay",
+    "latex": "W^{[l]}\\leftarrow W^{[l]}-\\alpha\\left(dW^{[l]}+\\frac{\\lambda}{m}W^{[l]}\\right)",
+    "plainTextFormula": "W[l] <- W[l] - alpha (dW[l] + lambda/m W[l])",
+    "description": "Applies the regularized gradient inside the weight update.",
+    "aliases": ["weight decay update", "L2 update rule", "L2 gradient descent update"],
+    "symbols": [
+      { "symbol": "W^{[l]}", "meaning": "Layer weights", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["weights"] },
+      { "symbol": "\\alpha", "meaning": "Learning rate", "shape": "scalar", "aliases": ["learning rate"] },
+      { "symbol": "dW^{[l]}", "meaning": "Unregularized weight gradient", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["dW"] },
+      { "symbol": "\\lambda", "meaning": "Regularization strength", "shape": "scalar", "aliases": ["lambda"] }
+    ],
+    "shape": { "input": ["W^{[l]}: n^{[l]} \\times n^{[l-1]}", "dW^{[l]}: n^{[l]} \\times n^{[l-1]}"], "output": "updated W^{[l]}: same shape", "explanation": "The update changes values but preserves the weight matrix shape." },
+    "topicSlugs": ["overfitting-vs-underfitting", "gradient-descent-learning-rate"],
+    "blogSlugs": [],
+    "pdfSection": "9.3 Weight Decay Form",
+    "pdfPage": 17,
+    "relatedFormulaIds": ["l2-gradient-term", "l2-weight-decay-shrinkage", "gradient-descent-update"]
+  },
+  {
+    "id": "l2-weight-decay-shrinkage",
+    "title": "Equivalent L2 Shrinkage Form",
+    "category": "Regularization",
+    "type": "update-rule",
+    "useCase": "Weight shrinkage",
+    "latex": "W^{[l]}\\leftarrow\\left(1-\\alpha\\frac{\\lambda}{m}\\right)W^{[l]}-\\alpha dW^{[l]}",
+    "plainTextFormula": "W[l] <- (1 - alpha lambda/m) W[l] - alpha dW[l]",
+    "description": "Shows L2 regularization as a multiplicative shrinkage of weights before the ordinary gradient step.",
+    "aliases": ["weight shrinkage", "decay factor", "multiplicative weight decay"],
+    "symbols": [
+      { "symbol": "1-\\alpha\\frac{\\lambda}{m}", "meaning": "Weight shrinkage factor", "shape": "scalar", "aliases": ["decay factor"] },
+      { "symbol": "W^{[l]}", "meaning": "Layer weights", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["weights"] },
+      { "symbol": "dW^{[l]}", "meaning": "Unregularized weight gradient", "shape": "n^{[l]} \\times n^{[l-1]}", "aliases": ["dW"] }
+    ],
+    "shape": { "input": ["W^{[l]}: n^{[l]} \\times n^{[l-1]}", "dW^{[l]}: n^{[l]} \\times n^{[l-1]}"], "output": "updated W^{[l]}: same shape", "explanation": "The scalar shrinkage factor broadcasts over every weight entry." },
+    "topicSlugs": ["overfitting-vs-underfitting", "gradient-descent-learning-rate"],
+    "blogSlugs": [],
+    "pdfSection": "9.3 Weight Decay Form",
+    "pdfPage": 18,
+    "relatedFormulaIds": ["l2-weight-decay-update", "l2-regularized-cost", "gradient-descent-update"]
   },
   {
     "id": "dropout-mask",
@@ -503,20 +802,20 @@
     "category": "Regularization",
     "type": "formula",
     "useCase": "Dropout",
-    "latex": "r_i^{[l]}\\sim\\operatorname{Bernoulli}(1-p)",
-    "plainTextFormula": "r_i[l] sampled from Bernoulli(1-p)",
+    "latex": "D^{[l]}\\sim\\operatorname{Bernoulli}(p_{keep}),\\quad D^{[l]}\\in\\{0,1\\}^{n^{[l]}\\times m}",
+    "plainTextFormula": "D[l] sampled from Bernoulli(p_keep), D[l] shape n[l] x m",
     "description": "Samples which units survive dropout during training.",
-    "aliases": ["dropout mask", "Bernoulli keep mask", "random neuron masking"],
+    "aliases": ["dropout mask", "Bernoulli keep mask", "random neuron masking", "keep probability"],
     "symbols": [
-      { "symbol": "r_i^{[l]}", "meaning": "Dropout mask value for one unit", "shape": "0 or 1", "aliases": ["mask"] },
-      { "symbol": "p", "meaning": "Dropout probability", "shape": "scalar", "aliases": ["dropout rate"] }
+      { "symbol": "D^{[l]}", "meaning": "Dropout mask for layer l", "shape": "{0,1}^{n^{[l]} \\times m}", "aliases": ["mask"] },
+      { "symbol": "p_{keep}", "meaning": "Probability that an activation is kept", "shape": "scalar in (0,1]", "aliases": ["keep probability", "1 - dropout rate"] }
     ],
-    "shape": { "input": ["A^{[l]}: activation tensor"], "output": "r^{[l]}: same shape as A^{[l]}", "explanation": "The mask has one keep/drop value per activation." },
+    "shape": { "input": ["A^{[l]}: n^{[l]} \\times m"], "output": "D^{[l]}: n^{[l]} \\times m", "explanation": "The mask has one keep/drop value per activation." },
     "topicSlugs": ["dropout", "overfitting-vs-underfitting"],
     "blogSlugs": [],
     "pdfSection": "9.4 Dropout Mask",
     "pdfPage": 18,
-    "relatedFormulaIds": ["inverted-dropout-forward"]
+    "relatedFormulaIds": ["inverted-dropout-forward", "dropout-training-scaling"]
   },
   {
     "id": "inverted-dropout-forward",
@@ -524,20 +823,107 @@
     "category": "Regularization",
     "type": "formula",
     "useCase": "Dropout",
-    "latex": "\\tilde{A}^{[l]}=\\frac{r^{[l]}\\odot A^{[l]}}{1-p}",
-    "plainTextFormula": "A_tilde[l] = r[l] * A[l] / (1-p)",
+    "latex": "\\tilde{A}^{[l]}=D^{[l]}\\odot A^{[l]},\\quad A^{[l]}_{drop}=\\frac{\\tilde{A}^{[l]}}{p_{keep}}=\\frac{D^{[l]}\\odot A^{[l]}}{p_{keep}}",
+    "plainTextFormula": "A_tilde[l] = D[l] * A[l], A_drop[l] = D[l] * A[l] / p_keep",
     "description": "Scales surviving activations during training so inference needs no extra scaling.",
     "aliases": ["inverted dropout", "dropout scaling", "keep probability scaling"],
     "symbols": [
-      { "symbol": "\\tilde{A}^{[l]}", "meaning": "Dropout-adjusted activations", "shape": "same as A^{[l]}", "aliases": ["A tilde"] },
-      { "symbol": "r^{[l]}", "meaning": "Dropout mask", "shape": "same as A^{[l]}", "aliases": ["mask"] }
+      { "symbol": "\\tilde{A}^{[l]}", "meaning": "Masked activations before inverted scaling", "shape": "n^{[l]} \\times m", "aliases": ["A tilde"] },
+      { "symbol": "A^{[l]}_{drop}", "meaning": "Dropout-scaled activations", "shape": "n^{[l]} \\times m", "aliases": ["dropout activation"] },
+      { "symbol": "D^{[l]}", "meaning": "Dropout mask", "shape": "n^{[l]} \\times m", "aliases": ["mask"] },
+      { "symbol": "p_{keep}", "meaning": "Keep probability", "shape": "scalar", "aliases": ["keep probability"] }
     ],
-    "shape": { "input": ["r^{[l]}: n^{[l]} \\times m", "A^{[l]}: n^{[l]} \\times m"], "output": "\\tilde{A}^{[l]}: n^{[l]} \\times m", "explanation": "Elementwise masking and scaling preserve activation shape." },
+    "shape": { "input": ["D^{[l]}: n^{[l]} \\times m", "A^{[l]}: n^{[l]} \\times m"], "output": "A^{[l]}_{drop}: n^{[l]} \\times m", "explanation": "Elementwise masking and scaling preserve activation shape." },
     "topicSlugs": ["dropout"],
     "blogSlugs": [],
     "pdfSection": "9.5 Inverted Dropout Forward Pass",
     "pdfPage": 18,
-    "relatedFormulaIds": ["dropout-mask", "l2-regularized-cost"]
+    "relatedFormulaIds": ["dropout-mask", "dropout-training-scaling", "dropout-inference-convention"]
+  },
+  {
+    "id": "dropout-training-scaling",
+    "title": "Dropout Training-Time Scaling",
+    "category": "Regularization",
+    "type": "statement",
+    "useCase": "Dropout training",
+    "latex": "A^{[l]}\\leftarrow\\frac{D^{[l]}\\odot A^{[l]}}{p_{keep}}",
+    "plainTextFormula": "A[l] <- D[l] * A[l] / p_keep during training",
+    "description": "Applies inverted dropout during training so the expected activation scale stays aligned with inference.",
+    "aliases": ["dropout during training", "training dropout", "inverted dropout training rule"],
+    "symbols": [
+      { "symbol": "A^{[l]}", "meaning": "Layer activations", "shape": "n^{[l]} \\times m", "aliases": ["activation"] },
+      { "symbol": "D^{[l]}", "meaning": "Dropout mask", "shape": "n^{[l]} \\times m", "aliases": ["mask"] },
+      { "symbol": "p_{keep}", "meaning": "Keep probability", "shape": "scalar", "aliases": ["keep probability"] }
+    ],
+    "shape": { "input": ["D^{[l]}: n^{[l]} \\times m", "A^{[l]}: n^{[l]} \\times m"], "output": "updated A^{[l]}: n^{[l]} \\times m", "explanation": "The training rule changes activation values while preserving the activation matrix shape." },
+    "topicSlugs": ["dropout"],
+    "blogSlugs": [],
+    "pdfSection": "9.6 Dropout Train/Test Convention",
+    "pdfPage": 18,
+    "relatedFormulaIds": ["dropout-mask", "inverted-dropout-forward", "dropout-inference-convention"]
+  },
+  {
+    "id": "dropout-inference-convention",
+    "title": "Dropout Inference Convention",
+    "category": "Regularization",
+    "type": "statement",
+    "useCase": "Dropout inference",
+    "latex": "A^{[l]}_{test}=A^{[l]}",
+    "plainTextFormula": "A_test[l] = A[l]",
+    "description": "Turns dropout off at validation and inference time when using inverted dropout scaling during training.",
+    "aliases": ["dropout test time", "dropout inference", "turn dropout off"],
+    "symbols": [
+      { "symbol": "A^{[l]}_{test}", "meaning": "Inference-time activation", "shape": "n^{[l]} \\times m", "aliases": ["test activation"] },
+      { "symbol": "A^{[l]}", "meaning": "Layer activations", "shape": "n^{[l]} \\times m", "aliases": ["activation"] }
+    ],
+    "shape": { "input": ["A^{[l]}: n^{[l]} \\times m"], "output": "A^{[l]}_{test}: n^{[l]} \\times m", "explanation": "Inference keeps the full activation matrix because train-time scaling already handled expected scale." },
+    "topicSlugs": ["dropout"],
+    "blogSlugs": [],
+    "pdfSection": "9.6 Dropout Train/Test Convention",
+    "pdfPage": 18,
+    "relatedFormulaIds": ["dropout-training-scaling", "inverted-dropout-forward"]
+  },
+  {
+    "id": "early-stopping-rule",
+    "title": "Early Stopping Rule",
+    "category": "Regularization",
+    "type": "statement",
+    "useCase": "Dev-set selection",
+    "latex": "t^*=\\arg\\min_t J_{dev}(t)",
+    "plainTextFormula": "stop at t* = arg min_t J_dev(t)",
+    "description": "Selects the training step with the best dev-set cost instead of continuing until training cost is smallest.",
+    "aliases": ["early stopping", "dev set selection", "best validation step"],
+    "symbols": [
+      { "symbol": "J_{dev}(t)", "meaning": "Dev-set cost at training step t", "shape": "scalar", "aliases": ["validation cost"] },
+      { "symbol": "t^*", "meaning": "Selected stopping step", "shape": "scalar step index", "aliases": ["best step"] }
+    ],
+    "shape": { "input": ["dev cost curve over training steps"], "output": "selected step t^*", "explanation": "Early stopping is a selection rule over scalar dev-set costs, not a tensor operation." },
+    "topicSlugs": ["overfitting-vs-underfitting", "train-dev-test-split"],
+    "blogSlugs": [],
+    "pdfSection": "9.7 Other Regularization Labels",
+    "pdfPage": 18,
+    "relatedFormulaIds": ["bias-variance-decomposition", "data-mismatch-gap", "l2-regularized-cost"]
+  },
+  {
+    "id": "data-augmentation-transform",
+    "title": "Data Augmentation Transform",
+    "category": "Regularization",
+    "type": "statement",
+    "useCase": "Data augmentation",
+    "latex": "(x,y)\\mapsto(T(x),y)",
+    "plainTextFormula": "(x, y) maps to (T(x), y)",
+    "description": "Creates a label-preserving transformed input so the model sees more valid variations of the same target.",
+    "aliases": ["data augmentation", "label preserving transform", "augmentation transform"],
+    "symbols": [
+      { "symbol": "T(x)", "meaning": "Label-preserving transformation of x", "shape": "same task label as x", "aliases": ["transformed input"] },
+      { "symbol": "y", "meaning": "Original label kept unchanged", "shape": "label shape", "aliases": ["label"] }
+    ],
+    "shape": { "input": ["x: input example", "y: label"], "output": "T(x) with the same label y", "explanation": "The input can change, but the supervised target remains the same." },
+    "topicSlugs": ["overfitting-vs-underfitting", "train-dev-test-split"],
+    "blogSlugs": [],
+    "pdfSection": "9.7 Other Regularization Labels",
+    "pdfPage": 18,
+    "relatedFormulaIds": ["bias-variance-decomposition", "early-stopping-rule", "l2-regularized-cost"]
   },
   {
     "id": "bias-variance-decomposition",
