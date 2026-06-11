@@ -7,7 +7,7 @@ export function EditionBackdrop() {
 }
 
 export function EditionNav({ active }: { active: EditionPage }) {
-  const curriculumHref = active === "home" ? "#modules" : "/#modules";
+  const startLearningHref = active === "home" ? "#modules" : "/#modules";
 
   return (
     <nav className="edition-nav" aria-label="Main navigation">
@@ -16,7 +16,7 @@ export function EditionNav({ active }: { active: EditionPage }) {
           Deep <span>Learning</span> Visualized
         </Link>
         <div className="edition-nav-links">
-          <Link className={`edition-nav-link ${active === "home" ? "active" : ""}`} href={curriculumHref}>
+          <Link className={`edition-nav-link ${active === "home" ? "active" : ""}`} href="/">
             Curriculum
           </Link>
           <Link className={`edition-nav-link ${active === "topics" ? "active" : ""}`} href="/topics">
@@ -41,7 +41,7 @@ export function EditionNav({ active }: { active: EditionPage }) {
               <path d="M7 4.75c0-.69.56-1.25 1.25-1.25h7.5c.69 0 1.25.56 1.25 1.25v15.02l-5-3.12-5 3.12V4.75Z" />
             </svg>
           </Link>
-          <Link className="edition-nav-cta" href={curriculumHref}>
+          <Link className="edition-nav-cta" href={startLearningHref}>
             Start learning {"\u2192"}
           </Link>
         </div>
@@ -58,7 +58,7 @@ export function EditionFooter() {
           Deep <span>Learning</span> Visualized
         </div>
         <nav className="edition-footer-links" aria-label="Footer navigation">
-          <Link href="/#modules">Curriculum</Link>
+          <Link href="/">Curriculum</Link>
           <Link href="/topics">Topics</Link>
           <Link href="/formula-hub">Formula Hub</Link>
           <Link href="/blog">Blog</Link>
