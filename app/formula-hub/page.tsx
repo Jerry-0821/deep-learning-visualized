@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Script from "next/script";
 import type { Metadata } from "next";
+import { EditionBackdrop, EditionNav } from "@/components/edition/EditionChrome";
 import { FormulaHubClient } from "@/components/formula-hub/FormulaHubClient";
 import { MathJaxRefresh } from "@/components/blog/MathJaxRefresh";
 
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function FormulaHubPage() {
   return (
-    <main className="formula-v6-root">
+    <main className="edition-root formula-v6-root">
       <Script id="formula-hub-mathjax-config" strategy="beforeInteractive">
         {`
           window.MathJax = {
@@ -29,6 +30,8 @@ export default function FormulaHubPage() {
         strategy="afterInteractive"
       />
       <MathJaxRefresh />
+      <EditionBackdrop />
+      <EditionNav active="formula-hub" />
       <Suspense fallback={<div className="formula-hub-loading">Loading Formula Hub...</div>}>
         <FormulaHubClient />
       </Suspense>

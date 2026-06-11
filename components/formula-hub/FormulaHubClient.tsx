@@ -972,37 +972,6 @@ export function FormulaHubClient() {
 
   return (
     <div className="formula-v6-app">
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link className="brand" href="/">
-            <div className="brand-mark">*</div>
-            Deep <em>Learning</em> Visualized
-          </Link>
-          <div className="nav-links">
-            <Link href="/#curriculum">Curriculum</Link>
-            <Link href="/topics">Topics</Link>
-            <Link className="active" href="/formula-hub">
-              Formula Hub
-            </Link>
-            <Link href="/blog">Blog</Link>
-            <Link href="/mindmap">Mindmap</Link>
-            <Link href="/about">About</Link>
-          </div>
-          <div className="nav-right">
-            <button className="nav-icon" type="button" aria-label="Search" onClick={() => document.getElementById("formula-hub-search")?.focus()}>
-              <SearchIcon />
-            </button>
-            <Link className="nav-icon" href="/formula-hub/saved" aria-label="Saved formulas">
-              <BookmarkIcon saved={false} />
-            </Link>
-            <div className="nav-avatar">A</div>
-            <Link className="start-btn" href="/topics">
-              Start learning -&gt;
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       <div className="page">
         <aside className="sidebar">
           <p className="sidebar-label">Browse Topics</p>

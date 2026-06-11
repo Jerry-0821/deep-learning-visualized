@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EditionBackdrop, EditionNav } from "@/components/edition/EditionChrome";
 
 export const metadata: Metadata = {
   title: "Training Pipeline Mindmap | Deep Learning Visualized",
@@ -8,7 +9,9 @@ export const metadata: Metadata = {
 
 export default function MindmapPage() {
   return (
-    <main className="mindmap-route-root">
+    <main className="edition-root mindmap-route-root">
+      <EditionBackdrop />
+      <EditionNav active="mindmap" />
       <iframe
         className="mindmap-route-frame"
         src="/mindmap/training-pipeline-mindmap.html"
