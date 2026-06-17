@@ -779,6 +779,7 @@ function FormulaDrawer({
 
 export function FormulaHubClient() {
   const canvasRef = useNeuralCanvas();
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -914,7 +915,8 @@ export function FormulaHubClient() {
       const isSearchShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k";
       if (isSearchShortcut) {
         event.preventDefault();
-        document.getElementById("formula-hub-search")?.focus();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
         return;
       }
 
@@ -1053,6 +1055,7 @@ export function FormulaHubClient() {
             <SearchIcon />
             <input
               id="formula-hub-search"
+              ref={searchInputRef}
               type="search"
               value={query}
               placeholder="Search Adam, RMSProp, BatchNorm, dW, QK^T, CNN output size..."
@@ -1062,7 +1065,9 @@ export function FormulaHubClient() {
                 setModalOpen(false);
               }}
             />
-            <kbd className="kbd">Ctrl K</kbd>
+            <kbd className="kbd" title="Focus search">
+              Ctrl+K
+            </kbd>
           </label>
 
           <div className="filter-strip">

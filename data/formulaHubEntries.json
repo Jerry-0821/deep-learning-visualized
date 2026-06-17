@@ -969,28 +969,51 @@
     "relatedFormulaIds": ["sgd-update", "adam-update-rule"]
   },
   {
+    "id": "cnn-tensor-convention",
+    "title": "CNN Tensor Convention (NHWC)",
+    "category": "CNN",
+    "type": "shape",
+    "useCase": "CNN tensor shapes",
+    "latex": "A^{[l-1]}\\in\\mathbb{R}^{m\\times n_H^{[l-1]}\\times n_W^{[l-1]}\\times n_C^{[l-1]}},\\quad A^{[l]}\\in\\mathbb{R}^{m\\times n_H^{[l]}\\times n_W^{[l]}\\times n_C^{[l]}}",
+    "plainTextFormula": "A[l-1] shape m x nH[l-1] x nW[l-1] x nC[l-1], A[l] shape m x nH[l] x nW[l] x nC[l]",
+    "description": "Sets the NHWC batch tensor convention used by the CNN formulas in this hub.",
+    "aliases": ["CNN tensor convention", "NHWC", "activation tensor", "feature map tensor"],
+    "symbols": [
+      { "symbol": "m", "meaning": "Batch size", "shape": "scalar", "aliases": ["batch"] },
+      { "symbol": "n_H^{[l]}", "meaning": "Height at layer l", "shape": "scalar", "aliases": ["height"] },
+      { "symbol": "n_W^{[l]}", "meaning": "Width at layer l", "shape": "scalar", "aliases": ["width"] },
+      { "symbol": "n_C^{[l]}", "meaning": "Channels / filters at layer l", "shape": "scalar", "aliases": ["channels", "filters"] }
+    ],
+    "shape": { "input": ["batch size and spatial/channel dimensions"], "output": "NHWC activation tensor", "explanation": "CNN activations keep batch, height, width, and channel axes explicit." },
+    "topicSlugs": ["convolution-operation", "feature-map-visualization"],
+    "blogSlugs": [],
+    "pdfSection": "11.1 CNN Tensor Convention",
+    "pdfPage": 21,
+    "relatedFormulaIds": ["cnn-output-size", "convolution-operation"]
+  },
+  {
     "id": "cnn-output-size",
     "title": "CNN Output Size (1D/2D)",
     "category": "CNN",
     "type": "shape",
     "useCase": "Convolution shape",
-    "latex": "n_{out}=\\left\\lfloor\\frac{n_{in}+2p-d(k-1)-1}{s}\\right\\rfloor+1",
-    "plainTextFormula": "n_out = floor((n_in + 2p - d(k-1) - 1) / s) + 1",
-    "description": "Computes the spatial output size for convolution with padding, dilation, kernel size, and stride.",
-    "aliases": ["CNN output size", "convolution output size", "conv output dimension", "feature map size"],
+    "latex": "n_H^{[l]}=\\left\\lfloor\\frac{n_H^{[l-1]}+2p^{[l]}-f^{[l]}}{s^{[l]}}\\right\\rfloor+1,\\quad n_W^{[l]}=\\left\\lfloor\\frac{n_W^{[l-1]}+2p^{[l]}-f^{[l]}}{s^{[l]}}\\right\\rfloor+1,\\quad n_C^{[l]}=\\text{number of filters}",
+    "plainTextFormula": "nH[l] = floor((nH[l-1] + 2p[l] - f[l]) / s[l]) + 1, nW[l] = floor((nW[l-1] + 2p[l] - f[l]) / s[l]) + 1, nC[l] = number of filters",
+    "description": "Computes the height, width, and channel count after a convolution layer.",
+    "aliases": ["CNN output size", "convolution output size", "conv output dimension", "feature map size", "spatial output size"],
     "symbols": [
-      { "symbol": "n_{in}", "meaning": "Input spatial size", "shape": "scalar", "aliases": ["input size"] },
-      { "symbol": "p", "meaning": "Padding", "shape": "scalar", "aliases": ["padding"] },
-      { "symbol": "k", "meaning": "Kernel size", "shape": "scalar", "aliases": ["filter size"] },
-      { "symbol": "s", "meaning": "Stride", "shape": "scalar", "aliases": ["stride"] },
-      { "symbol": "d", "meaning": "Dilation", "shape": "scalar", "aliases": ["dilation"] }
+      { "symbol": "n_H^{[l]}, n_W^{[l]}", "meaning": "Output spatial height and width", "shape": "scalars", "aliases": ["output size"] },
+      { "symbol": "p^{[l]}", "meaning": "Padding", "shape": "scalar", "aliases": ["padding"] },
+      { "symbol": "f^{[l]}", "meaning": "Filter size", "shape": "scalar", "aliases": ["kernel size"] },
+      { "symbol": "s^{[l]}", "meaning": "Stride", "shape": "scalar", "aliases": ["stride"] },
+      { "symbol": "n_C^{[l]}", "meaning": "Number of output filters / channels", "shape": "scalar", "aliases": ["channels", "filters"] }
     ],
-    "shape": { "input": ["n_{in}: input size", "p: padding", "k: kernel", "s: stride", "d: dilation"], "output": "n_{out}: output spatial size", "explanation": "Apply once per spatial axis for 2D height and width." },
+    "shape": { "input": ["n_H^{[l-1]}, n_W^{[l-1]}, p^{[l]}, f^{[l]}, s^{[l]}"], "output": "n_H^{[l]}, n_W^{[l]}, n_C^{[l]}", "explanation": "Apply the same floor formula separately to height and width; channels equal the filter count." },
     "topicSlugs": ["convolution-operation", "feature-map-visualization"],
     "blogSlugs": ["residual-block-resnet-intuition"],
     "pdfSection": "11.2 Convolution Output Size",
     "pdfPage": 21,
-    "relatedFormulaIds": ["convolution-operation", "pooling-output-size"]
+    "relatedFormulaIds": ["cnn-tensor-convention", "convolution-operation", "pooling-output-size", "cnn-padding-conventions"]
   },
   {
     "id": "convolution-operation",
@@ -998,21 +1021,21 @@
     "category": "CNN",
     "type": "formula",
     "useCase": "Convolution",
-    "latex": "Z_{i,j,k}=\\sum_{u,v,c}X_{i+u,j+v,c}W_{u,v,c,k}+b_k",
-    "plainTextFormula": "Z_i,j,k = sum over local patch times kernel plus bias",
-    "description": "Slides a filter over local input patches to produce one output feature map channel.",
-    "aliases": ["conv operation", "local patch times kernel", "filter slide"],
+    "latex": "Z^{[l](i)}_{h,w,k}=\\sum_{u=1}^{f^{[l]}}\\sum_{v=1}^{f^{[l]}}\\sum_{c=1}^{n_C^{[l-1]}}A^{[l-1](i)}_{h_u,w_v,c}W^{[l]}_{u,v,c,k}+b^{[l]}_k",
+    "plainTextFormula": "Z[l](i)_{h,w,k} = sum_u sum_v sum_c A[l-1](i)_{h_u,w_v,c} W[l]_{u,v,c,k} + b[l]_k",
+    "description": "Computes one output location and output channel by summing over a local spatial window and all input channels.",
+    "aliases": ["conv operation", "local patch times kernel", "filter slide", "multi-channel convolution"],
     "symbols": [
-      { "symbol": "X", "meaning": "Input image or feature tensor", "shape": "H \\times W \\times C", "aliases": ["input"] },
-      { "symbol": "W", "meaning": "Convolution filter bank", "shape": "f \\times f \\times C \\times C_{out}", "aliases": ["kernel", "filter"] },
-      { "symbol": "b_k", "meaning": "Bias for output channel k", "shape": "scalar", "aliases": ["bias"] }
+      { "symbol": "A^{[l-1]}", "meaning": "Input activation tensor", "shape": "m \\times n_H^{[l-1]} \\times n_W^{[l-1]} \\times n_C^{[l-1]}", "aliases": ["input"] },
+      { "symbol": "W^{[l]}", "meaning": "Convolution filter bank", "shape": "f^{[l]} \\times f^{[l]} \\times n_C^{[l-1]} \\times n_C^{[l]}", "aliases": ["kernel", "filter"] },
+      { "symbol": "b^{[l]}", "meaning": "Convolution bias", "shape": "1 \\times 1 \\times 1 \\times n_C^{[l]}", "aliases": ["bias"] }
     ],
-    "shape": { "input": ["local patch: f \\times f \\times C", "filter: f \\times f \\times C"], "output": "one output activation", "explanation": "One filter produces one scalar at each spatial location." },
+    "shape": { "input": ["local patch: f^{[l]} \\times f^{[l]} \\times n_C^{[l-1]}", "filter slice for k: same shape"], "output": "one scalar Z^{[l](i)}_{h,w,k}", "explanation": "One filter produces one scalar at each output spatial location and channel." },
     "topicSlugs": ["convolution-operation"],
     "blogSlugs": [],
     "pdfSection": "11.3 Multi-channel Convolution",
     "pdfPage": 22,
-    "relatedFormulaIds": ["cnn-output-size", "convolution-parameter-count"]
+    "relatedFormulaIds": ["cnn-output-size", "convolution-parameter-count", "feature-map-activation"]
   },
   {
     "id": "convolution-parameter-count",
@@ -1020,21 +1043,42 @@
     "category": "CNN",
     "type": "shape",
     "useCase": "CNN parameter sizing",
-    "latex": "\\#\\operatorname{params}=f_hf_wC_{in}C_{out}+C_{out}",
-    "plainTextFormula": "params = f_h f_w C_in C_out + C_out",
+    "latex": "\\#params_{per\\ filter}=f^{[l]}f^{[l]}n_C^{[l-1]}+1,\\quad \\#params_{layer}=\\left(f^{[l]}f^{[l]}n_C^{[l-1]}+1\\right)n_C^{[l]}",
+    "plainTextFormula": "params per filter = f[l] f[l] nC[l-1] + 1, params layer = (f[l] f[l] nC[l-1] + 1) nC[l]",
     "description": "Counts weights and biases in a standard convolution layer.",
     "aliases": ["conv parameter count", "CNN parameters", "filter parameters"],
     "symbols": [
-      { "symbol": "f_h,f_w", "meaning": "Filter height and width", "shape": "scalar", "aliases": ["kernel"] },
-      { "symbol": "C_{in}", "meaning": "Input channels", "shape": "scalar", "aliases": ["input channels"] },
-      { "symbol": "C_{out}", "meaning": "Output channels", "shape": "scalar", "aliases": ["filters"] }
+      { "symbol": "f^{[l]}", "meaning": "Filter height and width", "shape": "scalar", "aliases": ["kernel"] },
+      { "symbol": "n_C^{[l-1]}", "meaning": "Input channels", "shape": "scalar", "aliases": ["input channels"] },
+      { "symbol": "n_C^{[l]}", "meaning": "Output channels / number of filters", "shape": "scalar", "aliases": ["filters"] }
     ],
     "shape": { "input": ["filter size", "input channels", "output channels"], "output": "parameter count", "explanation": "Each output channel owns a full input-channel filter plus one bias." },
     "topicSlugs": ["convolution-operation", "feature-map-visualization"],
     "blogSlugs": ["residual-block-resnet-intuition"],
     "pdfSection": "11.4 Convolution Parameter Count",
     "pdfPage": 22,
-    "relatedFormulaIds": ["convolution-operation", "cnn-output-size"]
+    "relatedFormulaIds": ["convolution-operation", "cnn-output-size", "pointwise-convolution"]
+  },
+  {
+    "id": "cnn-padding-conventions",
+    "title": "CNN Padding Conventions",
+    "category": "CNN",
+    "type": "statement",
+    "useCase": "Convolution shape",
+    "latex": "\\text{valid}:p=0,\\quad \\text{same with }s=1:p=\\frac{f-1}{2}",
+    "plainTextFormula": "valid padding p = 0, same padding with stride 1 p = (f - 1) / 2",
+    "description": "Summarizes valid and same padding conventions for convolution output shapes.",
+    "aliases": ["valid padding", "same padding", "padding convention"],
+    "symbols": [
+      { "symbol": "p", "meaning": "Padding", "shape": "scalar", "aliases": ["padding"] },
+      { "symbol": "f", "meaning": "Filter size", "shape": "scalar", "aliases": ["kernel size"] }
+    ],
+    "shape": { "input": ["filter size f", "stride convention"], "output": "padding p", "explanation": "Same padding with stride 1 preserves spatial size when the padding value is an integer." },
+    "topicSlugs": ["convolution-operation", "feature-map-visualization"],
+    "blogSlugs": [],
+    "pdfSection": "11.5 Padding Conventions",
+    "pdfPage": 22,
+    "relatedFormulaIds": ["cnn-output-size", "convolution-operation"]
   },
   {
     "id": "pooling-output-size",
@@ -1042,20 +1086,21 @@
     "category": "CNN",
     "type": "shape",
     "useCase": "Pooling",
-    "latex": "n_{out}=\\left\\lfloor\\frac{n_{in}-f}{s}\\right\\rfloor+1",
-    "plainTextFormula": "n_out = floor((n_in - f) / s) + 1",
-    "description": "Computes spatial size after a pooling window slides across a feature map.",
+    "latex": "n_H^{[l]}=\\left\\lfloor\\frac{n_H^{[l-1]}-f}{s}\\right\\rfloor+1,\\quad n_W^{[l]}=\\left\\lfloor\\frac{n_W^{[l-1]}-f}{s}\\right\\rfloor+1,\\quad n_C^{[l]}=n_C^{[l-1]}",
+    "plainTextFormula": "pool nH[l] = floor((nH[l-1] - f) / s) + 1, nW[l] = floor((nW[l-1] - f) / s) + 1, nC[l] = nC[l-1]",
+    "description": "Computes spatial size after pooling while preserving the number of channels.",
     "aliases": ["pooling output size", "max pool size", "average pool size", "downsampling size"],
     "symbols": [
       { "symbol": "f", "meaning": "Pooling window size", "shape": "scalar", "aliases": ["window"] },
-      { "symbol": "s", "meaning": "Stride", "shape": "scalar", "aliases": ["stride"] }
+      { "symbol": "s", "meaning": "Stride", "shape": "scalar", "aliases": ["stride"] },
+      { "symbol": "n_C^{[l]}", "meaning": "Output channels", "shape": "same as input channels", "aliases": ["channels"] }
     ],
-    "shape": { "input": ["n_{in}: input size", "f: pool window", "s: stride"], "output": "n_{out}: output size", "explanation": "Pooling usually reduces spatial dimensions while keeping channel count." },
+    "shape": { "input": ["n_H^{[l-1]}, n_W^{[l-1]}, f, s"], "output": "n_H^{[l]}, n_W^{[l]}, n_C^{[l]}", "explanation": "Pooling shrinks height and width but normally keeps channel count unchanged." },
     "topicSlugs": ["pooling"],
     "blogSlugs": [],
     "pdfSection": "11.6 Pooling Output Size",
     "pdfPage": 22,
-    "relatedFormulaIds": ["max-pooling", "cnn-output-size"]
+    "relatedFormulaIds": ["max-pooling", "average-pooling", "cnn-output-size"]
   },
   {
     "id": "max-pooling",
@@ -1063,12 +1108,12 @@
     "category": "CNN",
     "type": "formula",
     "useCase": "Pooling",
-    "latex": "Y_{i,j,c}=\\max_{(u,v)\\in\\Omega_{i,j}}X_{u,v,c}",
-    "plainTextFormula": "Y_i,j,c = max over pooling window X_u,v,c",
+    "latex": "A^{[l](i)}_{h,w,c}=\\max_{(u,v)\\in R_{h,w}}A^{[l-1](i)}_{u,v,c}",
+    "plainTextFormula": "A[l](i)_{h,w,c} = max over pooling window R_{h,w} A[l-1](i)_{u,v,c}",
     "description": "Keeps the strongest activation inside each pooling window.",
     "aliases": ["max pooling", "max pool", "window maximum"],
     "symbols": [
-      { "symbol": "\\Omega_{i,j}", "meaning": "Pooling window at output location i,j", "shape": "f \\times f", "aliases": ["pool window"] },
+      { "symbol": "R_{h,w}", "meaning": "Pooling window at output location h,w", "shape": "spatial index set", "aliases": ["pool window"] },
       { "symbol": "c", "meaning": "Channel index", "shape": "scalar", "aliases": ["channel"] }
     ],
     "shape": { "input": ["pool window per channel"], "output": "one pooled value per channel", "explanation": "Pooling is applied independently to each channel." },
@@ -1076,7 +1121,71 @@
     "blogSlugs": [],
     "pdfSection": "11.7 Pooling Operations",
     "pdfPage": 22,
-    "relatedFormulaIds": ["pooling-output-size"]
+    "relatedFormulaIds": ["pooling-output-size", "average-pooling"]
+  },
+  {
+    "id": "average-pooling",
+    "title": "Average Pooling",
+    "category": "CNN",
+    "type": "formula",
+    "useCase": "Pooling",
+    "latex": "A^{[l](i)}_{h,w,c}=\\frac{1}{|R_{h,w}|}\\sum_{(u,v)\\in R_{h,w}}A^{[l-1](i)}_{u,v,c}",
+    "plainTextFormula": "A[l](i)_{h,w,c} = average over pooling window R_{h,w} A[l-1](i)_{u,v,c}",
+    "description": "Keeps the mean activation inside each pooling window.",
+    "aliases": ["average pooling", "avg pool", "mean pooling"],
+    "symbols": [
+      { "symbol": "|R_{h,w}|", "meaning": "Number of spatial positions in the pooling window", "shape": "scalar", "aliases": ["window size"] },
+      { "symbol": "c", "meaning": "Channel index", "shape": "scalar", "aliases": ["channel"] }
+    ],
+    "shape": { "input": ["pool window per channel"], "output": "one pooled value per channel", "explanation": "Average pooling is channelwise just like max pooling." },
+    "topicSlugs": ["pooling"],
+    "blogSlugs": [],
+    "pdfSection": "11.7 Pooling Operations",
+    "pdfPage": 22,
+    "relatedFormulaIds": ["pooling-output-size", "max-pooling"]
+  },
+  {
+    "id": "pointwise-convolution",
+    "title": "1x1 Convolution Channel Projection",
+    "category": "CNN",
+    "type": "formula",
+    "useCase": "Channel projection",
+    "latex": "\\#params=(1\\cdot1\\cdot n_C^{[l-1]}+1)n_C^{[l]},\\quad A^{[l-1]}\\in\\mathbb{R}^{m\\times n_H\\times n_W\\times n_C^{[l-1]}}\\rightarrow A^{[l]}\\in\\mathbb{R}^{m\\times n_H\\times n_W\\times n_C^{[l]}}",
+    "plainTextFormula": "1x1 conv params = (1*1*nC[l-1] + 1) nC[l], changes channels while keeping H and W",
+    "description": "Uses a 1x1 filter to project channel width while keeping spatial height and width unchanged.",
+    "aliases": ["1x1 convolution", "pointwise convolution", "channel projection", "bottleneck convolution"],
+    "symbols": [
+      { "symbol": "n_C^{[l-1]}", "meaning": "Input channels", "shape": "scalar", "aliases": ["input channels"] },
+      { "symbol": "n_C^{[l]}", "meaning": "Output channels", "shape": "scalar", "aliases": ["output channels"] }
+    ],
+    "shape": { "input": ["A^{[l-1]}: m \\times n_H \\times n_W \\times n_C^{[l-1]}"], "output": "A^{[l]}: m \\times n_H \\times n_W \\times n_C^{[l]}", "explanation": "A 1x1 convolution changes channel depth without changing spatial resolution." },
+    "topicSlugs": ["convolution-operation", "feature-map-visualization"],
+    "blogSlugs": [],
+    "pdfSection": "11.8 1x1 Convolution",
+    "pdfPage": 23,
+    "relatedFormulaIds": ["convolution-parameter-count", "convolution-operation"]
+  },
+  {
+    "id": "depthwise-separable-convolution",
+    "title": "Depthwise Separable Convolution Parameters",
+    "category": "CNN",
+    "type": "shape",
+    "useCase": "Efficient convolution",
+    "latex": "\\#params_{standard}=k^2C_{in}C_{out},\\quad \\#params_{dwsep}=k^2C_{in}+C_{in}C_{out}",
+    "plainTextFormula": "standard conv params = k^2 C_in C_out, depthwise separable params = k^2 C_in + C_in C_out",
+    "description": "Compares standard convolution parameters with depthwise plus pointwise convolution parameters.",
+    "aliases": ["depthwise separable convolution", "MobileNet convolution", "depthwise pointwise"],
+    "symbols": [
+      { "symbol": "k", "meaning": "Depthwise filter size", "shape": "scalar", "aliases": ["kernel"] },
+      { "symbol": "C_{in}", "meaning": "Input channels", "shape": "scalar", "aliases": ["input channels"] },
+      { "symbol": "C_{out}", "meaning": "Output channels", "shape": "scalar", "aliases": ["output channels"] }
+    ],
+    "shape": { "input": ["k, C_{in}, C_{out}"], "output": "parameter counts", "explanation": "Depthwise separable convolution replaces full channel mixing with depthwise spatial filters plus a 1x1 pointwise projection." },
+    "topicSlugs": ["convolution-operation", "feature-map-visualization"],
+    "blogSlugs": [],
+    "pdfSection": "11.9 Depthwise Separable Convolution",
+    "pdfPage": 23,
+    "relatedFormulaIds": ["pointwise-convolution", "convolution-parameter-count"]
   },
   {
     "id": "feature-map-activation",
@@ -1099,6 +1208,28 @@
     "pdfSection": "11.3 Multi-channel Convolution",
     "pdfPage": 22,
     "relatedFormulaIds": ["convolution-operation", "cnn-output-size"]
+  },
+  {
+    "id": "sequence-tensor-convention",
+    "title": "Sequence Tensor Convention",
+    "category": "RNN / LSTM",
+    "type": "shape",
+    "useCase": "Sequence modeling",
+    "latex": "X=(x^{\\langle1\\rangle},\\ldots,x^{\\langle T_x\\rangle}),\\quad x^{\\langle t\\rangle}\\in\\mathbb{R}^{n_x\\times m}",
+    "plainTextFormula": "a sequence is a list of time-step tensors x<t>, each shaped n_x by m",
+    "description": "Sets the time-step notation and batch shape used by the RNN, GRU, LSTM, and seq2seq formulas.",
+    "aliases": ["sequence convention", "time step notation", "x<t>", "sequence tensor"],
+    "symbols": [
+      { "symbol": "T_x", "meaning": "Input sequence length", "shape": "scalar", "aliases": ["input length"] },
+      { "symbol": "x^{\\langle t\\rangle}", "meaning": "Input at time step t", "shape": "n_x \\times m", "aliases": ["x_t"] },
+      { "symbol": "m", "meaning": "Batch size", "shape": "scalar", "aliases": ["batch"] }
+    ],
+    "shape": { "input": ["sequence of token or feature vectors"], "output": "time-indexed batch matrices", "explanation": "Each time step keeps feature width by batch columns; recurrence moves along t." },
+    "topicSlugs": ["rnn-structure"],
+    "blogSlugs": ["self-attention-vs-rnn-vs-cnn"],
+    "pdfSection": "15.1 Sequence Tensor Convention",
+    "pdfPage": 29,
+    "relatedFormulaIds": ["rnn-hidden-state", "rnn-output-prediction"]
   },
   {
     "id": "rnn-hidden-state",
@@ -1144,6 +1275,70 @@
     "relatedFormulaIds": ["rnn-hidden-state"]
   },
   {
+    "id": "rnn-sequence-loss",
+    "title": "RNN Sequence Loss",
+    "category": "RNN / LSTM",
+    "type": "loss",
+    "useCase": "Sequence modeling",
+    "latex": "L=\\sum_{t=1}^{T_y}L^{\\langle t\\rangle}(\\hat{y}^{\\langle t\\rangle},y^{\\langle t\\rangle})",
+    "plainTextFormula": "sequence loss sums per-time-step losses over the output sequence",
+    "description": "Aggregates the prediction loss across output time steps.",
+    "aliases": ["sequence loss", "RNN loss", "time step loss", "many-to-many loss"],
+    "symbols": [
+      { "symbol": "T_y", "meaning": "Output sequence length", "shape": "scalar", "aliases": ["target length"] },
+      { "symbol": "L^{\\langle t\\rangle}", "meaning": "Loss at time step t", "shape": "scalar", "aliases": ["step loss"] }
+    ],
+    "shape": { "input": ["per-time-step scalar losses"], "output": "L: scalar", "explanation": "Summing over time collapses the sequence into one training objective." },
+    "topicSlugs": ["rnn-structure"],
+    "blogSlugs": [],
+    "pdfSection": "15.4 Sequence Loss",
+    "pdfPage": 29,
+    "relatedFormulaIds": ["rnn-output-prediction", "bptt-gradient-flow"]
+  },
+  {
+    "id": "bptt-gradient-flow",
+    "title": "Backpropagation Through Time",
+    "category": "RNN / LSTM",
+    "type": "derivative",
+    "useCase": "Sequence backpropagation",
+    "latex": "\\frac{\\partial L}{\\partial W}=\\sum_{t=1}^{T_y}\\frac{\\partial L^{\\langle t\\rangle}}{\\partial W}",
+    "plainTextFormula": "BPTT sums parameter-gradient contributions across time steps",
+    "description": "Backpropagation through time reuses the same recurrent parameters at every time step and sums their gradient contributions.",
+    "aliases": ["BPTT", "backprop through time", "RNN gradient", "time unroll gradient"],
+    "symbols": [
+      { "symbol": "W", "meaning": "Shared recurrent parameter", "shape": "parameter shape", "aliases": ["weights"] },
+      { "symbol": "L^{\\langle t\\rangle}", "meaning": "Time-step loss contribution", "shape": "scalar", "aliases": ["step loss"] }
+    ],
+    "shape": { "input": ["time-step gradient contributions"], "output": "gradient with same shape as W", "explanation": "Because W is shared over time, its total gradient is the sum of all unrolled contributions." },
+    "topicSlugs": ["rnn-structure", "backpropagation-intuition"],
+    "blogSlugs": [],
+    "pdfSection": "15.5 Backpropagation Through Time",
+    "pdfPage": 30,
+    "relatedFormulaIds": ["rnn-sequence-loss", "rnn-hidden-state"]
+  },
+  {
+    "id": "gru-gates",
+    "title": "GRU Gate Equations",
+    "category": "RNN / LSTM",
+    "type": "pipeline",
+    "useCase": "Long sequence memory",
+    "latex": "\\Gamma_u=\\sigma(W_u[c^{\\langle t-1\\rangle},x^{\\langle t\\rangle}]+b_u),\\quad \\Gamma_r=\\sigma(W_r[c^{\\langle t-1\\rangle},x^{\\langle t\\rangle}]+b_r),\\quad \\tilde{c}^{\\langle t\\rangle}=\\tanh(W_c[\\Gamma_r*c^{\\langle t-1\\rangle},x^{\\langle t\\rangle}]+b_c),\\quad c^{\\langle t\\rangle}=\\Gamma_u*\\tilde{c}^{\\langle t\\rangle}+(1-\\Gamma_u)*c^{\\langle t-1\\rangle}",
+    "plainTextFormula": "GRU update gate, reset gate, candidate memory, and new memory",
+    "description": "Uses update and reset gates to control how much previous memory is kept and how much candidate memory is written.",
+    "aliases": ["GRU", "update gate", "reset gate", "gated recurrent unit"],
+    "symbols": [
+      { "symbol": "\\Gamma_u", "meaning": "Update gate", "shape": "n_a \\times m", "aliases": ["update"] },
+      { "symbol": "\\Gamma_r", "meaning": "Reset gate", "shape": "n_a \\times m", "aliases": ["reset"] },
+      { "symbol": "c^{\\langle t\\rangle}", "meaning": "GRU memory / hidden state", "shape": "n_a \\times m", "aliases": ["memory"] }
+    ],
+    "shape": { "input": ["c^{<t-1>}: n_a x m", "x^{<t>}: n_x x m"], "output": "c^{<t>}: n_a x m", "explanation": "All gates and candidate memory share the hidden-state shape for elementwise interpolation." },
+    "topicSlugs": ["rnn-structure"],
+    "blogSlugs": [],
+    "pdfSection": "15.6 GRU Forward Pass",
+    "pdfPage": 30,
+    "relatedFormulaIds": ["lstm-gates", "rnn-hidden-state"]
+  },
+  {
     "id": "lstm-gates",
     "title": "LSTM Gate Equations",
     "category": "RNN / LSTM",
@@ -1164,6 +1359,50 @@
     "pdfSection": "15.7 LSTM Forward Pass",
     "pdfPage": 30,
     "relatedFormulaIds": ["rnn-hidden-state"]
+  },
+  {
+    "id": "lstm-cell-update",
+    "title": "LSTM Cell and Hidden Update",
+    "category": "RNN / LSTM",
+    "type": "formula",
+    "useCase": "Long sequence memory",
+    "latex": "\\tilde{c}^{\\langle t\\rangle}=\\tanh(W_c[a^{\\langle t-1\\rangle},x^{\\langle t\\rangle}]+b_c),\\quad c^{\\langle t\\rangle}=f_t*c^{\\langle t-1\\rangle}+i_t*\\tilde{c}^{\\langle t\\rangle},\\quad a^{\\langle t\\rangle}=o_t*\\tanh(c^{\\langle t\\rangle})",
+    "plainTextFormula": "LSTM candidate memory, cell update, and hidden output",
+    "description": "Writes candidate memory into the cell state through the input gate, keeps old memory through the forget gate, and exposes hidden state through the output gate.",
+    "aliases": ["LSTM cell", "cell state update", "candidate memory", "hidden output"],
+    "symbols": [
+      { "symbol": "\\tilde{c}^{\\langle t\\rangle}", "meaning": "Candidate memory", "shape": "n_a \\times m", "aliases": ["candidate"] },
+      { "symbol": "c^{\\langle t\\rangle}", "meaning": "Cell state", "shape": "n_a \\times m", "aliases": ["cell"] },
+      { "symbol": "a^{\\langle t\\rangle}", "meaning": "Hidden output", "shape": "n_a \\times m", "aliases": ["hidden"] }
+    ],
+    "shape": { "input": ["gates: n_a x m", "previous cell: n_a x m", "candidate: n_a x m"], "output": "cell and hidden state: n_a x m", "explanation": "The gate masks and memory tensors must match for elementwise multiplication and addition." },
+    "topicSlugs": ["rnn-structure"],
+    "blogSlugs": [],
+    "pdfSection": "15.7 LSTM Forward Pass",
+    "pdfPage": 31,
+    "relatedFormulaIds": ["lstm-gates", "rnn-hidden-state"]
+  },
+  {
+    "id": "bidirectional-rnn-context",
+    "title": "Bidirectional RNN Context",
+    "category": "RNN / LSTM",
+    "type": "formula",
+    "useCase": "Sequence modeling",
+    "latex": "a^{\\langle t\\rangle}=[\\overrightarrow{a}^{\\langle t\\rangle};\\overleftarrow{a}^{\\langle t\\rangle}],\\quad \\hat{y}^{\\langle t\\rangle}=g_y(W_y a^{\\langle t\\rangle}+b_y)",
+    "plainTextFormula": "bidirectional state concatenates forward and backward hidden states before prediction",
+    "description": "Uses both past and future sequence context by concatenating forward and backward recurrent states.",
+    "aliases": ["bidirectional RNN", "BiRNN", "forward backward states", "bidirectional context"],
+    "symbols": [
+      { "symbol": "\\overrightarrow{a}^{\\langle t\\rangle}", "meaning": "Forward hidden state", "shape": "n_a \\times m", "aliases": ["forward state"] },
+      { "symbol": "\\overleftarrow{a}^{\\langle t\\rangle}", "meaning": "Backward hidden state", "shape": "n_a \\times m", "aliases": ["backward state"] },
+      { "symbol": "a^{\\langle t\\rangle}", "meaning": "Concatenated bidirectional state", "shape": "2n_a \\times m", "aliases": ["bidirectional state"] }
+    ],
+    "shape": { "input": ["forward state: n_a x m", "backward state: n_a x m"], "output": "concatenated state: 2n_a x m", "explanation": "Concatenation doubles the recurrent feature width before the output layer." },
+    "topicSlugs": ["rnn-structure"],
+    "blogSlugs": [],
+    "pdfSection": "15.8 Bidirectional RNN",
+    "pdfPage": 31,
+    "relatedFormulaIds": ["rnn-hidden-state", "rnn-output-prediction"]
   },
   {
     "id": "qkv-projections",
@@ -1209,6 +1448,28 @@
     "pdfSection": "18.2 Scaled Dot-Product Attention",
     "pdfPage": 41,
     "relatedFormulaIds": ["qkv-projections", "multi-head-attention", "softmax-activation"]
+  },
+  {
+    "id": "attention-score-shape-check",
+    "title": "Scaled Attention Shape Check",
+    "category": "Transformer",
+    "type": "shape",
+    "useCase": "Attention shape check",
+    "latex": "Q\\in\\mathbb{R}^{T_q\\times d_k},\\quad K^T\\in\\mathbb{R}^{d_k\\times T_k}\\Rightarrow QK^T\\in\\mathbb{R}^{T_q\\times T_k},\\quad \\operatorname{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right)V\\in\\mathbb{R}^{T_q\\times d_v}",
+    "plainTextFormula": "Q shape T_q x d_k times K^T shape d_k x T_k gives scores T_q x T_k; scores times V gives T_q x d_v",
+    "description": "Checks the matrix shapes inside scaled dot-product attention.",
+    "aliases": ["attention shape", "QK^T shape", "attention matrix shape", "T_q by T_k"],
+    "symbols": [
+      { "symbol": "T_q", "meaning": "Number of query positions", "shape": "scalar", "aliases": ["query length"] },
+      { "symbol": "T_k", "meaning": "Number of key/value positions", "shape": "scalar", "aliases": ["key length"] },
+      { "symbol": "d_v", "meaning": "Value width", "shape": "scalar", "aliases": ["value dimension"] }
+    ],
+    "shape": { "input": ["Q: T_q x d_k", "K^T: d_k x T_k", "V: T_k x d_v"], "output": "T_q x d_v", "explanation": "The attention-weight matrix maps each query to a distribution over key/value positions." },
+    "topicSlugs": ["attention-mechanism-intuition"],
+    "blogSlugs": ["attention-mechanism"],
+    "pdfSection": "18.3 Attention Shape Check",
+    "pdfPage": 42,
+    "relatedFormulaIds": ["scaled-dot-product-attention", "matrix-multiplication-shape"]
   },
   {
     "id": "multi-head-attention",
@@ -1430,20 +1691,68 @@
     "category": "Optimization",
     "type": "formula",
     "useCase": "Training stability",
-    "latex": "\\mu_B=\\frac{1}{m}\\sum_{i=1}^{m}x^{(i)},\\quad \\sigma_B^2=\\frac{1}{m}\\sum_{i=1}^{m}\\left(x^{(i)}-\\mu_B\\right)^2",
-    "plainTextFormula": "mu_B = 1/m sum_i x_i, sigma_B^2 = 1/m sum_i (x_i - mu_B)^2",
-    "description": "Computes the mini-batch mean and variance used to normalize one activation channel or feature.",
+    "latex": "\\mu_B^{[l]}=\\frac{1}{m}\\sum_{i=1}^{m}z^{[l](i)},\\quad (\\sigma_B^2)^{[l]}=\\frac{1}{m}\\sum_{i=1}^{m}\\left(z^{[l](i)}-\\mu_B^{[l]}\\right)^{\\odot 2}",
+    "plainTextFormula": "mu_B[l] = 1/m sum_i z[l](i), sigma_B2[l] = 1/m sum_i (z[l](i) - mu_B[l]) elementwise squared",
+    "description": "Computes the mini-batch mean and variance for dense-layer pre-activations.",
     "aliases": ["batch normalization statistics", "batch norm mean variance", "mini batch mean", "mini batch variance"],
     "symbols": [
-      { "symbol": "\\mu_B", "meaning": "Mini-batch mean", "shape": "one value per normalized feature", "aliases": ["batch mean"] },
-      { "symbol": "\\sigma_B^2", "meaning": "Mini-batch variance", "shape": "one value per normalized feature", "aliases": ["batch variance"] },
+      { "symbol": "\\mu_B^{[l]}", "meaning": "Layer l mini-batch mean", "shape": "n^{[l]} \\times 1", "aliases": ["batch mean", "mu B"] },
+      { "symbol": "(\\sigma_B^2)^{[l]}", "meaning": "Layer l mini-batch variance", "shape": "n^{[l]} \\times 1", "aliases": ["batch variance", "sigma B squared"] },
+      { "symbol": "z^{[l](i)}", "meaning": "Single-example pre-activation column", "shape": "n^{[l]} \\times 1", "aliases": ["single z"] },
       { "symbol": "m", "meaning": "Mini-batch size", "shape": "scalar", "aliases": ["batch size"] }
     ],
-    "shape": { "input": ["x^{(i)}: feature activations over a mini-batch"], "output": "\\mu_B, \\sigma_B^2: per-feature statistics", "explanation": "BatchNorm reduces the batch axis while keeping one statistic per normalized feature or channel." },
+    "shape": { "input": ["z^{[l](i)}: n^{[l]} \\times 1 for i=1..m"], "output": "\\mu_B^{[l]}, (\\sigma_B^2)^{[l]}: n^{[l]} \\times 1", "explanation": "BatchNorm reduces the batch axis while keeping one statistic per layer unit." },
     "topicSlugs": ["gradient-descent-learning-rate", "mini-batch-training-batch-size"],
     "blogSlugs": ["batch-normalization"],
-    "pdfSection": "Batch Normalization: Mini-batch statistics",
-    "relatedFormulaIds": ["batchnorm-normalize-scale-shift", "batchnorm-inference-transform"]
+    "pdfSection": "10.1 Mini-batch Statistics",
+    "pdfPage": 19,
+    "relatedFormulaIds": ["batchnorm-single-example-normalization", "batchnorm-vectorized-normalization"]
+  },
+  {
+    "id": "batchnorm-single-example-normalization",
+    "title": "BatchNorm Single-example Normalize",
+    "category": "Optimization",
+    "type": "formula",
+    "useCase": "Training stability",
+    "latex": "\\hat{z}^{[l](i)}=\\frac{z^{[l](i)}-\\mu_B^{[l]}}{\\sqrt{(\\sigma_B^2)^{[l]}+\\epsilon}}",
+    "plainTextFormula": "zhat[l](i) = (z[l](i) - mu_B[l]) / sqrt(sigma_B2[l] + epsilon)",
+    "description": "Normalizes one pre-activation column with the current mini-batch statistics.",
+    "aliases": ["batchnorm normalize one example", "zhat", "single example normalization"],
+    "symbols": [
+      { "symbol": "\\hat{z}^{[l](i)}", "meaning": "Normalized single-example pre-activation", "shape": "n^{[l]} \\times 1", "aliases": ["z hat"] },
+      { "symbol": "\\epsilon", "meaning": "Denominator stabilizer", "shape": "small scalar", "aliases": ["epsilon", "eps"] },
+      { "symbol": "\\mu_B^{[l]}", "meaning": "Layer l mini-batch mean", "shape": "n^{[l]} \\times 1", "aliases": ["batch mean"] },
+      { "symbol": "(\\sigma_B^2)^{[l]}", "meaning": "Layer l mini-batch variance", "shape": "n^{[l]} \\times 1", "aliases": ["batch variance"] }
+    ],
+    "shape": { "input": ["z^{[l](i)}: n^{[l]} \\times 1", "\\mu_B^{[l]}: n^{[l]} \\times 1", "(\\sigma_B^2)^{[l]}: n^{[l]} \\times 1"], "output": "\\hat{z}^{[l](i)}: n^{[l]} \\times 1", "explanation": "Subtraction, square root, and division are elementwise across the layer-unit axis." },
+    "topicSlugs": ["gradient-descent-learning-rate", "mini-batch-training-batch-size"],
+    "blogSlugs": ["batch-normalization"],
+    "pdfSection": "10.2 Normalize",
+    "pdfPage": 19,
+    "relatedFormulaIds": ["batchnorm-mini-batch-statistics", "batchnorm-vectorized-normalization", "batchnorm-scale-shift"]
+  },
+  {
+    "id": "batchnorm-vectorized-normalization",
+    "title": "BatchNorm Vectorized Normalize",
+    "category": "Optimization",
+    "type": "formula",
+    "useCase": "Training stability",
+    "latex": "\\hat{Z}^{[l]}=\\frac{Z^{[l]}-\\mu_B^{[l]}}{\\sqrt{(\\sigma_B^2)^{[l]}+\\epsilon}}",
+    "plainTextFormula": "Zhat[l] = (Z[l] - mu_B[l]) / sqrt(sigma_B2[l] + epsilon)",
+    "description": "Normalizes the whole pre-activation matrix by broadcasting the mini-batch statistics across examples.",
+    "aliases": ["batchnorm vectorized normalize", "Zhat", "normalize matrix"],
+    "symbols": [
+      { "symbol": "\\hat{Z}^{[l]}", "meaning": "Normalized pre-activation batch", "shape": "n^{[l]} \\times m", "aliases": ["Z hat"] },
+      { "symbol": "Z^{[l]}", "meaning": "Pre-activation batch", "shape": "n^{[l]} \\times m", "aliases": ["Z"] },
+      { "symbol": "\\mu_B^{[l]}", "meaning": "Layer l mini-batch mean", "shape": "n^{[l]} \\times 1", "aliases": ["batch mean"] },
+      { "symbol": "(\\sigma_B^2)^{[l]}", "meaning": "Layer l mini-batch variance", "shape": "n^{[l]} \\times 1", "aliases": ["batch variance"] }
+    ],
+    "shape": { "input": ["Z^{[l]}: n^{[l]} \\times m", "\\mu_B^{[l]}: n^{[l]} \\times 1", "(\\sigma_B^2)^{[l]}: n^{[l]} \\times 1"], "output": "\\hat{Z}^{[l]}: n^{[l]} \\times m", "explanation": "The n[l] x 1 statistics broadcast across the m examples." },
+    "topicSlugs": ["gradient-descent-learning-rate", "mini-batch-training-batch-size"],
+    "blogSlugs": ["batch-normalization"],
+    "pdfSection": "10.2 Normalize",
+    "pdfPage": 19,
+    "relatedFormulaIds": ["batchnorm-mini-batch-statistics", "batchnorm-scale-shift"]
   },
   {
     "id": "batchnorm-normalize-scale-shift",
@@ -1451,21 +1760,154 @@
     "category": "Optimization",
     "type": "formula",
     "useCase": "Training stability",
-    "latex": "\\hat{x}^{(i)}=\\frac{x^{(i)}-\\mu_B}{\\sqrt{\\sigma_B^2+\\epsilon}},\\quad y^{(i)}=\\gamma\\hat{x}^{(i)}+\\beta",
-    "plainTextFormula": "xhat_i = (x_i - mu_B) / sqrt(sigma_B^2 + epsilon), y_i = gamma xhat_i + beta",
-    "description": "Standardizes activations during training, then lets the model learn the final scale and shift.",
+    "latex": "\\tilde{Z}^{[l]}=\\gamma^{[l]}\\odot\\hat{Z}^{[l]}+\\beta^{[l]}",
+    "plainTextFormula": "Ztilde[l] = gamma[l] * Zhat[l] + beta[l]",
+    "description": "Applies the learned scale and shift after vectorized normalization.",
     "aliases": ["batch normalization", "batch norm", "gamma beta", "normalize scale shift"],
     "symbols": [
-      { "symbol": "\\hat{x}^{(i)}", "meaning": "Normalized activation", "shape": "same as x^{(i)}", "aliases": ["xhat"] },
-      { "symbol": "\\gamma", "meaning": "Learned scale parameter", "shape": "one value per normalized feature", "aliases": ["scale"] },
-      { "symbol": "\\beta", "meaning": "Learned shift parameter", "shape": "one value per normalized feature", "aliases": ["shift"] },
-      { "symbol": "\\epsilon", "meaning": "Small constant for numerical stability", "shape": "scalar", "aliases": ["eps"] }
+      { "symbol": "\\tilde{Z}^{[l]}", "meaning": "Scaled and shifted pre-activation batch", "shape": "n^{[l]} \\times m", "aliases": ["Z tilde"] },
+      { "symbol": "\\hat{Z}^{[l]}", "meaning": "Normalized pre-activation batch", "shape": "n^{[l]} \\times m", "aliases": ["Z hat"] },
+      { "symbol": "\\gamma^{[l]}", "meaning": "Learned scale parameter", "shape": "n^{[l]} \\times 1", "aliases": ["gamma", "scale"] },
+      { "symbol": "\\beta^{[l]}", "meaning": "Learned shift parameter", "shape": "n^{[l]} \\times 1", "aliases": ["beta", "shift"] }
     ],
-    "shape": { "input": ["x^{(i)}: activation feature", "\\mu_B, \\sigma_B^2: per-feature statistics"], "output": "y^{(i)}: same shape as x^{(i)}", "explanation": "Normalization and affine scaling are elementwise after the per-feature statistics are computed." },
+    "shape": { "input": ["\\hat{Z}^{[l]}: n^{[l]} \\times m", "\\gamma^{[l]}: n^{[l]} \\times 1", "\\beta^{[l]}: n^{[l]} \\times 1"], "output": "\\tilde{Z}^{[l]}: n^{[l]} \\times m", "explanation": "Gamma and beta broadcast across the m examples." },
     "topicSlugs": ["gradient-descent-learning-rate", "mini-batch-training-batch-size"],
     "blogSlugs": ["batch-normalization"],
-    "pdfSection": "Batch Normalization: Forward transform",
-    "relatedFormulaIds": ["batchnorm-mini-batch-statistics", "batchnorm-inference-transform", "layer-normalization"]
+    "pdfSection": "10.3 Scale and Shift",
+    "pdfPage": 20,
+    "relatedFormulaIds": ["batchnorm-vectorized-normalization", "batchnorm-forward-pipeline", "layer-normalization"]
+  },
+  {
+    "id": "batchnorm-scale-shift",
+    "title": "BatchNorm Single and Vectorized Scale-Shift",
+    "category": "Optimization",
+    "type": "formula",
+    "useCase": "Training stability",
+    "latex": "\\tilde{z}^{[l](i)}=\\gamma^{[l]}\\odot\\hat{z}^{[l](i)}+\\beta^{[l]},\\quad \\tilde{Z}^{[l]}=\\gamma^{[l]}\\odot\\hat{Z}^{[l]}+\\beta^{[l]}",
+    "plainTextFormula": "ztilde[l](i) = gamma[l] * zhat[l](i) + beta[l], Ztilde[l] = gamma[l] * Zhat[l] + beta[l]",
+    "description": "Shows the single-example and vectorized learned affine transform after normalization.",
+    "aliases": ["batchnorm scale shift", "gamma beta", "Z tilde", "z tilde"],
+    "symbols": [
+      { "symbol": "\\tilde{z}^{[l](i)}", "meaning": "Scaled and shifted single-example pre-activation", "shape": "n^{[l]} \\times 1", "aliases": ["z tilde"] },
+      { "symbol": "\\tilde{Z}^{[l]}", "meaning": "Scaled and shifted pre-activation batch", "shape": "n^{[l]} \\times m", "aliases": ["Z tilde"] },
+      { "symbol": "\\gamma^{[l]}", "meaning": "Learned scale parameter", "shape": "n^{[l]} \\times 1", "aliases": ["gamma"] },
+      { "symbol": "\\beta^{[l]}", "meaning": "Learned shift parameter", "shape": "n^{[l]} \\times 1", "aliases": ["beta"] }
+    ],
+    "shape": { "input": ["\\hat{Z}^{[l]}: n^{[l]} \\times m", "\\gamma^{[l]}, \\beta^{[l]}: n^{[l]} \\times 1"], "output": "\\tilde{Z}^{[l]}: n^{[l]} \\times m", "explanation": "The learned parameters keep one scale and shift per layer unit, then broadcast across examples." },
+    "topicSlugs": ["gradient-descent-learning-rate", "mini-batch-training-batch-size"],
+    "blogSlugs": ["batch-normalization"],
+    "pdfSection": "10.3 Scale and Shift",
+    "pdfPage": 20,
+    "relatedFormulaIds": ["batchnorm-vectorized-normalization", "batchnorm-forward-pipeline"]
+  },
+  {
+    "id": "batchnorm-forward-pipeline",
+    "title": "Dense-layer BatchNorm Forward Pipeline",
+    "category": "Optimization",
+    "type": "pipeline",
+    "useCase": "Training stability",
+    "latex": "Z^{[l]}\\rightarrow\\mu_B^{[l]},(\\sigma_B^2)^{[l]}\\rightarrow\\hat{Z}^{[l]}\\rightarrow\\tilde{Z}^{[l]}\\rightarrow A^{[l]}=g^{[l]}(\\tilde{Z}^{[l]})",
+    "plainTextFormula": "Z[l] -> mu_B[l], sigma_B2[l] -> Zhat[l] -> Ztilde[l] -> A[l] = g[l](Ztilde[l])",
+    "description": "Summarizes the dense-layer BatchNorm forward pass from pre-activations to the post-activation output.",
+    "aliases": ["batchnorm pipeline", "dense batchnorm", "batch norm forward pass"],
+    "symbols": [
+      { "symbol": "Z^{[l]}", "meaning": "Pre-activation batch", "shape": "n^{[l]} \\times m", "aliases": ["Z"] },
+      { "symbol": "\\hat{Z}^{[l]}", "meaning": "Normalized pre-activation batch", "shape": "n^{[l]} \\times m", "aliases": ["Z hat"] },
+      { "symbol": "\\tilde{Z}^{[l]}", "meaning": "Scaled and shifted pre-activation batch", "shape": "n^{[l]} \\times m", "aliases": ["Z tilde"] },
+      { "symbol": "g^{[l]}", "meaning": "Layer activation function", "shape": "layer map", "aliases": ["activation"] }
+    ],
+    "shape": { "input": ["Z^{[l]}: n^{[l]} \\times m"], "output": "A^{[l]}: n^{[l]} \\times m", "explanation": "Each BatchNorm stage preserves the layer-by-batch matrix shape before activation." },
+    "topicSlugs": ["gradient-descent-learning-rate", "mini-batch-training-batch-size"],
+    "blogSlugs": ["batch-normalization"],
+    "pdfSection": "10.4 BatchNorm Forward Pipeline",
+    "pdfPage": 20,
+    "relatedFormulaIds": ["batchnorm-mini-batch-statistics", "batchnorm-normalize-scale-shift", "dense-layer-forward"]
+  },
+  {
+    "id": "batchnorm-running-statistics",
+    "title": "BatchNorm Running Mean and Variance",
+    "category": "Optimization",
+    "type": "update-rule",
+    "useCase": "Inference statistics",
+    "latex": "\\mu_{run}^{[l]}\\leftarrow\\rho\\mu_{run}^{[l]}+(1-\\rho)\\mu_B^{[l]},\\quad (\\sigma_{run}^2)^{[l]}\\leftarrow\\rho(\\sigma_{run}^2)^{[l]}+(1-\\rho)(\\sigma_B^2)^{[l]}",
+    "plainTextFormula": "mu_run[l] <- rho mu_run[l] + (1-rho) mu_B[l], sigma_run2[l] <- rho sigma_run2[l] + (1-rho) sigma_B2[l]",
+    "description": "Maintains population-style running estimates used when the model is evaluated or deployed.",
+    "aliases": ["batchnorm running mean", "running variance", "population estimates", "moving average statistics"],
+    "symbols": [
+      { "symbol": "\\mu_{run}^{[l]}", "meaning": "Layer l running mean", "shape": "n^{[l]} \\times 1", "aliases": ["running mean"] },
+      { "symbol": "(\\sigma_{run}^2)^{[l]}", "meaning": "Layer l running variance", "shape": "n^{[l]} \\times 1", "aliases": ["running variance"] },
+      { "symbol": "\\rho", "meaning": "Running-average coefficient", "shape": "scalar in [0,1)", "aliases": ["rho", "momentum"] }
+    ],
+    "shape": { "input": ["running statistics: n^{[l]} \\times 1", "mini-batch statistics: n^{[l]} \\times 1"], "output": "updated running statistics: n^{[l]} \\times 1", "explanation": "The moving averages keep the same per-unit statistic shape." },
+    "topicSlugs": ["mini-batch-training-batch-size"],
+    "blogSlugs": ["batch-normalization"],
+    "pdfSection": "10.5 Running Mean and Variance",
+    "pdfPage": 20,
+    "relatedFormulaIds": ["batchnorm-inference-normalization", "batchnorm-inference-transform"]
+  },
+  {
+    "id": "batchnorm-training-normalization",
+    "title": "BatchNorm Training Normalization",
+    "category": "Optimization",
+    "type": "formula",
+    "useCase": "Training mode",
+    "latex": "\\hat{Z}^{[l]}_{train}=\\frac{Z^{[l]}-\\mu_B^{[l]}}{\\sqrt{(\\sigma_B^2)^{[l]}+\\epsilon}}",
+    "plainTextFormula": "Zhat_train[l] = (Z[l] - mu_B[l]) / sqrt(sigma_B2[l] + epsilon)",
+    "description": "Uses current mini-batch statistics during training mode.",
+    "aliases": ["batchnorm training mode", "training batch statistics", "train normalization"],
+    "symbols": [
+      { "symbol": "\\hat{Z}^{[l]}_{train}", "meaning": "Training-mode normalized pre-activations", "shape": "n^{[l]} \\times m", "aliases": ["train Zhat"] },
+      { "symbol": "\\mu_B^{[l]}", "meaning": "Current mini-batch mean", "shape": "n^{[l]} \\times 1", "aliases": ["batch mean"] }
+    ],
+    "shape": { "input": ["Z^{[l]}: n^{[l]} \\times m", "mini-batch statistics: n^{[l]} \\times 1"], "output": "\\hat{Z}^{[l]}_{train}: n^{[l]} \\times m", "explanation": "Training mode depends on the current mini-batch." },
+    "topicSlugs": ["mini-batch-training-batch-size"],
+    "blogSlugs": ["batch-normalization"],
+    "pdfSection": "10.6 Training vs Inference",
+    "pdfPage": 20,
+    "relatedFormulaIds": ["batchnorm-training-scale-shift", "batchnorm-inference-normalization"]
+  },
+  {
+    "id": "batchnorm-training-scale-shift",
+    "title": "BatchNorm Training Scale and Shift",
+    "category": "Optimization",
+    "type": "formula",
+    "useCase": "Training mode",
+    "latex": "\\tilde{Z}^{[l]}_{train}=\\gamma^{[l]}\\odot\\hat{Z}^{[l]}_{train}+\\beta^{[l]}",
+    "plainTextFormula": "Ztilde_train[l] = gamma[l] * Zhat_train[l] + beta[l]",
+    "description": "Applies learned gamma and beta to the training-mode normalized activations.",
+    "aliases": ["training scale shift", "train gamma beta", "batchnorm train affine"],
+    "symbols": [
+      { "symbol": "\\tilde{Z}^{[l]}_{train}", "meaning": "Training-mode scaled and shifted pre-activations", "shape": "n^{[l]} \\times m", "aliases": ["train Z tilde"] },
+      { "symbol": "\\gamma^{[l]},\\beta^{[l]}", "meaning": "Learned scale and shift", "shape": "n^{[l]} \\times 1", "aliases": ["gamma beta"] }
+    ],
+    "shape": { "input": ["\\hat{Z}^{[l]}_{train}: n^{[l]} \\times m", "\\gamma^{[l]}, \\beta^{[l]}: n^{[l]} \\times 1"], "output": "\\tilde{Z}^{[l]}_{train}: n^{[l]} \\times m", "explanation": "Gamma and beta broadcast across the training examples." },
+    "topicSlugs": ["mini-batch-training-batch-size"],
+    "blogSlugs": ["batch-normalization"],
+    "pdfSection": "10.6 Training vs Inference",
+    "pdfPage": 20,
+    "relatedFormulaIds": ["batchnorm-training-normalization", "batchnorm-inference-transform"]
+  },
+  {
+    "id": "batchnorm-inference-normalization",
+    "title": "BatchNorm Inference Normalization",
+    "category": "Optimization",
+    "type": "formula",
+    "useCase": "Inference mode",
+    "latex": "\\hat{Z}^{[l]}_{test}=\\frac{Z^{[l]}-\\mu_{run}^{[l]}}{\\sqrt{(\\sigma_{run}^2)^{[l]}+\\epsilon}}",
+    "plainTextFormula": "Zhat_test[l] = (Z[l] - mu_run[l]) / sqrt(sigma_run2[l] + epsilon)",
+    "description": "Uses running statistics at inference time so predictions do not depend on other examples in the current batch.",
+    "aliases": ["batchnorm inference normalization", "test normalization", "running statistics normalization"],
+    "symbols": [
+      { "symbol": "\\hat{Z}^{[l]}_{test}", "meaning": "Inference-mode normalized pre-activations", "shape": "n^{[l]} \\times m", "aliases": ["test Zhat"] },
+      { "symbol": "\\mu_{run}^{[l]}", "meaning": "Running mean", "shape": "n^{[l]} \\times 1", "aliases": ["running mean"] },
+      { "symbol": "(\\sigma_{run}^2)^{[l]}", "meaning": "Running variance", "shape": "n^{[l]} \\times 1", "aliases": ["running variance"] }
+    ],
+    "shape": { "input": ["Z^{[l]}: n^{[l]} \\times m", "running statistics: n^{[l]} \\times 1"], "output": "\\hat{Z}^{[l]}_{test}: n^{[l]} \\times m", "explanation": "Running statistics broadcast across inference examples." },
+    "topicSlugs": ["mini-batch-training-batch-size"],
+    "blogSlugs": ["batch-normalization"],
+    "pdfSection": "10.6 Training vs Inference",
+    "pdfPage": 20,
+    "relatedFormulaIds": ["batchnorm-running-statistics", "batchnorm-inference-transform"]
   },
   {
     "id": "batchnorm-inference-transform",
@@ -1473,19 +1915,106 @@
     "category": "Optimization",
     "type": "formula",
     "useCase": "Inference",
-    "latex": "y=\\gamma\\frac{x-\\mu_{\\mathrm{running}}}{\\sqrt{\\sigma_{\\mathrm{running}}^2+\\epsilon}}+\\beta",
-    "plainTextFormula": "y = gamma (x - running mean) / sqrt(running variance + epsilon) + beta",
-    "description": "Uses stored running statistics at inference time instead of statistics from the current mini-batch.",
-    "aliases": ["batch norm inference", "running mean", "running variance", "inference batch normalization"],
+    "latex": "\\tilde{Z}^{[l]}_{test}=\\gamma^{[l]}\\odot\\hat{Z}^{[l]}_{test}+\\beta^{[l]}",
+    "plainTextFormula": "Ztilde_test[l] = gamma[l] * Zhat_test[l] + beta[l]",
+    "description": "Applies learned gamma and beta after inference-mode normalization with running statistics.",
+    "aliases": ["batch norm inference", "running mean", "running variance", "inference batch normalization", "test scale shift"],
     "symbols": [
-      { "symbol": "\\mu_{\\mathrm{running}}", "meaning": "Exponential moving average of training means", "shape": "one value per normalized feature", "aliases": ["running mean"] },
-      { "symbol": "\\sigma_{\\mathrm{running}}^2", "meaning": "Exponential moving average of training variances", "shape": "one value per normalized feature", "aliases": ["running variance"] }
+      { "symbol": "\\tilde{Z}^{[l]}_{test}", "meaning": "Inference-mode scaled and shifted pre-activations", "shape": "n^{[l]} \\times m", "aliases": ["test Z tilde"] },
+      { "symbol": "\\hat{Z}^{[l]}_{test}", "meaning": "Inference-mode normalized pre-activations", "shape": "n^{[l]} \\times m", "aliases": ["test Zhat"] },
+      { "symbol": "\\gamma^{[l]},\\beta^{[l]}", "meaning": "Learned scale and shift", "shape": "n^{[l]} \\times 1", "aliases": ["gamma beta"] }
     ],
-    "shape": { "input": ["x: activation feature", "running statistics"], "output": "y: same shape as x", "explanation": "Inference uses fixed statistics so predictions do not depend on other examples in the batch." },
+    "shape": { "input": ["\\hat{Z}^{[l]}_{test}: n^{[l]} \\times m", "\\gamma^{[l]}, \\beta^{[l]}: n^{[l]} \\times 1"], "output": "\\tilde{Z}^{[l]}_{test}: n^{[l]} \\times m", "explanation": "Inference uses fixed statistics, then the same learned affine parameters as training." },
     "topicSlugs": ["mini-batch-training-batch-size"],
     "blogSlugs": ["batch-normalization"],
-    "pdfSection": "Batch Normalization: Inference",
-    "relatedFormulaIds": ["batchnorm-normalize-scale-shift"]
+    "pdfSection": "10.6 Training vs Inference",
+    "pdfPage": 20,
+    "relatedFormulaIds": ["batchnorm-inference-normalization", "batchnorm-training-scale-shift"]
+  },
+  {
+    "id": "batchnorm-parameter-shapes",
+    "title": "BatchNorm Parameter and Statistic Shapes",
+    "category": "Optimization",
+    "type": "shape",
+    "useCase": "Shape check",
+    "latex": "Z^{[l]},\\hat{Z}^{[l]},\\tilde{Z}^{[l]}\\in\\mathbb{R}^{n^{[l]}\\times m},\\quad \\mu_B^{[l]},(\\sigma_B^2)^{[l]},\\gamma^{[l]},\\beta^{[l]},\\mu_{run}^{[l]},(\\sigma_{run}^2)^{[l]}\\in\\mathbb{R}^{n^{[l]}\\times 1}",
+    "plainTextFormula": "Z, Zhat, Ztilde shapes n[l] x m; batch stats, gamma, beta, running stats shapes n[l] x 1",
+    "description": "Collects the core BatchNorm matrix and column-vector shapes for dense-layer notation.",
+    "aliases": ["batchnorm shapes", "gamma beta shape", "running mean shape", "batch norm parameter shapes"],
+    "symbols": [
+      { "symbol": "Z^{[l]}", "meaning": "Pre-activation batch", "shape": "n^{[l]} \\times m", "aliases": ["Z"] },
+      { "symbol": "\\gamma^{[l]},\\beta^{[l]}", "meaning": "Learned scale and shift", "shape": "n^{[l]} \\times 1", "aliases": ["gamma beta"] },
+      { "symbol": "\\mu_{run}^{[l]},(\\sigma_{run}^2)^{[l]}", "meaning": "Running statistics", "shape": "n^{[l]} \\times 1", "aliases": ["running stats"] }
+    ],
+    "shape": { "input": ["layer width n^{[l]}", "batch size m"], "output": "BatchNorm matrices and column parameters", "explanation": "BatchNorm normalizes each layer unit across the batch, so statistics and learned parameters are column vectors." },
+    "topicSlugs": ["mini-batch-training-batch-size"],
+    "blogSlugs": ["batch-normalization"],
+    "pdfSection": "10.7 Parameter Shapes",
+    "pdfPage": 21,
+    "relatedFormulaIds": ["batchnorm-mini-batch-statistics", "batchnorm-normalize-scale-shift"]
+  },
+  {
+    "id": "vgg-conv-block",
+    "title": "VGG-style Convolution Block",
+    "category": "CNN",
+    "type": "pipeline",
+    "useCase": "CNN architecture motifs",
+    "latex": "X\\rightarrow[3\\times3\\;conv]{repeat}\\operatorname{ReLU}\\rightarrow2\\times2\\;\\operatorname{MaxPool}",
+    "plainTextFormula": "VGG block repeats 3x3 conv + ReLU, then applies 2x2 max pooling",
+    "description": "Represents the VGG-style habit of stacking small 3x3 convolutions before pooling.",
+    "aliases": ["VGG block", "3x3 conv stack", "conv relu pool", "CNN architecture"],
+    "symbols": [
+      { "symbol": "X", "meaning": "Input feature tensor", "shape": "m \\times H \\times W \\times C", "aliases": ["features"] },
+      { "symbol": "3\\times3", "meaning": "Small spatial convolution filter", "shape": "kernel size", "aliases": ["small filter"] }
+    ],
+    "shape": { "input": ["feature tensor"], "output": "deeper feature tensor", "explanation": "The convolutions learn features; the pooling step usually reduces spatial resolution." },
+    "topicSlugs": ["convolution-operation", "feature-map-visualization"],
+    "blogSlugs": [],
+    "pdfSection": "12.1 Classic CNN Architecture Motifs",
+    "pdfPage": 24,
+    "relatedFormulaIds": ["convolution-operation", "max-pooling"]
+  },
+  {
+    "id": "inception-channel-concat",
+    "title": "Inception Channel Concatenation",
+    "category": "CNN",
+    "type": "formula",
+    "useCase": "CNN architecture motifs",
+    "latex": "Y=\\operatorname{Concat}_{channels}(Y_{1\\times1},Y_{3\\times3},Y_{5\\times5},Y_{pool})",
+    "plainTextFormula": "Inception output concatenates 1x1, 3x3, 5x5, and pooling branch outputs along channels",
+    "description": "Combines parallel convolution and pooling branches by concatenating their feature maps along the channel axis.",
+    "aliases": ["Inception module", "GoogLeNet", "channel concatenation", "parallel branches"],
+    "symbols": [
+      { "symbol": "Y_{1\\times1},Y_{3\\times3},Y_{5\\times5},Y_{pool}", "meaning": "Branch outputs", "shape": "same H and W, different channel counts", "aliases": ["branches"] },
+      { "symbol": "\\operatorname{Concat}_{channels}", "meaning": "Concatenation along the channel axis", "shape": "adds channel counts", "aliases": ["channel concat"] }
+    ],
+    "shape": { "input": ["branch outputs with matching spatial size"], "output": "one feature tensor with summed channels", "explanation": "Inception needs branch spatial sizes to match; channel counts are stacked." },
+    "topicSlugs": ["convolution-operation", "feature-map-visualization"],
+    "blogSlugs": [],
+    "pdfSection": "12.4 Inception Module",
+    "pdfPage": 25,
+    "relatedFormulaIds": ["pointwise-convolution", "cnn-output-size"]
+  },
+  {
+    "id": "bottleneck-parameter-reduction",
+    "title": "Bottleneck Parameter Reduction",
+    "category": "CNN",
+    "type": "shape",
+    "useCase": "CNN architecture efficiency",
+    "latex": "\\#params_{bottleneck}=C_{in}C_{mid}+k^2C_{mid}C_{out},\\quad C_{mid}\\ll C_{in},C_{out}",
+    "plainTextFormula": "bottleneck params = C_in*C_mid + k^2*C_mid*C_out with C_mid much smaller than input/output channels",
+    "description": "Uses a 1x1 projection to reduce channel width before an expensive spatial convolution.",
+    "aliases": ["bottleneck block", "1x1 reduction", "parameter reduction", "channel bottleneck"],
+    "symbols": [
+      { "symbol": "C_{mid}", "meaning": "Reduced intermediate channel count", "shape": "scalar", "aliases": ["bottleneck channels"] },
+      { "symbol": "k", "meaning": "Spatial kernel size after reduction", "shape": "scalar", "aliases": ["kernel"] }
+    ],
+    "shape": { "input": ["C_in, C_mid, C_out"], "output": "parameter count", "explanation": "Reducing channels before the k by k convolution lowers the dominant parameter term." },
+    "topicSlugs": ["convolution-operation", "feature-map-visualization"],
+    "blogSlugs": ["residual-block-resnet-intuition"],
+    "pdfSection": "12.5 Bottleneck Blocks",
+    "pdfPage": 25,
+    "relatedFormulaIds": ["pointwise-convolution", "convolution-parameter-count"]
   },
   {
     "id": "residual-block-forward",
@@ -1529,6 +2058,29 @@
     "relatedFormulaIds": ["residual-block-forward", "convolution-parameter-count"]
   },
   {
+    "id": "yolo-box-representation",
+    "title": "YOLO Box Representation",
+    "category": "CNN",
+    "type": "shape",
+    "useCase": "Object detection",
+    "latex": "b=(x,y,w,h,p_c,c_1,\\ldots,c_C)",
+    "plainTextFormula": "a YOLO prediction stores box center x,y, width, height, objectness p_c, and class scores",
+    "description": "Collects the per-box quantities predicted by a YOLO-style detection head.",
+    "aliases": ["YOLO box vector", "bounding box representation", "objectness and class scores"],
+    "symbols": [
+      { "symbol": "x,y", "meaning": "Box center coordinates", "shape": "scalars", "aliases": ["center"] },
+      { "symbol": "w,h", "meaning": "Box width and height", "shape": "scalars", "aliases": ["box size"] },
+      { "symbol": "p_c", "meaning": "Objectness or confidence that an object exists", "shape": "scalar", "aliases": ["confidence", "objectness"] },
+      { "symbol": "c_1,\\ldots,c_C", "meaning": "Class scores or probabilities", "shape": "C scalars", "aliases": ["classes"] }
+    ],
+    "shape": { "input": ["one grid-cell box prediction"], "output": "5 + C values per box", "explanation": "The 5 terms are x, y, w, h, and objectness; class terms add C more values." },
+    "topicSlugs": ["feature-map-visualization"],
+    "blogSlugs": [],
+    "pdfSection": "13.1 YOLO Box Representation",
+    "pdfPage": 26,
+    "relatedFormulaIds": ["yolo-grid-output-shape", "intersection-over-union"]
+  },
+  {
     "id": "yolo-grid-output-shape",
     "title": "YOLO Grid Output Shape",
     "category": "CNN",
@@ -1569,6 +2121,28 @@
     "blogSlugs": [],
     "pdfSection": "Object Detection: Anchor box decoding",
     "relatedFormulaIds": ["yolo-grid-output-shape", "intersection-over-union"]
+  },
+  {
+    "id": "yolo-anchor-assignment",
+    "title": "YOLO Anchor Assignment",
+    "category": "CNN",
+    "type": "statement",
+    "useCase": "Object detection",
+    "latex": "a^*=\\arg\\max_a\\operatorname{IoU}(b_{gt},anchor_a)",
+    "plainTextFormula": "assign an object to the anchor whose shape has the highest IoU with the ground-truth box",
+    "description": "Chooses the anchor box responsible for predicting an object by matching anchor shape to the ground-truth box.",
+    "aliases": ["anchor assignment", "YOLO anchors", "best anchor", "object responsible anchor"],
+    "symbols": [
+      { "symbol": "a^*", "meaning": "Selected anchor index", "shape": "integer", "aliases": ["best anchor"] },
+      { "symbol": "b_{gt}", "meaning": "Ground-truth bounding box", "shape": "box", "aliases": ["ground truth"] },
+      { "symbol": "anchor_a", "meaning": "Anchor box shape a", "shape": "box prior", "aliases": ["anchor"] }
+    ],
+    "shape": { "input": ["ground-truth box", "anchor box set"], "output": "selected anchor index", "explanation": "Anchor assignment is a matching rule that decides which predictor owns an object." },
+    "topicSlugs": ["feature-map-visualization"],
+    "blogSlugs": [],
+    "pdfSection": "13.5 Anchor Boxes",
+    "pdfPage": 27,
+    "relatedFormulaIds": ["intersection-over-union", "yolo-grid-output-shape"]
   },
   {
     "id": "intersection-over-union",
@@ -1716,6 +2290,28 @@
     "relatedFormulaIds": ["neural-style-gram-matrix", "neural-style-content-cost"]
   },
   {
+    "id": "neural-style-total-cost",
+    "title": "Neural Style Transfer Total Cost",
+    "category": "CNN",
+    "type": "loss",
+    "useCase": "Neural style transfer",
+    "latex": "J_{NST}(G)=\\alpha J_{content}(C,G)+\\beta J_{style}(S,G)",
+    "plainTextFormula": "total neural style cost = alpha content cost + beta style cost",
+    "description": "Balances content preservation and style matching while optimizing the generated image.",
+    "aliases": ["NST objective", "style transfer total loss", "content style tradeoff", "generated image objective"],
+    "symbols": [
+      { "symbol": "\\alpha", "meaning": "Content cost weight", "shape": "scalar", "aliases": ["content weight"] },
+      { "symbol": "\\beta", "meaning": "Style cost weight", "shape": "scalar", "aliases": ["style weight"] },
+      { "symbol": "G", "meaning": "Generated image being optimized", "shape": "image tensor", "aliases": ["generated"] }
+    ],
+    "shape": { "input": ["J_content: scalar", "J_style: scalar"], "output": "J_NST: scalar", "explanation": "The content and style losses are scalar terms combined by user-chosen weights." },
+    "topicSlugs": ["feature-map-visualization", "transfer-learning-intuition"],
+    "blogSlugs": ["transfer-learning"],
+    "pdfSection": "14.4 Neural Style Transfer Total Objective",
+    "pdfPage": 28,
+    "relatedFormulaIds": ["neural-style-content-cost", "neural-style-style-cost"]
+  },
+  {
     "id": "embedding-lookup",
     "title": "Embedding Lookup",
     "category": "RNN / LSTM",
@@ -1818,6 +2414,29 @@
     "blogSlugs": ["attention-mechanism"],
     "pdfSection": "Seq2Seq: Decoder output distribution",
     "relatedFormulaIds": ["attention-context-vector", "beam-search-log-score"]
+  },
+  {
+    "id": "attention-alignment-scores",
+    "title": "Additive Attention Alignment Scores",
+    "category": "RNN / LSTM",
+    "type": "formula",
+    "useCase": "Sequence attention",
+    "latex": "e_{t,s}=v_a^T\\tanh(W_s s_{t-1}+W_h h_s+b_a),\\quad \\alpha_{t,s}=\\frac{\\exp(e_{t,s})}{\\sum_{s'=1}^{T_x}\\exp(e_{t,s'})}",
+    "plainTextFormula": "alignment score e_t,s is transformed decoder state plus encoder state; alpha_t,s is softmax over source positions",
+    "description": "Computes how much decoder step t should attend to encoder state s in additive seq2seq attention.",
+    "aliases": ["additive attention", "Bahdanau attention", "alignment score", "attention weights"],
+    "symbols": [
+      { "symbol": "e_{t,s}", "meaning": "Unnormalized alignment score for decoder step t and source step s", "shape": "scalar", "aliases": ["score"] },
+      { "symbol": "\\alpha_{t,s}", "meaning": "Normalized attention weight", "shape": "scalar", "aliases": ["attention weight"] },
+      { "symbol": "h_s", "meaning": "Encoder hidden state at source position s", "shape": "n_h \\times m", "aliases": ["encoder state"] },
+      { "symbol": "s_{t-1}", "meaning": "Previous decoder state", "shape": "n_s \\times m", "aliases": ["decoder state"] }
+    ],
+    "shape": { "input": ["decoder state", "encoder state"], "output": "attention weights over T_x source positions", "explanation": "Scores are normalized over source positions so the weights for a decoder step sum to one." },
+    "topicSlugs": ["attention-mechanism-intuition", "rnn-structure"],
+    "blogSlugs": ["attention-mechanism"],
+    "pdfSection": "17.6 Additive Attention Scores",
+    "pdfPage": 40,
+    "relatedFormulaIds": ["attention-context-vector", "softmax-activation"]
   },
   {
     "id": "attention-context-vector",

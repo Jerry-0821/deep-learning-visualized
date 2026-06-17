@@ -14,7 +14,7 @@ const sourceBlocks = JSON.parse(readFileSync(sourceDataPath, "utf8"));
 const topicModel = readFileSync(topicModelPath, "utf8");
 
 assert.ok(Array.isArray(sourceBlocks), "Formula Hub source data must be an array.");
-assert.ok(sourceBlocks.length >= 78, "Formula Hub should keep the existing source formula blocks.");
+assert.ok(sourceBlocks.length >= 124, "Formula Hub should keep the expanded D-G source formula blocks.");
 
 const topicDefinitionSection = topicModel.slice(
   topicModel.indexOf("const formulaTopicDefinitions"),
@@ -22,7 +22,7 @@ const topicDefinitionSection = topicModel.slice(
 );
 
 const topicCount = (topicDefinitionSection.match(/\n\s+\{\n\s+id: /g) ?? []).length;
-assert.ok(topicCount >= 50, "Formula Hub should expose PDF-node formula topics, not a tiny formula sample.");
+assert.ok(topicCount >= 115, "Formula Hub should expose PDF-node formula topics, not a tiny formula sample.");
 
 assert.ok(
     topicModel.includes('id: "adam-update-rule"') &&
@@ -36,8 +36,12 @@ assert.ok(
 assert.ok(
   topicModel.includes('id: "batchnorm-normalize-scale-shift"') &&
     topicModel.includes('title: "Batch Normalization Forward Pipeline"') &&
-    topicModel.includes('"batchnorm-mini-batch-statistics", "batchnorm-normalize-scale-shift", "batchnorm-inference-transform"'),
-  "BatchNorm should be represented as a multi-step pipeline topic.",
+    topicModel.includes('"batchnorm-single-example-normalization"') &&
+    topicModel.includes('"batchnorm-vectorized-normalization"') &&
+    topicModel.includes('"batchnorm-running-statistics"') &&
+    topicModel.includes('"batchnorm-inference-normalization"') &&
+    topicModel.includes('"batchnorm-parameter-shapes"'),
+  "BatchNorm should be represented as a complete multi-step PDF section 10 pipeline topic.",
 );
 
 assert.ok(
@@ -60,6 +64,19 @@ const requiredTopicIds = [
   "rmsprop-update-rule",
   "momentum-update-rule",
   "batchnorm-normalize-scale-shift",
+  "cnn-basics-core",
+  "cnn-advanced-core",
+  "resnet-residual-blocks",
+  "yolo-detection-pipeline",
+  "face-recognition-metric-learning",
+  "neural-style-transfer-costs",
+  "rnn-lstm-core",
+  "vanilla-rnn-forward",
+  "gru-update-flow",
+  "lstm-memory-flow",
+  "seq2seq-attention-core",
+  "attention-transformer-core",
+  "attention-score-shape-check",
   "scaled-dot-product-attention",
   "transformer-block-pipeline",
   "yolo-grid-output-shape",

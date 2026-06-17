@@ -17,6 +17,29 @@ const featureCards = [
   },
 ];
 
+const noteHighlights = [
+  {
+    href: "/blog/batch-normalization",
+    label: "BatchNorm",
+    text: "running stats, gamma, beta",
+  },
+  {
+    href: "/blog/residual-block-resnet-intuition",
+    label: "ResNet",
+    text: "shortcut path, residual signal",
+  },
+  {
+    href: "/blog/attention-mechanism",
+    label: "Attention",
+    text: "scores, softmax, context",
+  },
+  {
+    href: "/blog/transfer-learning",
+    label: "Transfer",
+    text: "frozen features, new head",
+  },
+];
+
 export function LandingPage() {
   return (
     <main className="edition-root edition-home">
@@ -107,21 +130,60 @@ export function LandingPage() {
           ))}
         </section>
 
-        <section className="edition-notes-banner" aria-label="Visual notes">
-          <Link className="edition-notes-inner" href="/blog">
+        <section className="edition-notes-banner" aria-labelledby="edition-notes-title">
+          <div className="edition-notes-inner">
             <div className="edition-notes-stripe" />
             <div className="edition-notes-copy">
               <div>Notes</div>
-              <h3>Visual Notes on Deep Learning</h3>
+              <h3 id="edition-notes-title">Visual Notes on Deep Learning</h3>
               <p>Focused written explanations for ideas that need extra intuition beside the interactive lessons.</p>
+              <Link className="edition-notes-cta" href="/blog">
+                Read visual notes <span>{"\u2192"}</span>
+              </Link>
             </div>
-            <div className="edition-notes-tags">
-              <span>Batch Normalization</span>
-              <span>Residual Blocks</span>
-              <span>Attention</span>
-              <span>Transfer Learning</span>
+            <div className="edition-notes-visual" aria-hidden="true">
+              <svg className="edition-note-connectors" viewBox="0 0 420 180" preserveAspectRatio="none">
+                <path d="M112 84 C145 58 176 58 206 82" />
+                <path d="M250 78 C286 48 316 42 356 46" />
+                <path d="M250 90 C288 92 316 90 356 90" />
+                <path d="M250 102 C288 132 318 138 356 134" />
+              </svg>
+              <div className="edition-note-card-main">
+                <span className="edition-note-kicker">Visual note</span>
+                <strong>idea first</strong>
+                <span className="edition-note-line long" />
+                <span className="edition-note-line" />
+                <span className="edition-note-line short" />
+              </div>
+              <div className="edition-note-formula-card">
+                <span>formula focus</span>
+                <strong>QK^T</strong>
+                <small>softmax weights</small>
+              </div>
+              <div className="edition-note-node-stack">
+                <span className="edition-note-node">
+                  <i /> signal
+                </span>
+                <span className="edition-note-node">
+                  <i /> shape
+                </span>
+                <span className="edition-note-node">
+                  <i /> takeaway
+                </span>
+              </div>
             </div>
-          </Link>
+            <div className="edition-notes-links" aria-label="Featured visual notes">
+              {noteHighlights.map((note) => (
+                <Link key={note.href} className="edition-note-link" href={note.href}>
+                  <span>
+                    <strong>{note.label}</strong>
+                    <small>{note.text}</small>
+                  </span>
+                  <span>{"\u2192"}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
         </section>
 
         <section className="edition-features" aria-label="Why the library works">

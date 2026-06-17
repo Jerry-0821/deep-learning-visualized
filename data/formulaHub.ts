@@ -1098,91 +1098,878 @@ const formulaTopicDefinitions: FormulaTopicDefinition[] = [
     id: "batchnorm-normalize-scale-shift",
     nodeLabel: "10",
     title: "Batch Normalization Forward Pipeline",
-    sourceIds: ["batchnorm-mini-batch-statistics", "batchnorm-normalize-scale-shift", "batchnorm-inference-transform"],
-    latex: "\\mu_B,\\sigma_B^2\\rightarrow\\hat{x}^{(i)}=\\frac{x^{(i)}-\\mu_B}{\\sqrt{\\sigma_B^2+\\epsilon}}\\rightarrow y^{(i)}=\\gamma\\hat{x}^{(i)}+\\beta",
-    relatedFormulaIds: ["layer-normalization", "dense-layer-forward", "adam-update-rule"],
+    category: "Optimization",
+    type: "pipeline",
+    useCase: "Training stability",
+    sourceIds: [
+      "batchnorm-mini-batch-statistics",
+      "batchnorm-single-example-normalization",
+      "batchnorm-vectorized-normalization",
+      "batchnorm-scale-shift",
+      "batchnorm-forward-pipeline",
+      "batchnorm-running-statistics",
+      "batchnorm-training-normalization",
+      "batchnorm-training-scale-shift",
+      "batchnorm-inference-normalization",
+      "batchnorm-inference-transform",
+      "batchnorm-parameter-shapes",
+    ],
+    latex: "Z^{[l]}\\rightarrow\\mu_B^{[l]},(\\sigma_B^2)^{[l]}\\rightarrow\\hat{Z}^{[l]}\\rightarrow\\tilde{Z}^{[l]}\\rightarrow A^{[l]}=g^{[l]}(\\tilde{Z}^{[l]})",
+    pdfSection: "10 Batch Normalization",
+    pdfPage: 19,
+    relatedFormulaIds: [
+      "batchnorm-mini-batch-statistics",
+      "batchnorm-normalization-step",
+      "batchnorm-scale-shift-step",
+      "batchnorm-running-statistics",
+      "batchnorm-inference-transform",
+      "batchnorm-parameter-shape-reference",
+      "layer-normalization",
+      "dense-layer-forward",
+      "optimizer-family-core",
+      "initialization-strategy-core",
+      "regularization-strategy-core",
+    ],
     description:
-      "BatchNorm computes mini-batch statistics, normalizes activations, learns scale and shift, and uses running statistics at inference time.",
-    aliases: ["batch norm", "batchnorm", "normalize scale shift", "running mean", "running variance"],
+      "BatchNorm normalizes dense-layer pre-activations with mini-batch statistics, learns gamma and beta, tracks running statistics, and switches to those running statistics at inference time.",
+    aliases: [
+      "batch norm",
+      "batchnorm",
+      "normalize scale shift",
+      "running mean",
+      "running variance",
+      "training inference batchnorm",
+      "gamma beta",
+    ],
     relations: [
-      relation("compare-with", "regularization-strategy-core", "Normalization can help training stability; regularization directly controls overfitting"),
-      relation("used-in", "dense-layer-forward", "Often placed around dense or convolutional activations"),
-      relation("next-step", "adam-update-rule", "Stabilized activations can make optimization easier"),
+      relation("uses", "batchnorm-mini-batch-statistics", "Compute per-unit batch mean and variance"),
+      relation("uses", "batchnorm-normalization-step", "Normalize Z using mini-batch statistics"),
+      relation("uses", "batchnorm-scale-shift-step", "Learn gamma and beta after normalization"),
+      relation("uses", "batchnorm-running-statistics", "Maintain running estimates for inference"),
+      relation("uses", "batchnorm-inference-transform", "Switch from batch statistics to running statistics at test time"),
+      relation("uses", "batchnorm-parameter-shape-reference", "Keep the n[l] x m and n[l] x 1 shape contract clear"),
+      relation("used-in", "dense-layer-forward", "Usually inserted around dense-layer pre-activations before g(Z)"),
+      relation("next-step", "optimizer-family-core", "Stabilized activations can make optimization easier"),
+      relation("compare-with", "layer-normalization", "Batch statistics across examples vs feature statistics within an example/token"),
+      relation("compare-with", "regularization-strategy-core", "BatchNorm may add training noise, but its core role here is normalization"),
+      relation("compare-with", "initialization-strategy-core", "BatchNorm lowers sensitivity to scale, but still benefits from sensible initialization"),
+      relation("appears-in", "residual-block-forward", "Modern CNN blocks often combine convolution, BatchNorm, activation, and residual paths"),
+    ],
+  },
+  {
+    id: "batchnorm-mini-batch-statistics",
+    nodeLabel: "10.1",
+    category: "Optimization",
+    sourceIds: ["batchnorm-mini-batch-statistics"],
+    relatedFormulaIds: ["batchnorm-normalization-step", "batchnorm-running-statistics", "optimizer-family-core"],
+    relations: [
+      relation("part-of", "batchnorm-normalize-scale-shift", "First BatchNorm computation"),
+      relation("prerequisite", "optimizer-family-core", "Both rely on mini-batch training notation"),
+      relation("next-step", "batchnorm-normalization-step", "Statistics feed the normalization step"),
+      relation("used-in", "batchnorm-running-statistics", "Running estimates are updated from batch statistics"),
+      relation("compare-with", "layer-normalization", "BatchNorm statistics depend on the mini-batch"),
+    ],
+  },
+  {
+    id: "batchnorm-normalization-step",
+    nodeLabel: "10.2",
+    title: "BatchNorm Normalization Step",
+    category: "Optimization",
+    type: "pipeline",
+    useCase: "Training stability",
+    sourceIds: ["batchnorm-single-example-normalization", "batchnorm-vectorized-normalization"],
+    latex: "\\hat{Z}^{[l]}=\\frac{Z^{[l]}-\\mu_B^{[l]}}{\\sqrt{(\\sigma_B^2)^{[l]}+\\epsilon}}",
+    description:
+      "The normalization step centers and scales pre-activations using mini-batch statistics; the vectorized form broadcasts column statistics across examples.",
+    aliases: ["batchnorm normalize", "Z hat", "batch norm normalization", "epsilon"],
+    relatedFormulaIds: ["batchnorm-mini-batch-statistics", "batchnorm-scale-shift-step", "dense-layer-forward"],
+    relations: [
+      relation("part-of", "batchnorm-normalize-scale-shift", "Normalize pre-activations before learned scale and shift"),
+      relation("prerequisite", "batchnorm-mini-batch-statistics", "Needs batch mean and variance"),
+      relation("used-in", "batchnorm-scale-shift-step", "The normalized Z is the input to gamma and beta"),
+      relation("used-in", "dense-layer-forward", "Normalizes Z before the layer activation"),
+    ],
+  },
+  {
+    id: "batchnorm-scale-shift-step",
+    nodeLabel: "10.3",
+    title: "BatchNorm Scale and Shift",
+    category: "Optimization",
+    sourceIds: ["batchnorm-scale-shift"],
+    relatedFormulaIds: ["batchnorm-normalization-step", "dense-layer-forward", "layer-normalization"],
+    relations: [
+      relation("part-of", "batchnorm-normalize-scale-shift", "Learned affine transform after normalization"),
+      relation("prerequisite", "batchnorm-normalization-step", "Applies to normalized pre-activations"),
+      relation("next-step", "dense-layer-forward", "The scaled value feeds the layer activation"),
+      relation("compare-with", "layer-normalization", "Both use learned gamma and beta after normalization"),
+    ],
+  },
+  {
+    id: "batchnorm-running-statistics",
+    nodeLabel: "10.5",
+    category: "Optimization",
+    sourceIds: ["batchnorm-running-statistics"],
+    relatedFormulaIds: ["batchnorm-mini-batch-statistics", "batchnorm-inference-transform"],
+    relations: [
+      relation("part-of", "batchnorm-normalize-scale-shift", "Population estimate branch"),
+      relation("prerequisite", "batchnorm-mini-batch-statistics", "Updates from each mini-batch mean and variance"),
+      relation("used-in", "batchnorm-inference-transform", "Inference uses running rather than current-batch statistics"),
+      relation("compare-with", "dropout-mask", "Both require train/eval mode discipline"),
+    ],
+  },
+  {
+    id: "batchnorm-inference-transform",
+    nodeLabel: "10.6",
+    title: "BatchNorm Training vs Inference",
+    category: "Optimization",
+    type: "pipeline",
+    useCase: "Inference mode",
+    sourceIds: [
+      "batchnorm-training-normalization",
+      "batchnorm-training-scale-shift",
+      "batchnorm-inference-normalization",
+      "batchnorm-inference-transform",
+    ],
+    latex: "\\hat{Z}^{[l]}_{test}=\\frac{Z^{[l]}-\\mu_{run}^{[l]}}{\\sqrt{(\\sigma_{run}^2)^{[l]}+\\epsilon}},\\quad \\tilde{Z}^{[l]}_{test}=\\gamma^{[l]}\\odot\\hat{Z}^{[l]}_{test}+\\beta^{[l]}",
+    description:
+      "Training uses current mini-batch statistics; inference uses running mean and variance, then applies the same learned gamma and beta.",
+    aliases: ["batch norm inference", "training vs inference", "running statistics", "test batchnorm"],
+    relatedFormulaIds: ["batchnorm-running-statistics", "batchnorm-normalize-scale-shift", "dropout-mask"],
+    relations: [
+      relation("part-of", "batchnorm-normalize-scale-shift", "Train/test convention"),
+      relation("prerequisite", "batchnorm-running-statistics", "Inference needs running statistics"),
+      relation("compare-with", "dropout-mask", "Both change behavior between training and inference"),
+      relation("used-in", "dense-layer-forward", "Produces the normalized pre-activation passed to the layer activation"),
+    ],
+  },
+  {
+    id: "batchnorm-parameter-shape-reference",
+    nodeLabel: "10.7",
+    title: "BatchNorm Shape Reference",
+    category: "Optimization",
+    sourceIds: ["batchnorm-parameter-shapes"],
+    relatedFormulaIds: ["batchnorm-normalize-scale-shift", "dense-layer-activation-shape"],
+    relations: [
+      relation("part-of", "batchnorm-normalize-scale-shift", "Shape contract for BatchNorm"),
+      relation("compare-with", "dense-layer-activation-shape", "BatchNorm preserves the n[l] x m batch matrix shape"),
+      relation("used-in", "batchnorm-mini-batch-statistics", "Statistics are n[l] x 1 columns"),
+      relation("used-in", "batchnorm-scale-shift-step", "Gamma and beta are n[l] x 1 columns"),
+    ],
+  },
+  {
+    id: "cnn-basics-core",
+    nodeLabel: "11.1-11.9",
+    title: "CNN Basics Core",
+    category: "CNN",
+    type: "pipeline",
+    useCase: "Convolution and pooling foundations",
+    sourceIds: [
+      "cnn-tensor-convention",
+      "cnn-output-size",
+      "convolution-operation",
+      "convolution-parameter-count",
+      "cnn-padding-conventions",
+      "pooling-output-size",
+      "max-pooling",
+      "average-pooling",
+      "pointwise-convolution",
+      "depthwise-separable-convolution",
+    ],
+    latex:
+      "A^{[l]}\\in\\mathbb{R}^{m\\times n_H^{[l]}\\times n_W^{[l]}\\times n_C^{[l]}},\\quad n_H^{[l]}=\\left\\lfloor\\frac{n_H^{[l-1]}+2p^{[l]}-f^{[l]}}{s^{[l]}}\\right\\rfloor+1",
+    description:
+      "Collects the PDF section 11 CNN basics: activation tensor convention, convolution output shape, multi-channel convolution, parameter count, padding, pooling, 1x1 channel projection, and depthwise separable efficiency.",
+    aliases: ["CNN basics", "convolution basics", "pooling basics", "section 11 CNN"],
+    relatedFormulaIds: [
+      "cnn-tensor-convention",
+      "cnn-output-size",
+      "convolution-operation",
+      "convolution-parameter-count",
+      "cnn-padding-conventions",
+      "pooling-output-size",
+      "pointwise-convolution",
+      "depthwise-separable-convolution",
+      "residual-block-forward",
+      "yolo-grid-output-shape",
+    ],
+    relations: [
+      relation("uses", "cnn-tensor-convention", "Start with the NHWC shape contract"),
+      relation("uses", "cnn-output-size", "Compute convolution height, width, and channels"),
+      relation("uses", "convolution-operation", "Apply a filter to local spatial windows and input channels"),
+      relation("uses", "convolution-parameter-count", "Count weights and biases per layer"),
+      relation("uses", "cnn-padding-conventions", "Choose valid or same padding"),
+      relation("uses", "pooling-output-size", "Compute downsampled spatial sizes"),
+      relation("uses", "pointwise-convolution", "Project channel width with 1x1 filters"),
+      relation("uses", "depthwise-separable-convolution", "Compare efficient convolution parameter counts"),
+      relation("next-step", "residual-block-forward", "Residual CNN blocks build on convolution, projection, and activation"),
+      relation("next-step", "yolo-grid-output-shape", "Detection heads reuse CNN feature map dimensions"),
+      relation("appears-in", "neural-style-style-cost", "Style transfer uses CNN feature maps and Gram matrices"),
+    ],
+  },
+  {
+    id: "cnn-tensor-convention",
+    nodeLabel: "11.1",
+    title: "CNN Tensor Convention",
+    sourceIds: ["cnn-tensor-convention"],
+    relatedFormulaIds: ["cnn-basics-core", "cnn-output-size", "convolution-operation"],
+    relations: [
+      relation("part-of", "cnn-basics-core", "Shape contract for the CNN basics sequence"),
+      relation("used-in", "cnn-output-size", "Defines the height, width, channel, and batch symbols"),
+      relation("used-in", "convolution-operation", "Convolution reads from the previous activation tensor"),
+      relation("used-in", "pooling-output-size", "Pooling preserves the channel axis under the same convention"),
     ],
   },
   {
     id: "cnn-output-size",
     nodeLabel: "11.2",
     sourceIds: ["cnn-output-size"],
-    relatedFormulaIds: ["convolution-operation", "pooling-output-size"],
+    relatedFormulaIds: ["cnn-basics-core", "cnn-padding-conventions", "convolution-operation", "pooling-output-size"],
+    relations: [
+      relation("part-of", "cnn-basics-core", "Spatial shape step"),
+      relation("prerequisite", "cnn-tensor-convention", "Uses the NHWC layer dimensions"),
+      relation("uses", "cnn-padding-conventions", "Padding changes the numerator in the output-size formula"),
+      relation("next-step", "convolution-operation", "Once the output grid is known, each location is computed by the convolution sum"),
+      relation("compare-with", "pooling-output-size", "Pooling has a similar spatial formula but no learned filters"),
+    ],
   },
   {
     id: "convolution-operation",
     nodeLabel: "11.3",
     title: "Convolution Operation and Feature Map",
     sourceIds: ["convolution-operation", "feature-map-activation"],
-    relatedFormulaIds: ["cnn-output-size", "convolution-parameter-count"],
+    relatedFormulaIds: ["cnn-basics-core", "cnn-output-size", "convolution-parameter-count", "feature-map-activation"],
+    relations: [
+      relation("part-of", "cnn-basics-core", "Core learned CNN operation"),
+      relation("prerequisite", "cnn-output-size", "The output grid tells how many positions the filter visits"),
+      relation("uses", "cnn-tensor-convention", "Reads an NHWC activation tensor"),
+      relation("used-in", "feature-map-activation", "Filter responses become feature maps after the nonlinearity"),
+      relation("next-step", "convolution-parameter-count", "The same filter bank determines parameter count"),
+      relation("appears-in", "residual-block-forward", "Residual blocks stack convolutional transformations"),
+    ],
   },
   {
     id: "feature-map-activation",
-    nodeLabel: "11.3",
+    nodeLabel: "11.3 bridge",
     title: "Feature Map Activation",
     sourceIds: ["feature-map-activation"],
-    relatedFormulaIds: ["convolution-operation", "neural-style-style-cost"],
+    relatedFormulaIds: ["convolution-operation", "cnn-basics-core", "neural-style-style-cost"],
+    relations: [
+      relation("part-of", "cnn-basics-core", "Bridge from convolution scores to activated feature maps"),
+      relation("prerequisite", "convolution-operation", "Feature maps are produced from convolution responses"),
+      relation("used-in", "neural-style-style-cost", "Neural style transfer compares feature activations"),
+      relation("compare-with", "dense-layer-forward", "CNN feature maps are the spatial analogue of dense activations"),
+    ],
   },
   {
     id: "convolution-parameter-count",
     nodeLabel: "11.4",
     sourceIds: ["convolution-parameter-count"],
-    relatedFormulaIds: ["convolution-operation", "cnn-output-size"],
+    relatedFormulaIds: ["cnn-basics-core", "convolution-operation", "pointwise-convolution", "depthwise-separable-convolution"],
+    relations: [
+      relation("part-of", "cnn-basics-core", "Parameter sizing step"),
+      relation("prerequisite", "convolution-operation", "Counts the learned filter bank used by the convolution operation"),
+      relation("compare-with", "pointwise-convolution", "1x1 convolution is the f = 1 channel-projection special case"),
+      relation("compare-with", "depthwise-separable-convolution", "Depthwise separable convolution reduces the standard parameter count"),
+    ],
+  },
+  {
+    id: "cnn-padding-conventions",
+    nodeLabel: "11.5",
+    title: "CNN Padding Conventions",
+    sourceIds: ["cnn-padding-conventions"],
+    relatedFormulaIds: ["cnn-basics-core", "cnn-output-size", "convolution-operation"],
+    relations: [
+      relation("part-of", "cnn-basics-core", "Padding convention step"),
+      relation("used-in", "cnn-output-size", "Padding enters the spatial output-size formula"),
+      relation("compare-with", "pooling-output-size", "Pooling usually uses no padding in the course convention"),
+    ],
   },
   {
     id: "pooling-output-size",
     nodeLabel: "11.6-11.7",
-    title: "Pooling Output and Max Pooling",
-    sourceIds: ["pooling-output-size", "max-pooling"],
-    relatedFormulaIds: ["cnn-output-size", "convolution-operation"],
+    title: "Pooling Output and Operations",
+    sourceIds: ["pooling-output-size", "max-pooling", "average-pooling"],
+    relatedFormulaIds: ["cnn-basics-core", "cnn-output-size", "max-pooling", "average-pooling"],
+    relations: [
+      relation("part-of", "cnn-basics-core", "Downsampling step"),
+      relation("prerequisite", "cnn-tensor-convention", "Pooling keeps the channel convention"),
+      relation("uses", "max-pooling", "Max pooling keeps the strongest response in each window"),
+      relation("uses", "average-pooling", "Average pooling keeps the mean response in each window"),
+      relation("compare-with", "cnn-output-size", "Pooling changes spatial size without learned filters"),
+    ],
+  },
+  {
+    id: "max-pooling",
+    nodeLabel: "11.7",
+    title: "Max Pooling",
+    sourceIds: ["max-pooling"],
+    relatedFormulaIds: ["pooling-output-size", "average-pooling", "cnn-basics-core"],
+    relations: [
+      relation("part-of", "pooling-output-size", "One pooling operation inside the pooling topic"),
+      relation("part-of", "cnn-basics-core", "Pooling operation in section 11"),
+      relation("compare-with", "average-pooling", "Maximum response vs mean response"),
+    ],
+  },
+  {
+    id: "average-pooling",
+    nodeLabel: "11.7",
+    title: "Average Pooling",
+    sourceIds: ["average-pooling"],
+    relatedFormulaIds: ["pooling-output-size", "max-pooling", "cnn-basics-core"],
+    relations: [
+      relation("part-of", "pooling-output-size", "One pooling operation inside the pooling topic"),
+      relation("part-of", "cnn-basics-core", "Pooling operation in section 11"),
+      relation("compare-with", "max-pooling", "Mean response vs maximum response"),
+    ],
+  },
+  {
+    id: "pointwise-convolution",
+    nodeLabel: "11.8",
+    title: "1x1 Convolution Channel Projection",
+    sourceIds: ["pointwise-convolution"],
+    relatedFormulaIds: ["cnn-basics-core", "convolution-parameter-count", "residual-projection-shortcut"],
+    relations: [
+      relation("part-of", "cnn-basics-core", "Channel projection step"),
+      relation("extends", "convolution-operation", "A 1x1 convolution is still a convolution, but only mixes channels at each spatial location"),
+      relation("compare-with", "convolution-parameter-count", "Uses the standard count with f = 1"),
+      relation("used-in", "residual-projection-shortcut", "Projection shortcuts often use 1x1 convolutions to match channels or stride"),
+    ],
+  },
+  {
+    id: "depthwise-separable-convolution",
+    nodeLabel: "11.9",
+    title: "Depthwise Separable Convolution",
+    sourceIds: ["depthwise-separable-convolution"],
+    relatedFormulaIds: ["cnn-basics-core", "pointwise-convolution", "convolution-parameter-count"],
+    relations: [
+      relation("part-of", "cnn-basics-core", "Efficient convolution comparison"),
+      relation("uses", "pointwise-convolution", "Depthwise separable convolution ends with pointwise channel mixing"),
+      relation("compare-with", "convolution-parameter-count", "Contrasts k^2 C_in C_out with k^2 C_in + C_in C_out"),
+    ],
+  },
+  {
+    id: "cnn-advanced-core",
+    nodeLabel: "12-14",
+    title: "CNN Advanced Core",
+    category: "CNN",
+    type: "pipeline",
+    useCase: "Modern CNN applications",
+    sourceIds: [
+      "vgg-conv-block",
+      "residual-block-forward",
+      "residual-projection-shortcut",
+      "inception-channel-concat",
+      "bottleneck-parameter-reduction",
+      "yolo-grid-output-shape",
+      "yolo-box-representation",
+      "intersection-over-union",
+      "yolo-anchor-assignment",
+      "non-max-suppression-rule",
+      "face-verification-distance",
+      "triplet-loss",
+      "neural-style-content-cost",
+      "neural-style-gram-matrix",
+      "neural-style-style-cost",
+      "neural-style-total-cost",
+    ],
+    latex:
+      "y=F(x)+x,\\quad Y\\in\\mathbb{R}^{S\\times S\\times(B\\cdot5+C)},\\quad J_{NST}=\\alpha J_{content}+\\beta J_{style}",
+    description:
+      "Collects the advanced CNN formula families from the PDF: architecture motifs, ResNet shortcuts, YOLO detection, face-recognition metric learning, and neural style transfer costs.",
+    aliases: ["advanced CNN", "ResNet YOLO style transfer", "CNN applications", "section 12 13 14"],
+    relatedFormulaIds: [
+      "cnn-architecture-motifs",
+      "resnet-residual-blocks",
+      "yolo-detection-pipeline",
+      "face-recognition-metric-learning",
+      "neural-style-transfer-costs",
+      "cnn-basics-core",
+    ],
+    relations: [
+      relation("prerequisite", "cnn-basics-core", "Advanced CNN topics build on convolution, pooling, and channel-shape basics"),
+      relation("uses", "cnn-architecture-motifs", "Classic architecture patterns"),
+      relation("uses", "resnet-residual-blocks", "Residual shortcuts for very deep CNNs"),
+      relation("uses", "yolo-detection-pipeline", "Detection-head formulas and filtering"),
+      relation("uses", "face-recognition-metric-learning", "Embedding-distance learning"),
+      relation("uses", "neural-style-transfer-costs", "Feature-map and Gram-matrix objectives"),
+    ],
+  },
+  {
+    id: "cnn-architecture-motifs",
+    nodeLabel: "12.1-12.5",
+    title: "CNN Architecture Motifs",
+    category: "CNN",
+    type: "pipeline",
+    useCase: "CNN architecture design",
+    sourceIds: ["vgg-conv-block", "inception-channel-concat", "bottleneck-parameter-reduction"],
+    relatedFormulaIds: ["cnn-advanced-core", "pointwise-convolution", "convolution-parameter-count"],
+    relations: [
+      relation("part-of", "cnn-advanced-core", "Classic architecture patterns inside the advanced CNN group"),
+      relation("uses", "vgg-conv-block", "Small-filter convolution stacks"),
+      relation("uses", "inception-channel-concat", "Parallel branches joined by channel concatenation"),
+      relation("uses", "bottleneck-parameter-reduction", "1x1 reductions for efficient spatial convolution"),
+      relation("prerequisite", "cnn-basics-core", "Requires convolution, pooling, and channel-shape basics"),
+    ],
+  },
+  {
+    id: "vgg-conv-block",
+    nodeLabel: "12.1",
+    title: "VGG-style Convolution Block",
+    sourceIds: ["vgg-conv-block"],
+    relatedFormulaIds: ["cnn-architecture-motifs", "convolution-operation", "max-pooling"],
+    relations: [
+      relation("part-of", "cnn-architecture-motifs", "A simple repeated-convolution architecture pattern"),
+      relation("uses", "convolution-operation", "Built from repeated learned convolution operations"),
+      relation("uses", "max-pooling", "Usually ends a stage with max pooling"),
+    ],
+  },
+  {
+    id: "inception-channel-concat",
+    nodeLabel: "12.4",
+    title: "Inception Channel Concatenation",
+    sourceIds: ["inception-channel-concat"],
+    relatedFormulaIds: ["cnn-architecture-motifs", "pointwise-convolution", "cnn-output-size"],
+    relations: [
+      relation("part-of", "cnn-architecture-motifs", "Parallel-branch architecture pattern"),
+      relation("uses", "pointwise-convolution", "1x1 branches can reduce channel cost before larger filters"),
+      relation("prerequisite", "cnn-output-size", "Branch spatial dimensions must match before concatenation"),
+    ],
+  },
+  {
+    id: "bottleneck-parameter-reduction",
+    nodeLabel: "12.5",
+    title: "Bottleneck Parameter Reduction",
+    sourceIds: ["bottleneck-parameter-reduction"],
+    relatedFormulaIds: ["cnn-architecture-motifs", "pointwise-convolution", "convolution-parameter-count"],
+    relations: [
+      relation("part-of", "cnn-architecture-motifs", "Efficiency pattern inside modern CNNs"),
+      relation("uses", "pointwise-convolution", "1x1 convolution creates the reduced channel width"),
+      relation("compare-with", "convolution-parameter-count", "Shows why reducing C_mid lowers the expensive k by k convolution"),
+      relation("appears-in", "resnet-residual-blocks", "Bottleneck residual blocks use the same idea"),
+    ],
+  },
+  {
+    id: "resnet-residual-blocks",
+    nodeLabel: "12.2-12.3",
+    title: "ResNet Residual Blocks",
+    category: "CNN",
+    type: "pipeline",
+    useCase: "Deep CNN architecture",
+    sourceIds: ["residual-block-forward", "residual-projection-shortcut"],
+    relatedFormulaIds: ["cnn-advanced-core", "pointwise-convolution", "batchnorm-normalize-scale-shift"],
+    relations: [
+      relation("appears-in", "cnn-advanced-core", "Residual networks are one major advanced CNN family"),
+      relation("uses", "residual-block-forward", "Identity shortcut case"),
+      relation("uses", "residual-projection-shortcut", "Projection shortcut when dimensions differ"),
+      relation("uses", "pointwise-convolution", "Projection shortcuts often use 1x1 convolutions"),
+      relation("uses", "batchnorm-normalize-scale-shift", "Modern residual blocks commonly pair convolution with BatchNorm"),
+      relation("prerequisite", "cnn-basics-core", "Requires convolution and activation tensor shapes"),
+    ],
   },
   {
     id: "residual-block-forward",
-    nodeLabel: "12",
+    nodeLabel: "12.2",
     title: "Residual Block Forward Pass",
-    sourceIds: ["residual-block-forward", "residual-projection-shortcut"],
-    relatedFormulaIds: ["convolution-operation", "batchnorm-normalize-scale-shift"],
+    sourceIds: ["residual-block-forward"],
+    relatedFormulaIds: ["resnet-residual-blocks", "convolution-operation", "batchnorm-normalize-scale-shift"],
+    relations: [
+      relation("part-of", "resnet-residual-blocks", "Identity shortcut formula"),
+      relation("prerequisite", "convolution-operation", "F(x) is usually a stack of convolutional layers"),
+      relation("compare-with", "residual-projection-shortcut", "Identity shortcut vs learned projection shortcut"),
+    ],
+  },
+  {
+    id: "residual-projection-shortcut",
+    nodeLabel: "12.3",
+    title: "Residual Projection Shortcut",
+    sourceIds: ["residual-projection-shortcut"],
+    relatedFormulaIds: ["resnet-residual-blocks", "pointwise-convolution", "cnn-output-size"],
+    relations: [
+      relation("part-of", "resnet-residual-blocks", "Projection branch for residual blocks when shapes differ"),
+      relation("uses", "pointwise-convolution", "Projection shortcuts often use 1x1 convolutions"),
+      relation("prerequisite", "cnn-output-size", "Projection is needed when spatial or channel shapes do not match"),
+      relation("compare-with", "residual-block-forward", "Projection shortcut vs identity shortcut"),
+    ],
+  },
+  {
+    id: "yolo-detection-pipeline",
+    nodeLabel: "13.1-13.6",
+    title: "YOLO Detection Pipeline",
+    category: "CNN",
+    type: "pipeline",
+    useCase: "Object detection",
+    sourceIds: [
+      "yolo-grid-output-shape",
+      "yolo-box-representation",
+      "intersection-over-union",
+      "yolo-anchor-assignment",
+      "non-max-suppression-rule",
+    ],
+    relatedFormulaIds: ["cnn-advanced-core", "cnn-output-size", "convolution-operation"],
+    relations: [
+      relation("part-of", "cnn-advanced-core", "Object-detection branch of advanced CNNs"),
+      relation("prerequisite", "cnn-output-size", "YOLO heads sit on CNN feature grids"),
+      relation("uses", "yolo-grid-output-shape", "Detection tensor shape"),
+      relation("uses", "yolo-box-representation", "Per-box prediction vector"),
+      relation("uses", "intersection-over-union", "Overlap metric for assignment and filtering"),
+      relation("uses", "yolo-anchor-assignment", "Assigns objects to responsible anchors"),
+      relation("uses", "non-max-suppression-rule", "Removes duplicate high-overlap boxes"),
+    ],
   },
   {
     id: "yolo-grid-output-shape",
-    nodeLabel: "13",
-    title: "YOLO Detection Head and Box Decoding",
-    sourceIds: ["yolo-grid-output-shape", "yolo-box-parameterization"],
-    relatedFormulaIds: ["intersection-over-union", "non-max-suppression-rule", "cnn-output-size"],
+    nodeLabel: "13.2",
+    title: "YOLO Grid Output Shape",
+    sourceIds: ["yolo-grid-output-shape"],
+    relatedFormulaIds: ["yolo-detection-pipeline", "yolo-box-representation", "cnn-output-size"],
+    relations: [
+      relation("part-of", "yolo-detection-pipeline", "Detection-head tensor shape"),
+      relation("prerequisite", "cnn-output-size", "Grid predictions are built from CNN feature maps"),
+      relation("next-step", "yolo-box-representation", "Each grid-cell prediction contains box and class values"),
+    ],
+  },
+  {
+    id: "yolo-box-representation",
+    nodeLabel: "13.1",
+    title: "YOLO Box Representation",
+    sourceIds: ["yolo-box-representation", "yolo-box-parameterization"],
+    relatedFormulaIds: ["yolo-detection-pipeline", "intersection-over-union"],
+    relations: [
+      relation("part-of", "yolo-detection-pipeline", "Per-box output interpretation"),
+      relation("next-step", "intersection-over-union", "Decoded boxes are compared with IoU"),
+      relation("compare-with", "face-verification-distance", "Detection uses box geometry; face recognition uses embedding distance"),
+    ],
+  },
+  {
+    id: "yolo-anchor-assignment",
+    nodeLabel: "13.5",
+    title: "YOLO Anchor Assignment",
+    sourceIds: ["yolo-anchor-assignment"],
+    relatedFormulaIds: ["yolo-detection-pipeline", "intersection-over-union"],
+    relations: [
+      relation("part-of", "yolo-detection-pipeline", "Responsible-anchor matching rule"),
+      relation("uses", "intersection-over-union", "Best anchor is chosen by maximum IoU"),
+      relation("prerequisite", "yolo-box-representation", "Anchors describe candidate box shapes"),
+    ],
+  },
+  {
+    id: "face-recognition-metric-learning",
+    nodeLabel: "14.1",
+    title: "Face Recognition Metric Learning",
+    category: "CNN",
+    type: "pipeline",
+    useCase: "Face recognition",
+    sourceIds: ["face-verification-distance", "triplet-loss"],
+    relatedFormulaIds: ["cnn-advanced-core", "cosine-similarity", "transfer-learning-head"],
+    relations: [
+      relation("part-of", "cnn-advanced-core", "Metric-learning branch of advanced CNNs"),
+      relation("uses", "face-verification-distance", "Compare embeddings at inference time"),
+      relation("uses", "triplet-loss", "Train embeddings with anchor-positive-negative constraints"),
+      relation("compare-with", "cosine-similarity", "Alternative embedding similarity measure"),
+      relation("appears-in", "transfer-learning-head", "Face models often reuse pretrained convolutional encoders"),
+    ],
   },
   {
     id: "face-verification-distance",
     nodeLabel: "14.1",
-    title: "Face Verification and Triplet Loss",
-    sourceIds: ["face-verification-distance", "triplet-loss"],
-    relatedFormulaIds: ["cosine-similarity", "transfer-learning-head"],
+    title: "Face Verification Distance",
+    sourceIds: ["face-verification-distance"],
+    relatedFormulaIds: ["face-recognition-metric-learning", "triplet-loss", "cosine-similarity"],
+    relations: [
+      relation("part-of", "face-recognition-metric-learning", "Inference-time embedding comparison"),
+      relation("paired-with", "triplet-loss", "Triplet loss trains the embedding space used by this distance"),
+      relation("compare-with", "cosine-similarity", "Both compare embeddings"),
+    ],
+  },
+  {
+    id: "triplet-loss",
+    nodeLabel: "14.1",
+    title: "Triplet Loss",
+    sourceIds: ["triplet-loss"],
+    relatedFormulaIds: ["face-recognition-metric-learning", "face-verification-distance"],
+    relations: [
+      relation("part-of", "face-recognition-metric-learning", "Training objective for face embeddings"),
+      relation("paired-with", "face-verification-distance", "Uses the same embedding distances that verification thresholds"),
+    ],
+  },
+  {
+    id: "neural-style-transfer-costs",
+    nodeLabel: "14.2-14.4",
+    title: "Neural Style Transfer Costs",
+    category: "CNN",
+    type: "pipeline",
+    useCase: "Neural style transfer",
+    sourceIds: [
+      "neural-style-content-cost",
+      "neural-style-gram-matrix",
+      "neural-style-style-cost",
+      "neural-style-total-cost",
+    ],
+    relatedFormulaIds: ["cnn-advanced-core", "feature-map-activation", "convolution-operation"],
+    relations: [
+      relation("part-of", "cnn-advanced-core", "Feature-objective branch of advanced CNNs"),
+      relation("prerequisite", "feature-map-activation", "Content and style costs compare CNN activations"),
+      relation("prerequisite", "convolution-operation", "A pretrained CNN supplies the feature maps"),
+      relation("uses", "neural-style-content-cost", "Preserves content structure"),
+      relation("uses", "neural-style-gram-matrix", "Captures feature-channel correlations"),
+      relation("uses", "neural-style-style-cost", "Matches style-image Gram statistics"),
+      relation("uses", "neural-style-total-cost", "Balances content and style objectives"),
+    ],
   },
   {
     id: "neural-style-style-cost",
+    nodeLabel: "14.3",
+    title: "Neural Style Cost",
+    sourceIds: ["neural-style-style-cost"],
+    relatedFormulaIds: ["neural-style-transfer-costs", "neural-style-gram-matrix", "neural-style-total-cost"],
+    relations: [
+      relation("part-of", "neural-style-transfer-costs", "Style component of NST"),
+      relation("prerequisite", "neural-style-gram-matrix", "Style cost compares Gram matrices"),
+      relation("used-in", "neural-style-total-cost", "Total NST objective weights the style term"),
+    ],
+  },
+  {
+    id: "neural-style-content-cost",
     nodeLabel: "14.2",
-    title: "Neural Style Transfer Costs",
-    sourceIds: ["neural-style-content-cost", "neural-style-gram-matrix", "neural-style-style-cost"],
-    relatedFormulaIds: ["convolution-operation", "feature-map-activation"],
+    title: "Neural Style Content Cost",
+    sourceIds: ["neural-style-content-cost"],
+    relatedFormulaIds: ["neural-style-transfer-costs", "feature-map-activation", "neural-style-total-cost"],
+    relations: [
+      relation("part-of", "neural-style-transfer-costs", "Content component of NST"),
+      relation("prerequisite", "feature-map-activation", "Compares hidden-layer activations"),
+      relation("used-in", "neural-style-total-cost", "Total NST objective weights the content term"),
+    ],
+  },
+  {
+    id: "neural-style-gram-matrix",
+    nodeLabel: "14.3",
+    title: "Neural Style Gram Matrix",
+    sourceIds: ["neural-style-gram-matrix"],
+    relatedFormulaIds: ["neural-style-transfer-costs", "neural-style-style-cost"],
+    relations: [
+      relation("part-of", "neural-style-transfer-costs", "Style representation"),
+      relation("used-in", "neural-style-style-cost", "Style cost compares Gram matrices"),
+      relation("prerequisite", "feature-map-activation", "Gram matrices are built from feature maps"),
+    ],
+  },
+  {
+    id: "neural-style-total-cost",
+    nodeLabel: "14.4",
+    title: "Neural Style Transfer Total Cost",
+    sourceIds: ["neural-style-total-cost"],
+    relatedFormulaIds: ["neural-style-transfer-costs", "neural-style-content-cost", "neural-style-style-cost"],
+    relations: [
+      relation("part-of", "neural-style-transfer-costs", "Combined optimization objective"),
+      relation("uses", "neural-style-content-cost", "Content term"),
+      relation("uses", "neural-style-style-cost", "Style term"),
+    ],
+  },
+  {
+    id: "rnn-lstm-core",
+    nodeLabel: "15.1-15.8",
+    title: "RNN/LSTM Core",
+    category: "RNN / LSTM",
+    type: "pipeline",
+    useCase: "Sequence memory",
+    sourceIds: [
+      "sequence-tensor-convention",
+      "rnn-hidden-state",
+      "rnn-output-prediction",
+      "rnn-sequence-loss",
+      "bptt-gradient-flow",
+      "gru-gates",
+      "lstm-gates",
+      "lstm-cell-update",
+      "bidirectional-rnn-context",
+    ],
+    latex:
+      "a^{\\langle t\\rangle}=g(W_{aa}a^{\\langle t-1\\rangle}+W_{ax}x^{\\langle t\\rangle}+b_a),\\quad c^{\\langle t\\rangle}=f_t*c^{\\langle t-1\\rangle}+i_t*\\tilde{c}^{\\langle t\\rangle}",
+    description:
+      "Collects the sequence notation, vanilla RNN forward pass, sequence loss, BPTT, GRU gates, LSTM memory updates, and bidirectional recurrent context.",
+    aliases: ["RNN core", "LSTM core", "sequence models", "recurrent neural networks"],
+    relatedFormulaIds: [
+      "vanilla-rnn-forward",
+      "gru-update-flow",
+      "lstm-memory-flow",
+      "bidirectional-rnn-context",
+      "seq2seq-decoder-probability",
+    ],
+    relations: [
+      relation("uses", "sequence-tensor-convention", "Time-step and batch notation"),
+      relation("uses", "vanilla-rnn-forward", "Baseline recurrent forward pass"),
+      relation("uses", "gru-update-flow", "Simpler gated memory cell"),
+      relation("uses", "lstm-memory-flow", "Full gated cell-state memory"),
+      relation("uses", "bidirectional-rnn-context", "Forward/backward context extension"),
+      relation("next-step", "seq2seq-decoder-probability", "Encoder-decoder models build on recurrent states"),
+      relation("next-step", "attention-context-vector", "Attention consumes encoder hidden states"),
+    ],
+  },
+  {
+    id: "sequence-tensor-convention",
+    nodeLabel: "15.1",
+    title: "Sequence Tensor Convention",
+    sourceIds: ["sequence-tensor-convention"],
+    relatedFormulaIds: ["rnn-lstm-core", "rnn-hidden-state", "seq2seq-decoder-probability"],
+    relations: [
+      relation("part-of", "rnn-lstm-core", "Notation base for recurrent formulas"),
+      relation("used-in", "vanilla-rnn-forward", "Each recurrent step consumes x<t>"),
+      relation("used-in", "seq2seq-decoder-probability", "Decoder probabilities are indexed by output time"),
+    ],
+  },
+  {
+    id: "vanilla-rnn-forward",
+    nodeLabel: "15.2-15.4",
+    title: "Vanilla RNN Forward Pipeline",
+    category: "RNN / LSTM",
+    type: "pipeline",
+    useCase: "Sequence modeling",
+    sourceIds: ["rnn-hidden-state", "rnn-output-prediction", "rnn-sequence-loss"],
+    relatedFormulaIds: ["rnn-lstm-core", "bptt-gradient-flow", "lstm-memory-flow"],
+    relations: [
+      relation("part-of", "rnn-lstm-core", "Baseline recurrent model"),
+      relation("prerequisite", "sequence-tensor-convention", "Uses time-step notation"),
+      relation("uses", "rnn-hidden-state", "Hidden-state recurrence"),
+      relation("uses", "rnn-output-prediction", "Per-step output prediction"),
+      relation("uses", "rnn-sequence-loss", "Training objective across time"),
+      relation("next-step", "bptt-gradient-flow", "Backward pass through the unrolled sequence"),
+      relation("compare-with", "lstm-memory-flow", "Vanilla recurrence vs gated memory"),
+    ],
   },
   {
     id: "rnn-hidden-state",
-    nodeLabel: "15.2-15.3",
-    title: "Vanilla RNN Forward Pipeline",
-    sourceIds: ["rnn-hidden-state", "rnn-output-prediction"],
-    relatedFormulaIds: ["lstm-gates", "seq2seq-decoder-probability"],
+    nodeLabel: "15.2",
+    title: "Vanilla RNN Hidden State",
+    sourceIds: ["rnn-hidden-state"],
+    relatedFormulaIds: ["vanilla-rnn-forward", "rnn-output-prediction", "lstm-gates"],
+    relations: [
+      relation("part-of", "vanilla-rnn-forward", "State update step"),
+      relation("prerequisite", "sequence-tensor-convention", "Uses x<t> and a<t-1> notation"),
+      relation("next-step", "rnn-output-prediction", "Hidden state feeds output prediction"),
+      relation("compare-with", "gru-gates", "GRU adds gates to the recurrent state"),
+      relation("compare-with", "lstm-gates", "LSTM adds gates and a separate cell state"),
+    ],
+  },
+  {
+    id: "rnn-output-prediction",
+    nodeLabel: "15.3",
+    title: "RNN Output Prediction",
+    sourceIds: ["rnn-output-prediction"],
+    relatedFormulaIds: ["vanilla-rnn-forward", "rnn-sequence-loss"],
+    relations: [
+      relation("part-of", "vanilla-rnn-forward", "Output projection step"),
+      relation("prerequisite", "rnn-hidden-state", "Consumes the current hidden state"),
+      relation("next-step", "rnn-sequence-loss", "Predictions are scored by the sequence loss"),
+    ],
+  },
+  {
+    id: "rnn-sequence-loss",
+    nodeLabel: "15.4",
+    title: "RNN Sequence Loss",
+    sourceIds: ["rnn-sequence-loss"],
+    relatedFormulaIds: ["vanilla-rnn-forward", "bptt-gradient-flow"],
+    relations: [
+      relation("part-of", "vanilla-rnn-forward", "Training loss over emitted sequence"),
+      relation("prerequisite", "rnn-output-prediction", "Loss compares predictions with target outputs"),
+      relation("next-step", "bptt-gradient-flow", "The sequence loss is differentiated through time"),
+    ],
+  },
+  {
+    id: "bptt-gradient-flow",
+    nodeLabel: "15.5",
+    title: "Backpropagation Through Time",
+    sourceIds: ["bptt-gradient-flow"],
+    relatedFormulaIds: ["vanilla-rnn-forward", "dense-layer-weight-gradient"],
+    relations: [
+      relation("part-of", "rnn-lstm-core", "Backward pass for recurrent models"),
+      relation("prerequisite", "rnn-sequence-loss", "Differentiates the summed sequence objective"),
+      relation("compare-with", "dense-layer-weight-gradient", "Same gradient idea, but parameters are shared across time"),
+      relation("next-step", "optimizer-family-core", "BPTT gradients feed optimizer updates"),
+    ],
+  },
+  {
+    id: "gru-update-flow",
+    nodeLabel: "15.6",
+    title: "GRU Update Flow",
+    category: "RNN / LSTM",
+    type: "pipeline",
+    useCase: "Long sequence memory",
+    sourceIds: ["gru-gates"],
+    relatedFormulaIds: ["rnn-lstm-core", "lstm-memory-flow", "rnn-hidden-state"],
+    relations: [
+      relation("part-of", "rnn-lstm-core", "Gated recurrent variant"),
+      relation("uses", "gru-gates", "Update and reset gates"),
+      relation("uses", "sigmoid-activation", "GRU gates are sigmoid masks"),
+      relation("compare-with", "lstm-memory-flow", "GRU has fewer gates and no separate exposed cell-state formula"),
+      relation("extends", "rnn-hidden-state", "Adds gates to the vanilla recurrent update"),
+    ],
+  },
+  {
+    id: "gru-gates",
+    nodeLabel: "15.6",
+    title: "GRU Gate Equations",
+    sourceIds: ["gru-gates"],
+    relatedFormulaIds: ["gru-update-flow", "lstm-gates", "rnn-hidden-state"],
+    relations: [
+      relation("part-of", "gru-update-flow", "Gate equations for GRU"),
+      relation("uses", "sigmoid-activation", "Update and reset gates use sigmoid"),
+      relation("uses", "activation-functions-core", "Candidate memory uses a nonlinear activation"),
+      relation("compare-with", "lstm-gates", "GRU has update/reset gates; LSTM has forget/input/output gates"),
+    ],
+  },
+  {
+    id: "lstm-memory-flow",
+    nodeLabel: "15.7",
+    title: "LSTM Memory Flow",
+    category: "RNN / LSTM",
+    type: "pipeline",
+    useCase: "Long sequence memory",
+    sourceIds: ["lstm-gates", "lstm-cell-update"],
+    relatedFormulaIds: ["rnn-lstm-core", "gru-update-flow", "attention-context-vector"],
+    relations: [
+      relation("part-of", "rnn-lstm-core", "Full gated memory model"),
+      relation("uses", "lstm-gates", "Forget, input, and output gates"),
+      relation("uses", "lstm-cell-update", "Candidate, cell, and hidden updates"),
+      relation("uses", "sigmoid-activation", "LSTM gates are sigmoid masks"),
+      relation("uses", "activation-functions-core", "Candidate and exposed memory use tanh-style nonlinearities"),
+      relation("compare-with", "gru-update-flow", "LSTM has a separate cell state; GRU merges memory and hidden state"),
+      relation("next-step", "attention-context-vector", "Seq2Seq attention often reads LSTM encoder states"),
+    ],
   },
   {
     id: "lstm-gates",
     nodeLabel: "15.7",
+    title: "LSTM Gate Equations",
     sourceIds: ["lstm-gates"],
-    relatedFormulaIds: ["rnn-hidden-state", "attention-context-vector"],
+    relatedFormulaIds: ["lstm-memory-flow", "lstm-cell-update", "sigmoid-activation"],
+    relations: [
+      relation("part-of", "lstm-memory-flow", "Gate masks for the memory update"),
+      relation("uses", "sigmoid-activation", "Forget, input, and output gates use sigmoid"),
+      relation("next-step", "lstm-cell-update", "Gate values control the cell update"),
+    ],
+  },
+  {
+    id: "lstm-cell-update",
+    nodeLabel: "15.7",
+    title: "LSTM Cell and Hidden Update",
+    sourceIds: ["lstm-cell-update"],
+    relatedFormulaIds: ["lstm-memory-flow", "lstm-gates", "attention-context-vector"],
+    relations: [
+      relation("part-of", "lstm-memory-flow", "Memory write and hidden-output step"),
+      relation("prerequisite", "lstm-gates", "Uses forget, input, and output gates"),
+      relation("next-step", "attention-context-vector", "Encoder hidden states can be attended over"),
+    ],
+  },
+  {
+    id: "bidirectional-rnn-context",
+    nodeLabel: "15.8",
+    title: "Bidirectional RNN Context",
+    sourceIds: ["bidirectional-rnn-context"],
+    relatedFormulaIds: ["rnn-lstm-core", "vanilla-rnn-forward", "attention-context-vector"],
+    relations: [
+      relation("part-of", "rnn-lstm-core", "Direction-extension of recurrent context"),
+      relation("extends", "vanilla-rnn-forward", "Runs recurrence in both sequence directions"),
+      relation("used-in", "attention-context-vector", "Encoder states can include both forward and backward context"),
+    ],
   },
   {
     id: "embedding-lookup",
@@ -1204,68 +1991,241 @@ const formulaTopicDefinitions: FormulaTopicDefinition[] = [
     relatedFormulaIds: ["skipgram-softmax", "embedding-lookup"],
   },
   {
+    id: "attention-transformer-core",
+    nodeLabel: "17-18",
+    title: "Attention/Transformer Core",
+    category: "Transformer",
+    type: "pipeline",
+    useCase: "Attention and Transformer modeling",
+    sourceIds: [
+      "seq2seq-decoder-probability",
+      "attention-alignment-scores",
+      "attention-context-vector",
+      "beam-search-log-score",
+      "length-normalized-beam-score",
+      "qkv-projections",
+      "scaled-dot-product-attention",
+      "attention-score-shape-check",
+      "masked-self-attention",
+      "multi-head-attention",
+      "sinusoidal-positional-encoding",
+      "transformer-add-norm",
+      "layer-normalization",
+      "transformer-feed-forward-network",
+      "transformer-block-pipeline",
+    ],
+    latex:
+      "c_t=\\sum_s\\alpha_{t,s}h_s,\\quad \\operatorname{Attention}(Q,K,V)=\\operatorname{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right)V",
+    description:
+      "Connects seq2seq attention and decoding with Q/K/V self-attention, masked attention, multi-head attention, positional encoding, Add & Norm, LayerNorm, FFN, and the Transformer block pipeline.",
+    aliases: ["attention core", "transformer core", "seq2seq attention", "self attention"],
+    relatedFormulaIds: [
+      "seq2seq-attention-core",
+      "scaled-dot-product-attention",
+      "multi-head-attention",
+      "transformer-block-pipeline",
+      "rnn-lstm-core",
+    ],
+    relations: [
+      relation("prerequisite", "rnn-lstm-core", "Seq2Seq attention starts from recurrent encoder/decoder states"),
+      relation("uses", "seq2seq-attention-core", "Additive attention and context vectors"),
+      relation("uses", "beam-search-log-score", "Decoding candidate scoring"),
+      relation("uses", "qkv-projections", "Token projections for self-attention"),
+      relation("uses", "scaled-dot-product-attention", "Core Transformer attention primitive"),
+      relation("uses", "multi-head-attention", "Parallel attention heads"),
+      relation("uses", "transformer-block-pipeline", "Full block-level formula flow"),
+    ],
+  },
+  {
+    id: "seq2seq-attention-core",
+    nodeLabel: "17.1-17.7",
+    title: "Seq2Seq Attention Core",
+    category: "RNN / LSTM",
+    type: "pipeline",
+    useCase: "Sequence attention",
+    sourceIds: ["seq2seq-decoder-probability", "attention-alignment-scores", "attention-context-vector"],
+    relatedFormulaIds: ["attention-transformer-core", "lstm-memory-flow", "scaled-dot-product-attention"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Recurrent attention branch"),
+      relation("prerequisite", "lstm-memory-flow", "Encoder and decoder states often come from LSTMs"),
+      relation("uses", "seq2seq-decoder-probability", "Decoder next-token distribution"),
+      relation("uses", "attention-alignment-scores", "Computes source-position weights"),
+      relation("uses", "attention-context-vector", "Mixes encoder states into a context vector"),
+      relation("compare-with", "scaled-dot-product-attention", "Additive score network vs QK^T score matrix"),
+    ],
+  },
+  {
     id: "seq2seq-decoder-probability",
-    nodeLabel: "17.1-17.3",
-    title: "Seq2Seq Decoder and Attention Context",
-    sourceIds: ["seq2seq-decoder-probability", "attention-context-vector"],
-    relatedFormulaIds: ["beam-search-log-score", "rnn-hidden-state", "scaled-dot-product-attention"],
+    nodeLabel: "17.1",
+    title: "Seq2Seq Decoder Probability",
+    sourceIds: ["seq2seq-decoder-probability"],
+    relatedFormulaIds: ["seq2seq-attention-core", "beam-search-log-score", "softmax-activation"],
+    relations: [
+      relation("part-of", "seq2seq-attention-core", "Decoder output distribution"),
+      relation("prerequisite", "lstm-memory-flow", "Decoder state can be recurrent"),
+      relation("uses", "softmax-activation", "Produces a probability distribution over target tokens"),
+      relation("next-step", "beam-search-log-score", "Beam search scores repeated decoder probabilities"),
+    ],
+  },
+  {
+    id: "attention-alignment-scores",
+    nodeLabel: "17.6",
+    title: "Additive Attention Alignment Scores",
+    sourceIds: ["attention-alignment-scores"],
+    relatedFormulaIds: ["seq2seq-attention-core", "attention-context-vector", "softmax-activation"],
+    relations: [
+      relation("part-of", "seq2seq-attention-core", "Attention scoring step"),
+      relation("uses", "softmax-activation", "Normalizes source-position scores"),
+      relation("next-step", "attention-context-vector", "Attention weights feed the context vector"),
+    ],
   },
   {
     id: "attention-context-vector",
-    nodeLabel: "17.2",
+    nodeLabel: "17.7",
     title: "Attention Context Vector",
     sourceIds: ["attention-context-vector"],
-    relatedFormulaIds: ["seq2seq-decoder-probability", "lstm-gates", "scaled-dot-product-attention"],
+    relatedFormulaIds: ["seq2seq-attention-core", "lstm-memory-flow", "scaled-dot-product-attention"],
+    relations: [
+      relation("part-of", "seq2seq-attention-core", "Weighted encoder-state mixture"),
+      relation("prerequisite", "attention-alignment-scores", "Uses normalized attention weights"),
+      relation("prerequisite", "lstm-memory-flow", "Encoder hidden states can come from LSTM layers"),
+      relation("compare-with", "scaled-dot-product-attention", "Both form weighted mixtures of state/value vectors"),
+    ],
   },
   {
     id: "beam-search-log-score",
-    nodeLabel: "17.2",
+    nodeLabel: "17.3-17.4",
     title: "Beam Search Scoring",
     sourceIds: ["beam-search-log-score", "length-normalized-beam-score"],
-    relatedFormulaIds: ["seq2seq-decoder-probability"],
+    relatedFormulaIds: ["seq2seq-decoder-probability", "attention-transformer-core"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Decoding search utility for sequence models"),
+      relation("prerequisite", "seq2seq-decoder-probability", "Scores candidate tokens from decoder probabilities"),
+      relation("uses", "length-normalized-beam-score", "Length normalization reduces short-sequence bias"),
+    ],
+  },
+  {
+    id: "length-normalized-beam-score",
+    nodeLabel: "17.4",
+    title: "Length-Normalized Beam Score",
+    sourceIds: ["length-normalized-beam-score"],
+    relatedFormulaIds: ["beam-search-log-score"],
+    relations: [
+      relation("part-of", "beam-search-log-score", "Normalized beam-search variant"),
+      relation("extends", "beam-search-log-score", "Adds a length penalty to the raw log score"),
+    ],
+  },
+  {
+    id: "qkv-projections",
+    nodeLabel: "18.1",
+    title: "Q/K/V Projections",
+    sourceIds: ["qkv-projections"],
+    relatedFormulaIds: ["scaled-dot-product-attention", "multi-head-attention"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Projection step for self-attention"),
+      relation("next-step", "scaled-dot-product-attention", "Q, K, and V feed the attention formula"),
+      relation("used-in", "multi-head-attention", "Each head has its own Q/K/V projections"),
+    ],
   },
   {
     id: "scaled-dot-product-attention",
-    nodeLabel: "18.1-18.2",
-    title: "Q/K/V and Scaled Dot-Product Attention",
-    sourceIds: ["qkv-projections", "scaled-dot-product-attention"],
+    nodeLabel: "18.2-18.3",
+    title: "Scaled Dot-Product Attention",
+    sourceIds: ["qkv-projections", "scaled-dot-product-attention", "attention-score-shape-check"],
     relatedFormulaIds: ["multi-head-attention", "transformer-block-pipeline", "softmax-activation"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Core Transformer attention primitive"),
+      relation("prerequisite", "qkv-projections", "Requires query, key, and value matrices"),
+      relation("uses", "attention-score-shape-check", "Shape check for QK^T and the value mixture"),
+      relation("uses", "softmax-activation", "Normalizes attention scores over key positions"),
+      relation("next-step", "multi-head-attention", "Multi-head attention runs this primitive in parallel"),
+      relation("compare-with", "attention-context-vector", "Both return weighted mixtures, but from different scoring mechanisms"),
+    ],
+  },
+  {
+    id: "attention-score-shape-check",
+    nodeLabel: "18.3",
+    title: "Scaled Attention Shape Check",
+    sourceIds: ["attention-score-shape-check"],
+    relatedFormulaIds: ["scaled-dot-product-attention", "matrix-multiplication-shape"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Shape check inside Q/K/V attention"),
+      relation("used-in", "scaled-dot-product-attention", "Verifies the score matrix and output shape"),
+      relation("compare-with", "matrix-multiplication-shape", "Specific application of matrix multiplication shape rules"),
+    ],
+  },
+  {
+    id: "masked-self-attention",
+    nodeLabel: "18.4",
+    title: "Masked Self-Attention",
+    sourceIds: ["masked-self-attention"],
+    relatedFormulaIds: ["scaled-dot-product-attention", "transformer-block-pipeline"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Decoder-side causal attention"),
+      relation("extends", "scaled-dot-product-attention", "Adds a mask before softmax"),
+      relation("used-in", "transformer-block-pipeline", "Decoder Transformer blocks use causal masking"),
+    ],
   },
   {
     id: "multi-head-attention",
     nodeLabel: "18.5",
+    title: "Multi-Head Attention",
     sourceIds: ["multi-head-attention"],
     relatedFormulaIds: ["scaled-dot-product-attention", "transformer-block-pipeline"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Parallel attention branch"),
+      relation("prerequisite", "scaled-dot-product-attention", "Each head is a scaled dot-product attention computation"),
+      relation("next-step", "transformer-add-norm", "Attention output feeds residual Add & Norm"),
+      relation("used-in", "transformer-block-pipeline", "First sublayer of a Transformer block"),
+    ],
   },
   {
     id: "sinusoidal-positional-encoding",
-    nodeLabel: "18",
+    nodeLabel: "18.6",
+    title: "Sinusoidal Positional Encoding",
     sourceIds: ["sinusoidal-positional-encoding"],
-    relatedFormulaIds: ["scaled-dot-product-attention", "transformer-block-pipeline"],
+    relatedFormulaIds: ["attention-transformer-core", "qkv-projections", "transformer-block-pipeline"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Position signal before self-attention"),
+      relation("prerequisite", "qkv-projections", "Token representations are position-aware before projection"),
+      relation("used-in", "transformer-block-pipeline", "Transformer input representations include position information"),
+    ],
   },
   {
     id: "layer-normalization",
-    nodeLabel: "18",
+    nodeLabel: "18.8",
+    title: "Layer Normalization",
     sourceIds: ["layer-normalization"],
     relatedFormulaIds: ["batchnorm-normalize-scale-shift", "transformer-add-norm"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Normalization primitive"),
+      relation("used-in", "transformer-add-norm", "Add & Norm applies LayerNorm after the residual addition"),
+      relation("compare-with", "batchnorm-normalize-scale-shift", "LayerNorm normalizes within a token; BatchNorm normalizes across a batch"),
+    ],
   },
   {
     id: "transformer-add-norm",
-    nodeLabel: "18",
+    nodeLabel: "18.8",
+    title: "Transformer Add & Norm",
     sourceIds: ["transformer-add-norm"],
     relatedFormulaIds: ["layer-normalization", "transformer-block-pipeline"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Residual normalization step"),
+      relation("uses", "layer-normalization", "Normalizes after residual addition"),
+      relation("used-in", "transformer-block-pipeline", "Appears after attention and after FFN"),
+    ],
   },
   {
     id: "transformer-feed-forward-network",
-    nodeLabel: "18",
+    nodeLabel: "18.9",
+    title: "Transformer Feed-Forward Network",
     sourceIds: ["transformer-feed-forward-network"],
     relatedFormulaIds: ["transformer-block-pipeline", "multi-head-attention"],
-  },
-  {
-    id: "masked-self-attention",
-    nodeLabel: "18",
-    sourceIds: ["masked-self-attention"],
-    relatedFormulaIds: ["scaled-dot-product-attention", "transformer-block-pipeline"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Position-wise MLP step"),
+      relation("prerequisite", "transformer-add-norm", "Consumes the normalized attention output"),
+      relation("used-in", "transformer-block-pipeline", "Second sublayer of a Transformer block"),
+    ],
   },
   {
     id: "transformer-block-pipeline",
@@ -1273,7 +2233,9 @@ const formulaTopicDefinitions: FormulaTopicDefinition[] = [
     title: "Transformer Block Formula Pipeline",
     sourceIds: [
       "sinusoidal-positional-encoding",
+      "qkv-projections",
       "scaled-dot-product-attention",
+      "attention-score-shape-check",
       "multi-head-attention",
       "transformer-add-norm",
       "layer-normalization",
@@ -1282,6 +2244,16 @@ const formulaTopicDefinitions: FormulaTopicDefinition[] = [
       "transformer-block-pipeline",
     ],
     relatedFormulaIds: ["scaled-dot-product-attention", "multi-head-attention", "layer-normalization"],
+    relations: [
+      relation("part-of", "attention-transformer-core", "Full Transformer block sequence"),
+      relation("uses", "sinusoidal-positional-encoding", "Position signal"),
+      relation("uses", "multi-head-attention", "Attention sublayer"),
+      relation("uses", "transformer-add-norm", "Residual normalization wrapper"),
+      relation("uses", "layer-normalization", "Normalization primitive"),
+      relation("uses", "transformer-feed-forward-network", "Position-wise MLP sublayer"),
+      relation("uses", "masked-self-attention", "Decoder-side masked variant"),
+      relation("prerequisite", "scaled-dot-product-attention", "Multi-head attention is built from scaled dot-product attention"),
+    ],
   },
   {
     id: "precision-recall-f1",
@@ -1453,64 +2425,260 @@ export const formulaCategories: FormulaCategorySummary[] = formulaCategoryOrder.
   count: formulaHubEntries.filter((entry) => entry.category === category).length,
 }));
 
+type SearchField = {
+  text: string;
+  weight: number;
+};
+
+type PreparedSearchField = SearchField & {
+  compact: string;
+  dimensionCompact: string;
+  normalized: string;
+  tokens: string[];
+};
+
+const latexCommandWords: Array<[RegExp, string]> = [
+  [/\\operatorname\s*\{([^}]*)\}/g, " $1 "],
+  [/\\mathrm\s*\{([^}]*)\}/g, " $1 "],
+  [/\\text\s*\{([^}]*)\}/g, " $1 "],
+  [/\\mathbb\s*\{([^}]*)\}/g, " $1 "],
+  [/\\alpha/g, " alpha "],
+  [/\\beta/g, " beta "],
+  [/\\gamma/g, " gamma "],
+  [/\\theta/g, " theta "],
+  [/\\lambda/g, " lambda "],
+  [/\\mu/g, " mu "],
+  [/\\sigma/g, " sigma "],
+  [/\\epsilon/g, " epsilon "],
+  [/\\tau/g, " tau "],
+  [/\\hat/g, " hat "],
+  [/\\tilde/g, " tilde "],
+  [/\\nabla/g, " gradient "],
+  [/\\partial/g, " derivative "],
+  [/\\times/g, " x times by "],
+  [/\\cdot/g, " dot "],
+  [/\\odot/g, " elementwise "],
+  [/\\circ/g, " compose "],
+  [/\\sum/g, " sum "],
+  [/\\frac/g, " fraction "],
+  [/\\sqrt/g, " sqrt "],
+  [/\\max/g, " max "],
+  [/\\min/g, " min "],
+  [/\\left/g, " "],
+  [/\\right/g, " "],
+  [/\\langle/g, " "],
+  [/\\rangle/g, " "],
+  [/\\infty/g, " infinity "],
+];
+
+const queryExpansions: Array<[RegExp, string]> = [
+  [/\bq\s*k\s*\^?\s*t\b/g, " qkt q k transpose query key transpose attention score "],
+  [/\bqkt\b/g, " q k transpose query key transpose attention score qk^t "],
+  [/\bqkv\b/g, " q k v query key value attention projections "],
+  [/\bbn\b/g, " batch normalization batchnorm batch norm gamma beta "],
+  [/\bbatch\s*norm\b/g, " batch normalization batchnorm bn gamma beta "],
+  [/\bbatchnorm\b/g, " batch normalization batch norm bn gamma beta "],
+  [/\brmspropr\b/g, " rmsprop root mean square propagation optimizer "],
+  [/\btransfomer\b/g, " transformer attention self attention "],
+  [/\bsoft\s*max\b/g, " softmax soft max probability activation "],
+  [/\bd\s*w\b/g, " dw weight gradient derivative "],
+  [/\bdw\b/g, " d w weight gradient derivative "],
+  [/\bd\s*z\b/g, " dz preactivation gradient derivative "],
+  [/\bdz\b/g, " d z preactivation gradient derivative "],
+  [/\bn\s*\[\s*l\s*\]\s*(x|by|times)\s*m\b/g, " n l m n[l] x m shape matrix tensor activation batch "],
+  [/\bn_l\s*(x|by|times)\s*m\b/g, " n l m n[l] x m shape matrix tensor activation batch "],
+  [/\bgamma\s*beta\b/g, " gamma beta batch normalization scale shift "],
+  [/\bcell\s*state\b/g, " cell state lstm memory c t "],
+  [/\bgram\s*matrix\b/g, " gram matrix style transfer channel correlation "],
+  [/\banchor\s*assignment\b/g, " anchor assignment yolo iou object detection "],
+  [/\bbias\s*correction\b/g, " bias correction adam m hat v hat optimizer "],
+];
+
 function normalize(value: string) {
-  return value
+  let normalized = value
     .toLowerCase()
-    .replace(/[{}\\()[\],]/g, " ")
+    .replace(/\^\s*\{?\s*t\s*\}?/g, " transpose ")
+    .replace(/[×✕]/g, " x times by ");
+
+  for (const [pattern, replacement] of latexCommandWords) {
+    normalized = normalized.replace(pattern, replacement);
+  }
+
+  return normalized
+    .replace(/[{}()[\],;:=|]/g, " ")
+    .replace(/[_/+\-]/g, " ")
+    .replace(/\\/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function includesNormalized(value: string, query: string) {
-  return normalize(value).includes(normalize(query));
+function compactSearchText(value: string) {
+  return normalize(value).replace(/\s+/g, "");
 }
 
-function textFields(entry: FormulaHubEntry) {
-  return [
-    entry.nodeLabel,
-    entry.title,
-    entry.latex,
-    entry.plainTextFormula,
-    entry.description,
-    entry.category,
-    entry.type,
-    entry.useCase,
-    entry.shape?.output,
-    entry.pdfSection,
-    ...entry.aliases,
-    ...entry.symbols.flatMap((symbol) => [
-      symbol.symbol,
-      symbol.meaning,
-      symbol.shape,
-      ...(symbol.aliases ?? []),
-    ]),
-    ...(entry.steps ?? []).flatMap((step) => [
-      step.title,
-      step.latex,
-      step.plainTextFormula,
-      step.description,
-      step.shape?.output,
-      ...(step.shape?.input ?? []),
-      ...(step.symbols ?? []).flatMap((symbol) => [
-        symbol.symbol,
-        symbol.meaning,
-        symbol.shape,
-        ...(symbol.aliases ?? []),
-      ]),
-    ]),
-    ...(entry.relations ?? []).flatMap((relation) => [
-      relation.type,
-      getFormulaRelationLabel(relation.type),
-      relation.label,
-      relation.note,
-      relation.targetId,
-      formulaHubEntriesById[relation.targetId]?.title,
-      formulaHubEntriesById[relation.targetId]?.nodeLabel,
-      formulaHubEntriesById[relation.targetId]?.category,
-    ]),
-  ]
-    .filter(Boolean)
-    .join(" ");
+function compactDimensionText(value: string) {
+  return normalize(value)
+    .replace(/\b(x|times|by)\b/g, " ")
+    .replace(/\s+/g, "");
+}
+
+function expandQuery(value: string) {
+  let expanded = value.toLowerCase();
+  for (const [pattern, replacement] of queryExpansions) {
+    expanded = expanded.replace(pattern, (match) => `${match} ${replacement}`);
+  }
+  return expanded;
+}
+
+function searchTokens(value: string) {
+  return normalize(value)
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0);
+}
+
+function uniqueSearchTokens(values: string[]) {
+  return Array.from(new Set(values));
+}
+
+function editDistanceWithin(value: string, target: string, maxDistance: number) {
+  if (Math.abs(value.length - target.length) > maxDistance) return false;
+
+  const previous = Array.from({ length: target.length + 1 }, (_, index) => index);
+  const current = Array.from({ length: target.length + 1 }, () => 0);
+
+  for (let i = 1; i <= value.length; i += 1) {
+    current[0] = i;
+    let rowBest = current[0];
+
+    for (let j = 1; j <= target.length; j += 1) {
+      const cost = value[i - 1] === target[j - 1] ? 0 : 1;
+      current[j] = Math.min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + cost);
+      rowBest = Math.min(rowBest, current[j]);
+    }
+
+    if (rowBest > maxDistance) return false;
+    for (let j = 0; j <= target.length; j += 1) {
+      previous[j] = current[j];
+    }
+  }
+
+  return previous[target.length] <= maxDistance;
+}
+
+function makeSearchFields(entry: FormulaHubEntry): SearchField[] {
+  const fields: SearchField[] = [
+    { text: entry.title, weight: 260 },
+    { text: entry.id, weight: 170 },
+    { text: entry.nodeLabel ?? "", weight: 120 },
+    { text: entry.aliases.join(" "), weight: 165 },
+    { text: entry.symbols.flatMap((symbol) => [symbol.symbol, ...(symbol.aliases ?? [])]).join(" "), weight: 170 },
+    { text: entry.symbols.flatMap((symbol) => [symbol.meaning, symbol.shape]).filter(Boolean).join(" "), weight: 105 },
+    { text: entry.latex, weight: 120 },
+    { text: entry.plainTextFormula, weight: 115 },
+    { text: entry.description, weight: 65 },
+    { text: [entry.category, entry.type, entry.useCase, entry.shape?.output, entry.pdfSection].filter(Boolean).join(" "), weight: 45 },
+  ];
+
+  for (const step of entry.steps ?? []) {
+    fields.push({ text: step.title, weight: 150 });
+    fields.push({ text: step.id, weight: 100 });
+    fields.push({ text: step.latex, weight: 95 });
+    fields.push({ text: step.plainTextFormula, weight: 95 });
+    fields.push({ text: step.description, weight: 60 });
+    fields.push({ text: [step.shape?.output, ...(step.shape?.input ?? [])].filter(Boolean).join(" "), weight: 70 });
+    fields.push({
+      text: (step.symbols ?? [])
+        .flatMap((symbol) => [symbol.symbol, symbol.meaning, symbol.shape, ...(symbol.aliases ?? [])])
+        .filter(Boolean)
+        .join(" "),
+      weight: 95,
+    });
+  }
+
+  fields.push({
+    text: (entry.relations ?? [])
+      .flatMap((relation) => [
+        relation.type,
+        getFormulaRelationLabel(relation.type),
+        relation.label,
+        relation.note,
+        relation.targetId,
+        formulaHubEntriesById[relation.targetId]?.title,
+        formulaHubEntriesById[relation.targetId]?.nodeLabel,
+        formulaHubEntriesById[relation.targetId]?.category,
+      ])
+      .filter(Boolean)
+      .join(" "),
+    weight: 55,
+  });
+
+  return fields.filter((field) => field.text.trim().length > 0);
+}
+
+const preparedSearchFieldCache = new WeakMap<FormulaHubEntry, PreparedSearchField[]>();
+
+function prepareSearchField(field: SearchField): PreparedSearchField {
+  const normalized = normalize(field.text);
+  return {
+    ...field,
+    compact: normalized.replace(/\s+/g, ""),
+    dimensionCompact: compactDimensionText(field.text),
+    normalized,
+    tokens: uniqueSearchTokens(normalized.split(/\s+/).filter(Boolean)),
+  };
+}
+
+function getPreparedSearchFields(entry: FormulaHubEntry) {
+  const cached = preparedSearchFieldCache.get(entry);
+  if (cached) return cached;
+
+  const prepared = makeSearchFields(entry).map(prepareSearchField);
+  preparedSearchFieldCache.set(entry, prepared);
+  return prepared;
+}
+
+function scoreSearchField(
+  field: PreparedSearchField,
+  normalizedQuery: string,
+  queryCompact: string,
+  queryDimensionCompact: string,
+  queryTokens: string[],
+  fuzzyQueryTokens: string[],
+) {
+  const normalizedField = field.normalized;
+  const fieldCompact = field.compact;
+  const fieldTokens = field.tokens;
+  let score = 0;
+
+  if (!normalizedField) return score;
+
+  if (normalizedField === normalizedQuery) score += field.weight * 1.45;
+  if (normalizedField.includes(normalizedQuery)) score += field.weight;
+  if (queryCompact.length >= 2 && fieldCompact.includes(queryCompact)) score += field.weight * 0.82;
+  if (queryDimensionCompact.length >= 3 && field.dimensionCompact.includes(queryDimensionCompact)) {
+    score += field.weight * 0.68;
+  }
+
+  const exactTokenMatches = queryTokens.filter((token) => fieldTokens.includes(token));
+  const tokenCoverage = queryTokens.length > 0 ? exactTokenMatches.length / queryTokens.length : 0;
+  if (tokenCoverage === 1) {
+    score += field.weight * 0.72;
+  } else if (tokenCoverage > 0) {
+    score += field.weight * tokenCoverage * 0.24;
+  }
+
+  const fuzzyTokens = fuzzyQueryTokens.filter((token) => {
+    if (token.length < 5 || exactTokenMatches.includes(token)) return false;
+    const maxDistance = token.length >= 8 ? 2 : 1;
+    return fieldTokens.some((fieldToken) => fieldToken.length >= 4 && editDistanceWithin(token, fieldToken, maxDistance));
+  });
+
+  if (fuzzyTokens.length > 0) {
+    score += field.weight * Math.min(0.42, (fuzzyTokens.length / Math.max(fuzzyQueryTokens.length, 1)) * 0.42);
+  }
+
+  return score;
 }
 
 export function scoreFormulaEntry(entry: FormulaHubEntry, query: string) {
@@ -1519,31 +2687,77 @@ export function scoreFormulaEntry(entry: FormulaHubEntry, query: string) {
     return 1;
   }
 
-  const normalized = normalize(trimmedQuery);
-  const title = normalize(entry.title);
-  const aliases = entry.aliases.map(normalize);
-  const symbols = entry.symbols.flatMap((symbol) => [symbol.symbol, ...(symbol.aliases ?? [])]).map(normalize);
-  const stepTitles = (entry.steps ?? []).map((step) => normalize(step.title));
-  const haystack = normalize(textFields(entry));
+  const expandedQuery = expandQuery(trimmedQuery);
+  const normalizedQuery = normalize(expandedQuery);
+  const queryCompact = compactSearchText(expandedQuery);
+  const queryDimensionCompact = compactDimensionText(expandedQuery);
+  const queryTokens = uniqueSearchTokens(searchTokens(expandedQuery));
+  const originalTokens = uniqueSearchTokens(searchTokens(trimmedQuery));
+  const fuzzyQueryTokens = originalTokens.filter((token) => token.length >= 5);
+  const fields = getPreparedSearchFields(entry);
 
-  let value = 0;
+  let value = fields.reduce(
+    (score, field) =>
+      score + scoreSearchField(field, normalizedQuery, queryCompact, queryDimensionCompact, queryTokens, fuzzyQueryTokens),
+    0,
+  );
 
-  if (title === normalized) value += 220;
-  if (title.includes(normalized)) value += 130;
-  if (entry.nodeLabel && normalize(entry.nodeLabel) === normalized) value += 115;
-  if (aliases.some((alias) => alias === normalized)) value += 110;
-  if (aliases.some((alias) => alias.includes(normalized))) value += 80;
-  if (stepTitles.some((stepTitle) => stepTitle.includes(normalized))) value += 75;
-  if (symbols.some((symbol) => symbol === normalized)) value += 95;
-  if (symbols.some((symbol) => symbol.includes(normalized))) value += 65;
-  if (includesNormalized(entry.category, trimmedQuery)) value += 40;
-  if (entry.shape?.output && includesNormalized(entry.shape.output, trimmedQuery)) value += 35;
-  if (haystack.includes(normalized)) value += 20;
+  const matchedOriginalTokens = originalTokens.filter((token) =>
+    fields.some((field) => {
+      const normalizedField = field.normalized;
+      return (
+        normalizedField.split(/\s+/).includes(token) ||
+        normalizedField.replace(/\s+/g, "").includes(token) ||
+        (token.length >= 5 &&
+          normalizedField
+            .split(/\s+/)
+            .some((fieldToken) => fieldToken.length >= 4 && editDistanceWithin(token, fieldToken, token.length >= 8 ? 2 : 1)))
+      );
+    }),
+  );
 
-  for (const token of normalized.split(/\s+/).filter(Boolean)) {
-    if (haystack.includes(token)) {
-      value += 4;
-    }
+  if (originalTokens.length > 1 && matchedOriginalTokens.length === originalTokens.length) {
+    value += 160;
+  }
+
+  const titleNormalized = normalize(entry.title);
+  const titleCompact = compactSearchText(entry.title);
+  const aliasCompact = compactSearchText(entry.aliases.join(" "));
+  const idCompact = compactSearchText(entry.id);
+  for (const token of originalTokens) {
+    if (token.length < 2) continue;
+    if (titleNormalized.split(/\s+/).includes(token) || titleCompact.includes(token)) value += 180;
+    if (idCompact.includes(token)) value += 135;
+    if (aliasCompact.includes(token)) value += 120;
+  }
+
+  if (
+    entry.steps?.some(
+      (step) =>
+        scoreSearchField(
+          prepareSearchField({ text: step.title, weight: 1 }),
+          normalizedQuery,
+          queryCompact,
+          queryDimensionCompact,
+          queryTokens,
+          fuzzyQueryTokens,
+        ) > 0,
+    )
+  ) {
+    value += 75;
+  }
+
+  if ((entry.relations ?? []).some((relation) => normalize(relation.targetId).includes(normalizedQuery))) {
+    value += 45;
+  }
+
+  const looksLikeShapeQuery =
+    /\bshape\b/.test(normalizedQuery) || (queryTokens.includes("n") && queryTokens.includes("l") && queryTokens.includes("m"));
+  if (looksLikeShapeQuery) {
+    if (entry.type === "shape") value += 260;
+    if (normalize(entry.title).includes("shape") || normalize(entry.id).includes("shape")) value += 160;
+    if (entry.category === "Shapes & Dimensions") value += 150;
+    if (entry.type === "pipeline") value *= 0.82;
   }
 
   return value;
