@@ -1,0 +1,1176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Formula Hub — Deep Learning Visualized</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath:[["\\(","\\)"]], displayMath:[["\\[","\\]"]] },
+      svg: { fontCache:"global" }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root {
+      --purple: #6c5ce7;
+      --purple-soft: rgba(108,92,231,0.07);
+      --purple-mid: rgba(108,92,231,0.15);
+      --teal: #0ba888;
+      --coral: #d4614a;
+      --amber: #c8860a;
+      --text: #16122e;
+      --copy: #4a4668;
+      --muted: #9590ab;
+      --line: rgba(108,92,231,0.10);
+      --bg: #f9f8fe;
+      --surface: #ffffff;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ── AURORA BACKGROUND ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 55% at 12% 20%, rgba(108,92,231,0.13) 0%, transparent 70%),
+        radial-gradient(ellipse 55% 45% at 88% 15%, rgba(11,168,136,0.09) 0%, transparent 65%),
+        radial-gradient(ellipse 45% 60% at 55% 85%, rgba(108,92,231,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 0% 60%,  rgba(11,168,136,0.05) 0%, transparent 65%),
+        #f9f8fe;
+      animation: auroraShift 18s ease-in-out infinite alternate;
+    }
+    @keyframes auroraShift {
+      0%   { background-position: 0% 0%, 100% 0%, 50% 100%, 0% 60%; }
+      33%  { background-position: 5% 8%,  95% 5%,  52%  95%, 2% 55%; }
+      66%  { background-position: 2% 12%, 92% 10%, 48%  90%, 4% 65%; }
+      100% { background-position: 8% 5%,  98% 3%,  54%  88%, 1% 58%; }
+    }
+
+    /* Noise texture overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.028;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 200px 200px;
+    }
+
+    /* All direct content above aurora */
+    .app-root { position: relative; z-index: 1; }
+
+    /* ── NAV ── */
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      height: 58px;
+      background: rgba(249,248,254,0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1440px; height: 100%;
+      margin: 0 auto; padding: 0 36px; gap: 20px;
+    }
+    .brand {
+      font-size: 14.5px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--text); text-decoration: none;
+      display: flex; align-items: center; gap: 7px; white-space: nowrap;
+    }
+    .brand-mark {
+      width: 26px; height: 26px; border-radius: 7px;
+      background: var(--purple); display: grid; place-items: center;
+      font-size: 12px; color: white; font-weight: 700;
+    }
+    .brand em { color: var(--purple); font-style: normal; }
+    .nav-links {
+      display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center;
+    }
+    .nav-links a {
+      color: var(--muted); text-decoration: none;
+      font-size: 13.5px; font-weight: 450;
+      padding: 5px 12px; border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-links a:hover { color: var(--copy); background: var(--purple-soft); }
+    .nav-links a.active { color: var(--purple); font-weight: 600; background: var(--purple-soft); }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .nav-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      border: none; background: transparent; cursor: pointer;
+      color: var(--muted); display: grid; place-items: center;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-icon:hover { color: var(--purple); background: var(--purple-soft); }
+    .nav-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--purple-soft); border: 1.5px solid var(--purple-mid);
+      display: grid; place-items: center;
+      font-size: 11px; font-weight: 700; color: var(--purple); cursor: pointer;
+    }
+    .start-btn {
+      background: var(--purple); color: white; border: none;
+      border-radius: 10px; font: 600 13px 'DM Sans',sans-serif;
+      padding: 7px 15px; cursor: pointer; white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .start-btn:hover { opacity: 0.88; }
+
+    /* ── LAYOUT ── */
+    .page {
+      display: grid;
+      grid-template-columns: 210px minmax(0,1fr);
+      max-width: 1440px; margin: 0 auto;
+      padding: 0 36px 80px;
+      gap: 0;
+      align-items: start;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: sticky; top: 76px;
+      padding: 32px 24px 32px 0;
+      border-right: 1px solid var(--line);
+      background: transparent;
+    }
+    .sidebar-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--purple);
+      margin-bottom: 12px; padding-left: 8px;
+    }
+    .side-nav { display: flex; flex-direction: column; gap: 1px; }
+    .side-item {
+      display: flex; align-items: center; justify-content: space-between;
+      border: none; background: transparent;
+      color: var(--copy); font: 450 13.5px 'DM Sans',sans-serif;
+      padding: 6px 8px; border-radius: 8px;
+      cursor: pointer; text-align: left; text-decoration: none;
+      transition: background 0.12s, color 0.12s;
+      gap: 8px;
+    }
+    .side-item:hover { background: var(--purple-soft); color: var(--purple); }
+    .side-item.active { background: var(--purple-soft); color: var(--purple); font-weight: 600; }
+    .side-item-left { display: flex; align-items: center; gap: 9px; }
+    /* Letter avatar — no box, just subtle colored letter */
+    .side-letter {
+      font-size: 11px; font-weight: 700; color: var(--purple);
+      opacity: 0.45; width: 14px; text-align: center;
+      flex-shrink: 0;
+    }
+    .side-item.active .side-letter { opacity: 1; }
+    .side-count {
+      font-size: 11px; color: var(--muted);
+      font-weight: 450; letter-spacing: 0;
+    }
+    .side-item.active .side-count { color: var(--purple); opacity: 0.7; }
+
+    .sidebar-sep { margin: 18px 0 16px; border: none; border-top: 1px solid var(--line); }
+
+    /* Symbol dictionary — no boxes, just elegant rows */
+    .sym-dict { display: flex; flex-direction: column; }
+    .sym-dict-row {
+      display: flex; align-items: baseline; gap: 10px;
+      padding: 5px 8px; border-radius: 7px; cursor: pointer;
+      transition: background 0.12s;
+    }
+    .sym-dict-row:hover { background: var(--purple-soft); }
+    .sym-k {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 12.5px; color: var(--purple); min-width: 30px;
+    }
+    .sym-d { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+    .sym-more {
+      font-size: 12px; color: var(--purple); font-weight: 500;
+      padding: 4px 8px; cursor: pointer; opacity: 0.8;
+      transition: opacity 0.15s; margin-top: 2px;
+    }
+    .sym-more:hover { opacity: 1; }
+
+    /* ── MAIN ── */
+    main { padding: 32px 0 0 40px; min-width: 0; }
+
+    /* ── HERO ── */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr minmax(260px, 360px);
+      gap: 32px; align-items: center;
+      margin-bottom: 36px;
+    }
+    .hero-eyebrow {
+      font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--purple);
+      margin-bottom: 14px;
+    }
+    .hero-title {
+      font-size: clamp(2.8rem, 4vw, 4rem);
+      line-height: 0.92; letter-spacing: -0.04em;
+      font-weight: 700; margin-bottom: 16px;
+    }
+    .hero-title em {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-style: italic; font-weight: 400; color: var(--purple);
+    }
+    .hero-sub { color: var(--copy); font-size: 15px; line-height: 1.65; max-width: 400px; }
+
+    /* Hero art — canvas neural-network animation */
+    .hero-art {
+      position: relative; height: 200px;
+      border-radius: 20px; overflow: hidden;
+      background: linear-gradient(135deg, rgba(108,92,231,0.12) 0%, rgba(11,168,136,0.08) 60%, rgba(108,92,231,0.06) 100%);
+      border: 1px solid rgba(108,92,231,0.12);
+    }
+    .hero-art canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      display: block;
+    }
+    /* Formula chips float above the canvas */
+    .hero-chip {
+      position: absolute; z-index: 2;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(12px);
+      border-radius: 14px;
+      padding: 11px 16px;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 15px; color: rgba(72,58,185,0.9);
+      box-shadow: 0 8px 32px rgba(80,60,180,0.12), 0 1px 0 rgba(255,255,255,0.9) inset;
+      animation: chipFloat 4s ease-in-out infinite;
+    }
+    .chip-a { left: 28px; top: 38px; transform: rotate(2deg); animation-delay: 0s; }
+    .chip-b { right: 24px; bottom: 26px; transform: rotate(-1.5deg); font-size: 13.5px; color: rgba(11,140,110,0.85); animation-delay: 2s; }
+    @keyframes chipFloat {
+      0%, 100% { transform: translateY(0) rotate(var(--r, 2deg)); }
+      50%       { transform: translateY(-5px) rotate(var(--r, 2deg)); }
+    }
+    .chip-a { --r: 2deg; }
+    .chip-b { --r: -1.5deg; }
+
+    /* ── SEARCH ── */
+    .search-bar {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-bar:focus-within {
+      border-color: rgba(108,92,231,0.4);
+      box-shadow: 0 0 0 3px rgba(108,92,231,0.07);
+    }
+    .search-bar svg { color: var(--muted); flex-shrink: 0; }
+    .search-bar input {
+      flex: 1; border: none; outline: none; background: transparent;
+      font: 14px 'DM Sans',sans-serif; color: var(--text);
+    }
+    .search-bar input::placeholder { color: var(--muted); }
+    .kbd {
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      background: var(--bg); border: 1px solid var(--line);
+      border-radius: 5px; padding: 2px 7px; white-space: nowrap;
+    }
+
+    /* ── FILTERS — elegant, not blocky ── */
+    .filter-strip {
+      display: flex; align-items: center; gap: 6px;
+      flex-wrap: wrap; margin-bottom: 12px;
+    }
+    .fpill {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--copy);
+      font: 500 13px 'DM Sans',sans-serif;
+      padding: 6px 15px; cursor: pointer;
+      transition: all 0.12s;
+    }
+    .fpill:hover { color: var(--purple); background: var(--purple-soft); }
+    .fpill.active {
+      background: var(--purple); color: white;
+      box-shadow: 0 2px 12px rgba(108,92,231,0.25);
+    }
+    /* "Transformer" with just an outline — selected but not filled */
+    .fpill.outline {
+      border-color: var(--purple); color: var(--purple); background: transparent;
+    }
+
+    /* Sub-filter row — very minimal, just text + chevron */
+    .subfilter-strip {
+      display: flex; align-items: center; gap: 6px;
+      flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .sfbtn {
+      display: flex; align-items: center; gap: 4px;
+      border: 1px solid var(--line);
+      border-radius: 7px; background: var(--surface);
+      color: var(--copy); font: 450 12.5px 'DM Sans',sans-serif;
+      padding: 5px 11px; cursor: pointer;
+      transition: border-color 0.12s, color 0.12s, background 0.12s;
+    }
+    .sfbtn:hover { border-color: var(--purple-mid); color: var(--purple); background: var(--purple-soft); }
+    .sfbtn svg { opacity: 0.5; }
+    .sort-btn {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 5px;
+      border: none; background: transparent;
+      color: var(--copy); font: 450 12.5px 'DM Sans',sans-serif;
+      cursor: pointer; padding: 5px 2px;
+      transition: color 0.12s;
+    }
+    .sort-btn:hover { color: var(--purple); }
+    .sort-btn strong { color: var(--text); font-weight: 600; }
+
+    /* ── RESULTS LABEL ── */
+    .results-label {
+      font-size: 12.5px; color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .results-label strong { color: var(--text); font-weight: 600; }
+
+    /* ── FORMULA CARDS — elegant, light ── */
+    .cards { display: flex; flex-direction: column; gap: 1px; }
+
+    /* Row divider style instead of heavy cards */
+    .fcard {
+      display: grid;
+      grid-template-columns: 52px minmax(0,1fr) minmax(180px,240px) 34px;
+      gap: 20px; align-items: center;
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: background 0.12s, box-shadow 0.15s;
+      border: 1px solid transparent;
+      margin-bottom: 6px;
+    }
+    .fcard:hover {
+      background: #fff;
+      box-shadow: 0 2px 24px rgba(80,60,180,0.07);
+      border-color: var(--line);
+    }
+    .fcard.active {
+      background: #fff;
+      box-shadow: 0 4px 28px rgba(80,60,180,0.1);
+      border-color: rgba(108,92,231,0.22);
+    }
+
+    /* Icon — just a soft letter, no hard box */
+    .fcard-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+      flex-shrink: 0;
+    }
+    .fcard-icon.bp  { background: rgba(108,92,231,0.08); color: var(--purple); }
+    .fcard-icon.opt { background: rgba(11,168,136,0.08);  color: var(--teal); }
+    .fcard-icon.cnn { background: rgba(212,97,74,0.08);   color: var(--coral); }
+    .fcard-icon.tr  { background: rgba(108,92,231,0.08);  color: var(--purple); }
+
+    .fcard-body { min-width: 0; }
+    .fcard-title {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 9px;
+    }
+    .fcard-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    /* Tag — just colored text, no background pill */
+    .ftag { font-size: 11.5px; font-weight: 500; }
+    .ftag.bp  { color: var(--purple); }
+    .ftag.opt { color: var(--teal); }
+    .ftag.cnn { color: var(--coral); }
+    .ftag.tr  { color: var(--purple); opacity: 0.8; }
+
+    .fcard-formula {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 17px; line-height: 1.4; color: var(--text);
+      overflow: hidden; white-space: nowrap;
+    }
+
+    /* Meta — compact, no border-left divider */
+    .fcard-meta {
+      font-size: 12px; color: var(--copy);
+      display: flex; flex-direction: column; gap: 4px;
+      padding-left: 16px;
+      border-left: 1px solid var(--line);
+    }
+    .fmeta-row { display: flex; gap: 6px; }
+    .fmeta-label { color: var(--muted); min-width: 48px; }
+
+    /* Bookmark — ghost, no border by default */
+    .bm-btn {
+      width: 32px; height: 32px; border-radius: 8px;
+      border: none; background: transparent;
+      display: grid; place-items: center; cursor: pointer;
+      color: var(--muted); transition: color 0.12s, background 0.12s;
+    }
+    .bm-btn:hover { color: var(--purple); background: var(--purple-soft); }
+    .bm-btn.saved { color: var(--purple); }
+    .bm-btn svg { width: 15px; height: 15px; }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px; margin-top: 32px;
+    }
+    .pg-btn {
+      width: 32px; height: 32px; border-radius: 8px;
+      border: none; background: transparent;
+      color: var(--muted); font: 500 13px 'DM Sans',sans-serif;
+      cursor: pointer; display: grid; place-items: center;
+      transition: color 0.12s, background 0.12s;
+    }
+    .pg-btn:hover { color: var(--purple); background: var(--purple-soft); }
+    .pg-btn.active { background: var(--purple); color: white; }
+    .pg-dots { color: var(--muted); font-size: 13px; padding: 0 2px; }
+
+    /* ── APP WRAPPER (stacking context for drawer/modal) ── */
+    .app-root {
+      position: relative;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── DRAWER ── */
+    .drawer-overlay {
+      position: absolute; inset: 0; z-index: 200;
+      background: rgba(22,18,46,0.22);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+    .drawer {
+      position: absolute; top: 0; right: 0; bottom: 0; z-index: 201;
+      width: min(460px, 90%);
+      background: var(--surface);
+      box-shadow: -16px 0 48px rgba(40,30,90,0.11);
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.32,0,0.18,1);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      padding: 22px 24px 0;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .drawer-tag {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .drawer-tag.bp  { background: rgba(108,92,231,0.09); color: var(--purple); }
+    .drawer-tag.opt { background: rgba(11,168,136,0.09);  color: var(--teal); }
+    .drawer-tag.cnn { background: rgba(212,97,74,0.09);   color: var(--coral); }
+
+    .drawer-actions { display: flex; gap: 6px; }
+    .drawer-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: none; background: transparent; cursor: pointer;
+      color: var(--muted); display: grid; place-items: center;
+      transition: color 0.12s, background 0.12s;
+    }
+    .drawer-btn:hover { color: var(--purple); background: var(--purple-soft); }
+    .drawer-btn.star { color: #e8a020; }
+    .drawer-btn svg { width: 15px; height: 15px; }
+
+    /* Drawer scrollable body */
+    .drawer-body {
+      flex: 1; overflow-y: auto; padding: 20px 24px 32px;
+      scrollbar-width: thin; scrollbar-color: var(--line) transparent;
+    }
+    .drawer-body::-webkit-scrollbar { width: 3px; }
+    .drawer-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+
+    .drawer-title {
+      font-size: 20px; font-weight: 700; letter-spacing: -0.02em;
+      line-height: 1.2; margin-bottom: 16px;
+    }
+
+    /* Formula display box — light, not boxy */
+    .drawer-formula-wrap {
+      border-radius: 12px;
+      background: rgba(108,92,231,0.04);
+      padding: 20px 18px;
+      margin-bottom: 14px;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 22px; text-align: center;
+      overflow-x: auto;
+    }
+    .drawer-desc {
+      font-size: 13.5px; color: var(--copy); line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    /* Section heading in drawer */
+    .dsec {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.13em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 10px; margin-top: 22px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .dsec-check {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: rgba(11,168,136,0.12);
+      display: grid; place-items: center;
+      font-size: 8px; color: var(--teal);
+    }
+
+    /* Shape check — cleaner */
+    .shape-flow {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap; margin-bottom: 4px;
+    }
+    .shape-box {
+      border-radius: 10px; background: rgba(108,92,231,0.06);
+      padding: 9px 13px; text-align: center; min-width: 64px;
+      font-family: 'DM Serif Display', Georgia, serif; font-size: 13px;
+    }
+    .shape-box .dim { font-family: 'DM Sans',sans-serif; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+    .shape-box.result { background: rgba(108,92,231,0.1); }
+    .shape-op { color: var(--muted); font-size: 14px; }
+    .shape-arr { color: var(--purple); font-size: 16px; }
+
+    /* Symbols table — clean rows, no heavy borders */
+    .sym-table { display: flex; flex-direction: column; }
+    .sym-row {
+      display: grid; grid-template-columns: 68px 1fr;
+      gap: 12px; padding: 8px 0; align-items: baseline;
+      border-bottom: 1px solid rgba(108,92,231,0.06);
+    }
+    .sym-row:last-child { border-bottom: none; }
+    .sym-key {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 14px; color: var(--purple);
+    }
+    .sym-val { font-size: 12.5px; color: var(--copy); line-height: 1.5; }
+
+    /* Related formulas */
+    .related { display: flex; flex-direction: column; }
+    .rel-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 0; gap: 12px;
+      border-bottom: 1px solid rgba(108,92,231,0.06);
+      cursor: pointer; transition: opacity 0.12s;
+    }
+    .rel-row:last-child { border-bottom: none; }
+    .rel-row:hover { opacity: 0.65; }
+    .rel-name { font-size: 12.5px; font-weight: 500; color: var(--copy); margin-bottom: 2px; }
+    .rel-formula {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 12.5px; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .rel-arrow { color: var(--muted); font-size: 14px; flex-shrink: 0; }
+
+    /* Related header with "View all" */
+    .related-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .view-all-link {
+      font-size: 11.5px; font-weight: 600; color: var(--purple);
+      cursor: pointer; transition: opacity 0.15s; letter-spacing: 0;
+      text-transform: none;
+    }
+    .view-all-link:hover { opacity: 0.7; }
+
+    /* Expand button — lives inside drawer-actions */
+    .drawer-expand-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: none; background: transparent;
+      display: grid; place-items: center;
+      cursor: pointer; color: var(--muted);
+      transition: color 0.12s, background 0.12s;
+    }
+    .drawer-expand-btn:hover { color: var(--purple); background: var(--purple-soft); }
+
+    /* View in module CTA */
+    .module-cta {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin-top: 24px; padding: 13px;
+      border-radius: 12px;
+      background: var(--purple-soft);
+      color: var(--purple); font: 600 13.5px 'DM Sans',sans-serif;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .module-cta:hover { background: rgba(108,92,231,0.13); }
+
+    /* ── MODAL (expand) ── */
+    .modal-overlay {
+      position: absolute; inset: 0; z-index: 300;
+      background: rgba(22,18,46,0.40);
+      display: flex; align-items: flex-start; justify-content: center;
+      padding-top: 40px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface);
+      border-radius: 20px;
+      width: min(760px, 94%);
+      max-height: 82vh;
+      overflow-y: auto;
+      padding: 32px;
+      transform: translateY(-8px) scale(0.98);
+      transition: transform 0.2s;
+      scrollbar-width: thin;
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+  </style>
+</head>
+<body>
+<div class="app-root">
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#">
+      <div class="brand-mark">✦</div>
+      Deep <em>Learning</em> Visualized
+    </a>
+    <div class="nav-links">
+      <a href="#">Curriculum</a>
+      <a href="#">Topics</a>
+      <a class="active" href="#">Formula Hub</a>
+      <a href="#">Blog</a>
+      <a href="#">Mindmap</a>
+      <a href="#">About</a>
+    </div>
+    <div class="nav-right">
+      <button class="nav-icon" aria-label="Search">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-icon" aria-label="Bookmarks">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7 4.8A2.8 2.8 0 0 1 9.8 2h4.4A2.8 2.8 0 0 1 17 4.8v16l-5-3.15L7 20.8v-16Z"/></svg>
+      </button>
+      <div class="nav-avatar">A</div>
+      <button class="start-btn">Start learning →</button>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <p class="sidebar-label">Browse Topics</p>
+    <nav class="side-nav">
+      <button class="side-item active">
+        <span class="side-item-left"><span class="side-letter">✦</span>All Formulas</span>
+        <span class="side-count">128</span>
+      </button>
+      <button class="side-item">
+        <span class="side-item-left"><span class="side-letter">B</span>Backpropagation</span>
+        <span class="side-count">28</span>
+      </button>
+      <button class="side-item">
+        <span class="side-item-left"><span class="side-letter">O</span>Optimization</span>
+        <span class="side-count">20</span>
+      </button>
+      <button class="side-item">
+        <span class="side-item-left"><span class="side-letter">C</span>CNN</span>
+        <span class="side-count">18</span>
+      </button>
+      <button class="side-item">
+        <span class="side-item-left"><span class="side-letter">R</span>RNN / LSTM</span>
+        <span class="side-count">14</span>
+      </button>
+      <button class="side-item">
+        <span class="side-item-left"><span class="side-letter">T</span>Transformer</span>
+        <span class="side-count">24</span>
+      </button>
+      <button class="side-item">
+        <span class="side-item-left"><span class="side-letter">S</span>Shapes &amp; Dimensions</span>
+        <span class="side-count">24</span>
+      </button>
+    </nav>
+
+    <hr class="sidebar-sep"/>
+
+    <p class="sidebar-label">Symbol Dictionary</p>
+    <div class="sym-dict">
+      <div class="sym-dict-row">
+        <span class="sym-k">\(m\)</span>
+        <span class="sym-d">Batch size</span>
+      </div>
+      <div class="sym-dict-row">
+        <span class="sym-k">\(n^{[l]}\)</span>
+        <span class="sym-d">Units in layer l</span>
+      </div>
+      <div class="sym-dict-row">
+        <span class="sym-k">\(A^{[l]}\)</span>
+        <span class="sym-d">Activations (layer l)</span>
+      </div>
+      <div class="sym-dict-row">
+        <span class="sym-k">\(Z^{[l]}\)</span>
+        <span class="sym-d">Pre-activations</span>
+      </div>
+      <div class="sym-dict-row">
+        <span class="sym-k">\(W^{[l]}\)</span>
+        <span class="sym-d">Weights (layer l)</span>
+      </div>
+      <div class="sym-dict-row">
+        <span class="sym-k">\(b^{[l]}\)</span>
+        <span class="sym-d">Biases (layer l)</span>
+      </div>
+      <div class="sym-more">View all symbols →</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <p class="hero-eyebrow">Deep Learning Formula Search</p>
+        <h1 class="hero-title">Formula<br/><em>Hub.</em></h1>
+        <p class="hero-sub">Search formulas, tensor shapes, and symbols across deep learning topics.</p>
+      </div>
+      <div class="hero-art">
+        <canvas id="neuralCanvas"></canvas>
+        <div class="hero-chip chip-a">\(dW^{[l]}=\frac{1}{m}dZ^{[l]}(A^{[l-1]})^T\)</div>
+        <div class="hero-chip chip-b">\(\operatorname{softmax}\!\left(\frac{QK^T}{\sqrt{d_k}}\right)V\)</div>
+      </div>
+    </section>
+
+    <!-- SEARCH -->
+    <label class="search-bar">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input placeholder="Search Adam, dW, softmax, QK^T, CNN output size…"/>
+      <kbd class="kbd">⌘ K</kbd>
+    </label>
+
+    <!-- CATEGORY PILLS -->
+    <div class="filter-strip">
+      <button class="fpill active">All</button>
+      <button class="fpill">Backpropagation</button>
+      <button class="fpill">Optimization</button>
+      <button class="fpill">CNN</button>
+      <button class="fpill">RNN / LSTM</button>
+      <button class="fpill outline">Transformer</button>
+      <button class="fpill">Shapes</button>
+      <button class="fpill">More ›</button>
+    </div>
+
+    <!-- SUB-FILTERS -->
+    <div class="subfilter-strip">
+      <button class="sfbtn">Type: All <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="sfbtn">Use: All <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="sfbtn">Shape: All <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="sfbtn">Symbol: All <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="sort-btn">Sort: <strong>Relevance</strong> <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+    </div>
+
+    <!-- RESULTS -->
+    <p class="results-label">Showing <strong>1–4</strong> of <strong>128 results</strong></p>
+
+    <!-- CARDS -->
+    <div class="cards">
+
+      <article class="fcard active" onclick="openDrawer('bp')">
+        <div class="fcard-icon bp">BP</div>
+        <div class="fcard-body">
+          <div class="fcard-title">
+            <span class="fcard-name">Dense Layer Weight Gradient</span>
+            <span class="ftag bp">Backpropagation</span>
+          </div>
+          <div class="fcard-formula">\(dW^{[l]}=\frac{1}{m}dZ^{[l]}\bigl(A^{[l-1]}\bigr)^T\)</div>
+        </div>
+        <div class="fcard-meta">
+          <div class="fmeta-row"><span class="fmeta-label">Use</span><span>Backpropagation</span></div>
+          <div class="fmeta-row"><span class="fmeta-label">Shape</span><span>\(n^{[l]}\times n^{[l-1]}\)</span></div>
+          <div class="fmeta-row"><span class="fmeta-label">Symbols</span><span>\(dZ^{[l]},\,A^{[l-1]},\,m\)</span></div>
+        </div>
+        <button class="bm-btn saved" onclick="event.stopPropagation()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.8A2.8 2.8 0 0 1 9.8 2h4.4A2.8 2.8 0 0 1 17 4.8v16l-5-3.15L7 20.8v-16Z"/></svg>
+        </button>
+      </article>
+
+      <article class="fcard" onclick="openDrawer('adam')">
+        <div class="fcard-icon opt">OPT</div>
+        <div class="fcard-body">
+          <div class="fcard-title">
+            <span class="fcard-name">Adam Update Rule</span>
+            <span class="ftag opt">Optimization</span>
+          </div>
+          <div class="fcard-formula" style="font-size:15px">\(m_t=\beta_1 m_{t-1}+(1-\beta_1)g_t,\quad v_t=\beta_2 v_{t-1}+(1-\beta_2)g_t^2\)</div>
+        </div>
+        <div class="fcard-meta">
+          <div class="fmeta-row"><span class="fmeta-label">Use</span><span>Optimization</span></div>
+          <div class="fmeta-row"><span class="fmeta-label">Shape</span><span>Same as θ</span></div>
+          <div class="fmeta-row"><span class="fmeta-label">Symbols</span><span>\(m_t,\,v_t,\,\beta_1,\,\beta_2\)</span></div>
+        </div>
+        <button class="bm-btn" onclick="event.stopPropagation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4.8A2.8 2.8 0 0 1 9.8 2h4.4A2.8 2.8 0 0 1 17 4.8v16l-5-3.15L7 20.8v-16Z"/></svg>
+        </button>
+      </article>
+
+      <article class="fcard" onclick="openDrawer('attn')">
+        <div class="fcard-icon tr">TR</div>
+        <div class="fcard-body">
+          <div class="fcard-title">
+            <span class="fcard-name">Scaled Dot-Product Attention</span>
+            <span class="ftag tr">Transformer</span>
+          </div>
+          <div class="fcard-formula">\(\operatorname{Attention}(Q,K,V)=\operatorname{softmax}\!\bigl(\tfrac{QK^T}{\sqrt{d_k}}\bigr)V\)</div>
+        </div>
+        <div class="fcard-meta">
+          <div class="fmeta-row"><span class="fmeta-label">Use</span><span>Transformer</span></div>
+          <div class="fmeta-row"><span class="fmeta-label">Shape</span><span>\(n_q\times d_v\)</span></div>
+          <div class="fmeta-row"><span class="fmeta-label">Symbols</span><span>\(Q,\,K,\,V,\,d_k\)</span></div>
+        </div>
+        <button class="bm-btn" onclick="event.stopPropagation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4.8A2.8 2.8 0 0 1 9.8 2h4.4A2.8 2.8 0 0 1 17 4.8v16l-5-3.15L7 20.8v-16Z"/></svg>
+        </button>
+      </article>
+
+      <article class="fcard" onclick="openDrawer('cnn')">
+        <div class="fcard-icon cnn">CNN</div>
+        <div class="fcard-body">
+          <div class="fcard-title">
+            <span class="fcard-name">CNN Output Size (1D/2D)</span>
+            <span class="ftag cnn">CNN</span>
+          </div>
+          <div class="fcard-formula">\(n_{\text{out}}=\bigl\lfloor\tfrac{n_{\text{in}}+2p-d(k-1)-1}{s}\bigr\rfloor+1\)</div>
+        </div>
+        <div class="fcard-meta">
+          <div class="fmeta-row"><span class="fmeta-label">Use</span><span>CNN</span></div>
+          <div class="fmeta-row"><span class="fmeta-label">Shape</span><span>\(n_{\text{out}}\)</span></div>
+          <div class="fmeta-row"><span class="fmeta-label">Symbols</span><span>\(n_{\text{in}},\,k,\,s,\,p,\,d\)</span></div>
+        </div>
+        <button class="bm-btn" onclick="event.stopPropagation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4.8A2.8 2.8 0 0 1 9.8 2h4.4A2.8 2.8 0 0 1 17 4.8v16l-5-3.15L7 20.8v-16Z"/></svg>
+        </button>
+      </article>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <nav class="pagination">
+      <button class="pg-btn">‹</button>
+      <button class="pg-btn active">1</button>
+      <button class="pg-btn">2</button>
+      <button class="pg-btn">3</button>
+      <span class="pg-dots">…</span>
+      <button class="pg-btn">32</button>
+      <button class="pg-btn">›</button>
+    </nav>
+  </main>
+</div>
+
+<!-- DRAWER OVERLAY -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- DRAWER -->
+<div class="drawer" id="drawer">
+
+  <div class="drawer-header">
+    <span class="drawer-tag bp" id="drawerTag">Backpropagation</span>
+    <div class="drawer-actions">
+      <button class="drawer-expand-btn" onclick="openModal()" title="Expand to full view">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+      </button>
+      <button class="drawer-btn star">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </button>
+      <button class="drawer-btn" onclick="closeDrawer()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="drawer-body" id="drawerBody">
+    <h2 class="drawer-title">Dense Layer Weight Gradient</h2>
+    <div class="drawer-formula-wrap">\[dW^{[l]}=\frac{1}{m}\,dZ^{[l]}\bigl(A^{[l-1]}\bigr)^T\]</div>
+    <p class="drawer-desc">Gradient of the weights in a fully connected layer with respect to the loss function.</p>
+
+    <div class="dsec">Shape Check <span class="dsec-check">✓</span></div>
+    <div class="shape-flow">
+      <div class="shape-box">\(dZ^{[l]}\)<div class="dim">\(n^{[l]}\times m\)</div></div>
+      <span class="shape-op">×</span>
+      <div class="shape-box">\((A^{[l-1]})^T\)<div class="dim">\(m\times n^{[l-1]}\)</div></div>
+      <span class="shape-arr">→</span>
+      <div class="shape-box result">\(dW^{[l]}\)<div class="dim" style="color:var(--purple)">\(n^{[l]}\times n^{[l-1]}\)</div></div>
+    </div>
+
+    <div class="dsec" style="margin-top:22px;">Symbols</div>
+    <div class="sym-table">
+      <div class="sym-row"><span class="sym-key">\(m\)</span><span class="sym-val">Batch size (number of training examples)</span></div>
+      <div class="sym-row"><span class="sym-key">\(dZ^{[l]}\)</span><span class="sym-val">Gradient of cost w.r.t. pre-activations \(Z^{[l]}\)</span></div>
+      <div class="sym-row"><span class="sym-key">\(A^{[l-1]}\)</span><span class="sym-val">Activations from the previous layer \(l-1\)</span></div>
+      <div class="sym-row"><span class="sym-key">\(l\)</span><span class="sym-val">Current layer index</span></div>
+    </div>
+
+    <div class="dsec" style="margin-top:22px;">
+      <div class="related-header" style="width:100%">
+        <span>Related Formulas</span>
+        <span class="view-all-link">View all (6) →</span>
+      </div>
+    </div>
+    <div class="related">
+      <div class="rel-row"><div><div class="rel-name">Dense Layer Bias Gradient</div><div class="rel-formula">\(db^{[l]}=\tfrac{1}{m}\sum_{i=1}^m dZ^{[l]}_{(:,i)}\)</div></div><span class="rel-arrow">›</span></div>
+      <div class="rel-row"><div><div class="rel-name">Dense Layer dZ</div><div class="rel-formula">\(dZ^{[l]}=dA^{[l]}\ast g'(Z^{[l]})\)</div></div><span class="rel-arrow">›</span></div>
+      <div class="rel-row"><div><div class="rel-name">Dense Layer \(dA^{[l-1]}\)</div><div class="rel-formula">\(dA^{[l-1]}=(W^{[l]})^T dZ^{[l]}\)</div></div><span class="rel-arrow">›</span></div>
+    </div>
+
+    <a class="module-cta" href="#">View in Backpropagation Module →</a>
+  </div>
+</div>
+
+<!-- MODAL (expand) -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <span class="drawer-tag bp">Backpropagation</span>
+      <button class="drawer-btn" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <h2 style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin-bottom:18px">Dense Layer Weight Gradient</h2>
+    <div class="drawer-formula-wrap" style="font-size:28px;margin-bottom:18px">\[dW^{[l]}=\frac{1}{m}\,dZ^{[l]}\bigl(A^{[l-1]}\bigr)^T\]</div>
+    <p class="drawer-desc">Gradient of the weights in a fully connected layer with respect to the loss function. Used in the backward pass to update the weight matrix \(W^{[l]}\).</p>
+
+    <div class="dsec">Shape Check <span class="dsec-check">✓</span></div>
+    <div class="shape-flow">
+      <div class="shape-box">\(dZ^{[l]}\)<div class="dim">\(n^{[l]}\times m\)</div></div>
+      <span class="shape-op">×</span>
+      <div class="shape-box">\((A^{[l-1]})^T\)<div class="dim">\(m\times n^{[l-1]}\)</div></div>
+      <span class="shape-arr">→</span>
+      <div class="shape-box result">\(dW^{[l]}\)<div class="dim" style="color:var(--purple)">\(n^{[l]}\times n^{[l-1]}\)</div></div>
+    </div>
+
+    <div class="dsec" style="margin-top:24px;">Symbols</div>
+    <div class="sym-table">
+      <div class="sym-row"><span class="sym-key">\(m\)</span><span class="sym-val">Batch size — number of training examples in the current mini-batch</span></div>
+      <div class="sym-row"><span class="sym-key">\(dZ^{[l]}\)</span><span class="sym-val">Gradient of cost w.r.t. pre-activations \(Z^{[l]}\), shape \(n^{[l]}\times m\)</span></div>
+      <div class="sym-row"><span class="sym-key">\(A^{[l-1]}\)</span><span class="sym-val">Activations from previous layer \(l-1\), shape \(n^{[l-1]}\times m\)</span></div>
+      <div class="sym-row"><span class="sym-key">\(dW^{[l]}\)</span><span class="sym-val">Weight gradient, same shape as \(W^{[l]}\): \(n^{[l]}\times n^{[l-1]}\)</span></div>
+      <div class="sym-row"><span class="sym-key">\(l\)</span><span class="sym-val">Layer index, from 1 to L</span></div>
+    </div>
+
+    <div class="dsec" style="margin-top:24px;">
+      <div class="related-header" style="width:100%">
+        <span>Related Formulas</span>
+        <span class="view-all-link">View all (6) →</span>
+      </div>
+    </div>
+    <div class="related">
+      <div class="rel-row"><div><div class="rel-name">Dense Layer Bias Gradient</div><div class="rel-formula">\(db^{[l]}=\tfrac{1}{m}\sum_{i=1}^m dZ^{[l]}_{(:,i)}\)</div></div><span class="rel-arrow">›</span></div>
+      <div class="rel-row"><div><div class="rel-name">Dense Layer dZ</div><div class="rel-formula">\(dZ^{[l]}=dA^{[l]}\ast g'(Z^{[l]})\)</div></div><span class="rel-arrow">›</span></div>
+      <div class="rel-row"><div><div class="rel-name">Dense Layer \(dA^{[l-1]}\)</div><div class="rel-formula">\(dA^{[l-1]}=(W^{[l]})^T dZ^{[l]}\)</div></div><span class="rel-arrow">›</span></div>
+    </div>
+
+    <a class="module-cta" href="#" style="margin-top:28px">View in Backpropagation Module →</a>
+  </div>
+</div>
+
+<script>
+  /* ── Neural-network canvas animation ── */
+  (function () {
+    const canvas = document.getElementById('neuralCanvas');
+    const ctx    = canvas.getContext('2d');
+
+    const PURPLE = [108, 92, 231];
+    const TEAL   = [11, 168, 136];
+    const NODE_COUNT   = 28;
+    const CONN_DIST    = 110;   // px — max distance to draw a connection
+    const NODE_SPEED   = 0.28;  // base drift speed
+    const NODE_RADIUS  = 2.8;
+    const PULSE_SPEED  = 0.018;
+
+    let W, H, nodes;
+
+    function rgb(arr, a) { return `rgba(${arr[0]},${arr[1]},${arr[2]},${a})`; }
+
+    function initCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      W = canvas.width  = rect.width  * window.devicePixelRatio;
+      H = canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      W /= window.devicePixelRatio;
+      H /= window.devicePixelRatio;
+    }
+
+    function makeNode() {
+      const color = Math.random() > 0.35 ? PURPLE : TEAL;
+      return {
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * NODE_SPEED,
+        vy: (Math.random() - 0.5) * NODE_SPEED,
+        r: NODE_RADIUS * (0.7 + Math.random() * 0.8),
+        color,
+        phase: Math.random() * Math.PI * 2,  // for pulse
+      };
+    }
+
+    function initNodes() {
+      nodes = Array.from({ length: NODE_COUNT }, makeNode);
+    }
+
+    function step() {
+      ctx.clearRect(0, 0, W, H);
+
+      /* draw connections */
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < CONN_DIST) {
+            const alpha = (1 - dist / CONN_DIST) * 0.22;
+            /* blend colour between the two node colours */
+            const blended = a.color === b.color
+              ? a.color
+              : [108, 120, 231]; // purple-ish mid
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = rgb(blended, alpha);
+            ctx.lineWidth = 0.9;
+            ctx.stroke();
+          }
+        }
+      }
+
+      /* draw nodes */
+      const t = performance.now() * 0.001;
+      nodes.forEach(n => {
+        /* drift */
+        n.x += n.vx;
+        n.y += n.vy;
+        /* bounce */
+        if (n.x < 0 || n.x > W) n.vx *= -1;
+        if (n.y < 0 || n.y > H) n.vy *= -1;
+
+        /* pulse radius */
+        const pulse = n.r * (1 + 0.3 * Math.sin(t * 2.5 + n.phase));
+
+        /* glow ring */
+        const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, pulse * 3.5);
+        grad.addColorStop(0,   rgb(n.color, 0.28));
+        grad.addColorStop(1,   rgb(n.color, 0));
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, pulse * 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        /* solid dot */
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, pulse, 0, Math.PI * 2);
+        ctx.fillStyle = rgb(n.color, 0.75);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(step);
+    }
+
+    /* init + resize */
+    initCanvas();
+    initNodes();
+    requestAnimationFrame(step);
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        ctx.resetTransform();
+        initCanvas();
+      }, 150);
+    });
+  })();
+  /* ── end canvas ── */
+  function openDrawer(id) {
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+  function openModal() {
+    closeDrawer();
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+  // Keyboard close
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeDrawer(); closeModal(); }
+  });
+
+  // Pill toggle
+  document.querySelectorAll('.fpill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('active')) return;
+      document.querySelectorAll('.fpill.active').forEach(b => b.classList.remove('active'));
+      btn.classList.remove('outline');
+      btn.classList.add('active');
+    });
+  });
+
+  // Sidebar toggle
+  document.querySelectorAll('.side-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.side-item.active').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Card active state
+  document.querySelectorAll('.fcard').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.fcard.active').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+    });
+  });
+
+  // Bookmark toggle
+  document.querySelectorAll('.bm-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      btn.classList.toggle('saved');
+      const isSaved = btn.classList.contains('saved');
+      btn.innerHTML = isSaved
+        ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.8A2.8 2.8 0 0 1 9.8 2h4.4A2.8 2.8 0 0 1 17 4.8v16l-5-3.15L7 20.8v-16Z"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4.8A2.8 2.8 0 0 1 9.8 2h4.4A2.8 2.8 0 0 1 17 4.8v16l-5-3.15L7 20.8v-16Z"/></svg>';
+    });
+  });
+
+  // Auto-open drawer for demo
+  setTimeout(() => openDrawer('bp'), 800);
+
+  // Lock scroll on app-root instead of body (works in iframe)
+  function lockScroll() { document.querySelector('.app-root').style.overflow = 'hidden'; }
+  function unlockScroll() { document.querySelector('.app-root').style.overflow = ''; }
+</script>
+</div><!-- /app-root -->
+</body>
+</html>
