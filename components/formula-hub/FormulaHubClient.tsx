@@ -43,6 +43,7 @@ const sortOptions = [
 ] as const;
 const pageSize = 10;
 const savedStorageKey = "formula-hub-saved-ids";
+const quickSearches = ["Adam", "BatchNorm", "QK^T", "CNN output size", "n[l] x m", "bias correction"];
 
 const typeLabels: Record<FormulaEntryType, string> = {
   derivative: "Derivative",
@@ -135,6 +136,46 @@ function normalizeFilterText(value: string) {
 
 function FormulaMath({ latex, display = false }: { latex: string; display?: boolean }) {
   return <span>{display ? `\\[${latex}\\]` : `\\(${latex}\\)`}</span>;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getHighlightTokens(query: string) {
+  return Array.from(
+    new Set(
+      query
+        .toLowerCase()
+        .replace(/qk\^t/g, "qkt")
+        .split(/[^a-z0-9]+/i)
+        .map((token) => token.trim())
+        .filter((token) => token.length >= 2),
+    ),
+  ).slice(0, 5);
+}
+
+function HighlightedText({ query, text }: { query: string; text: string }) {
+  const tokens = getHighlightTokens(query);
+  if (tokens.length === 0) return <>{text}</>;
+
+  const pattern = new RegExp(`(${tokens.map(escapeRegExp).join("|")})`, "ig");
+  const pieces = text.split(pattern);
+
+  return (
+    <>
+      {pieces.map((piece, index) => {
+        const matched = tokens.includes(piece.toLowerCase());
+        return matched ? (
+          <mark className="search-hit" key={`${piece}-${index}`}>
+            {piece}
+          </mark>
+        ) : (
+          <span key={`${piece}-${index}`}>{piece}</span>
+        );
+      })}
+    </>
+  );
 }
 
 function hasMathSyntax(value: string) {
@@ -363,12 +404,14 @@ function useNeuralCanvas() {
 
 function FormulaResultCard({
   entry,
+  query,
   saved,
   selected,
   onSave,
   onSelect,
 }: {
   entry: FormulaHubEntry;
+  query: string;
   saved: boolean;
   selected: boolean;
   onSave: () => void;
@@ -383,7 +426,9 @@ function FormulaResultCard({
       <div className={`fcard-icon ${accent}`}>{formulaIconLabel(entry.category)}</div>
       <div className="fcard-body">
         <div className="fcard-title">
-          <span className="fcard-name">{entry.title}</span>
+          <span className="fcard-name">
+            <HighlightedText query={query} text={entry.title} />
+          </span>
           <span className={`ftag ${accent}`}>{entry.category}</span>
           {entry.nodeLabel ? <span className="node-tag">{entry.nodeLabel}</span> : null}
         </div>
@@ -523,6 +568,22 @@ function applyFormulaFilters({
     if (!entryMatchesSymbol(entry, symbolFilter)) return false;
     return true;
   });
+}
+
+function resolveSavedFormulaIds(value: unknown) {
+  const rawIds =
+    Array.isArray(value)
+      ? value
+      : value && typeof value === "object" && Array.isArray((value as { ids?: unknown }).ids)
+        ? (value as { ids: unknown[] }).ids
+        : [];
+
+  return rawIds
+    .map((id) => {
+      if (typeof id !== "string") return null;
+      return formulaHubEntriesById[id] ? id : formulaHubEntryAliasesById[id] ?? null;
+    })
+    .filter((id): id is string => typeof id === "string" && Boolean(formulaHubEntriesById[id]));
 }
 
 function sortFormulaEntries(entries: FormulaHubEntry[], sort: FormulaSort) {
@@ -780,11 +841,13 @@ function FormulaDrawer({
 export function FormulaHubClient() {
   const canvasRef = useNeuralCanvas();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const savedImportInputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [savedIds, setSavedIds] = useState<Set<string>>(() => new Set());
   const [savedLoaded, setSavedLoaded] = useState(false);
+  const [savedNotice, setSavedNotice] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -835,6 +898,23 @@ export function FormulaHubClient() {
   const pageResults = results.slice(pageStart, pageStart + pageSize);
   const selectedEntry = selectedId ? results.find((entry) => entry.id === selectedId) ?? null : null;
   const sortLabel = sortOptions.find((option) => option.value === sort)?.label ?? "Relevance";
+  const searchSuggestions = useMemo(() => {
+    const trimmedQuery = query.trim();
+    if (trimmedQuery.length > 0) {
+      return searchedResults.slice(0, 5).map((entry) => ({
+        entry,
+        label: entry.title,
+        meta: entry.nodeLabel ?? entry.category,
+        type: "entry" as const,
+      }));
+    }
+
+    return quickSearches.map((label) => ({
+      label,
+      meta: "try search",
+      type: "query" as const,
+    }));
+  }, [query, searchedResults]);
   const visibleMathKey = [
     pageResults.map((entry) => entry.id).join(","),
     selectedEntry?.id ?? "",
@@ -878,25 +958,69 @@ export function FormulaHubClient() {
       const next = new Set(current);
       if (next.has(id)) {
         next.delete(id);
+        setSavedNotice("Removed from saved formulas.");
       } else {
         next.add(id);
+        setSavedNotice("Saved to your local formula library.");
       }
       return next;
     });
+  };
+
+  const exportSaved = () => {
+    const ids = Array.from(savedIds);
+    const payload = JSON.stringify(
+      {
+        exportedAt: new Date().toISOString(),
+        ids,
+        source: "Deep Learning Visualized Formula Hub",
+        version: 1,
+      },
+      null,
+      2,
+    );
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "formula-hub-saved.json";
+    link.click();
+    window.URL.revokeObjectURL(url);
+    setSavedNotice(`Exported ${ids.length} saved formula${ids.length === 1 ? "" : "s"}.`);
+  };
+
+  const importSavedFile = (file: File | null) => {
+    if (!file) return;
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result ?? ""));
+        const importedIds = resolveSavedFormulaIds(parsed);
+        if (importedIds.length === 0) {
+          setSavedNotice("No valid formula ids found in that file.");
+          return;
+        }
+
+        setSavedIds((current) => {
+          const next = new Set(current);
+          importedIds.forEach((id) => next.add(id));
+          return next;
+        });
+        setSavedNotice(`Imported ${importedIds.length} saved formula${importedIds.length === 1 ? "" : "s"}.`);
+      } catch {
+        setSavedNotice("Could not read that saved formula file.");
+      }
+    };
+
+    reader.readAsText(file);
   };
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(savedStorageKey);
       const parsed = raw ? (JSON.parse(raw) as unknown) : [];
-      const validIds = Array.isArray(parsed)
-        ? parsed
-            .map((id) => {
-              if (typeof id !== "string") return null;
-              return formulaHubEntriesById[id] ? id : formulaHubEntryAliasesById[id] ?? null;
-            })
-            .filter((id): id is string => typeof id === "string" && Boolean(formulaHubEntriesById[id]))
-        : [];
+      const validIds = resolveSavedFormulaIds(parsed);
       setSavedIds(new Set(validIds));
     } catch {
       setSavedIds(new Set());
@@ -1070,6 +1194,33 @@ export function FormulaHubClient() {
             </kbd>
           </label>
 
+          <div className="search-suggestions" aria-label="Search suggestions">
+            {searchSuggestions.map((suggestion) => (
+              <button
+                key={`${suggestion.type}-${suggestion.label}`}
+                type="button"
+                onClick={() => {
+                  if (suggestion.type === "entry") {
+                    updateParams({ q: suggestion.label, formula: suggestion.entry.id, page: null });
+                    setDrawerOpen(true);
+                    setModalOpen(false);
+                    return;
+                  }
+
+                  updateParams({ q: suggestion.label, formula: null, page: null });
+                  setDrawerOpen(false);
+                  setModalOpen(false);
+                  searchInputRef.current?.focus();
+                }}
+              >
+                <span>
+                  <HighlightedText query={query} text={suggestion.label} />
+                </span>
+                <small>{suggestion.meta}</small>
+              </button>
+            ))}
+          </div>
+
           <div className="filter-strip">
             {primaryFilters.map((item) => (
               <button
@@ -1130,12 +1281,50 @@ export function FormulaHubClient() {
             <strong>{results.length} results</strong>
           </p>
 
+          {savedOnly ? (
+            <div className="saved-toolbar">
+              <div>
+                <strong>{savedIds.size} saved</strong>
+                <span>{savedNotice || "Stored in this browser. Export to move them elsewhere."}</span>
+              </div>
+              <div className="saved-toolbar-actions">
+                <button type="button" onClick={exportSaved} disabled={savedIds.size === 0}>
+                  Export
+                </button>
+                <button type="button" onClick={() => savedImportInputRef.current?.click()}>
+                  Import
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSavedIds(new Set());
+                    setSavedNotice("Cleared saved formulas.");
+                  }}
+                  disabled={savedIds.size === 0}
+                >
+                  Clear
+                </button>
+                <input
+                  ref={savedImportInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  hidden
+                  onChange={(event) => {
+                    importSavedFile(event.target.files?.[0] ?? null);
+                    event.currentTarget.value = "";
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
+
           <div className="cards" id="formula-results">
             {pageResults.length > 0 ? (
               pageResults.map((entry) => (
                 <FormulaResultCard
                   entry={entry}
                   key={entry.id}
+                  query={query}
                   saved={savedIds.has(entry.id)}
                   selected={selectedEntry?.id === entry.id}
                   onSave={() => toggleSaved(entry.id)}

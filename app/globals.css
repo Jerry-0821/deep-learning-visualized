@@ -5022,6 +5022,82 @@ a {
   font-size: 13px;
 }
 
+.formula-page-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.formula-page-guide-grid article {
+  border: 1px solid rgba(118, 101, 188, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.58);
+  padding: 16px;
+}
+
+.formula-page-guide-grid article span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--edition-purple);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.formula-page-guide-grid article p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.formula-page-path {
+  margin-top: 16px;
+  border: 1px solid rgba(118, 101, 188, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.42);
+  padding: 16px;
+}
+
+.formula-page-path > strong {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--edition-text);
+  font-size: 13px;
+}
+
+.formula-page-path > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.formula-page-path a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  border: 1px solid rgba(108, 92, 231, 0.14);
+  border-radius: 999px;
+  background: rgba(108, 92, 231, 0.06);
+  color: var(--edition-copy);
+  padding: 7px 11px;
+  text-decoration: none;
+}
+
+.formula-page-path a span {
+  overflow: hidden;
+  color: var(--edition-text);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.formula-page-path a small {
+  flex-shrink: 0;
+  color: var(--edition-muted);
+  font-size: 11px;
+}
+
 .formula-page-shape-flow {
   display: flex;
   flex-wrap: wrap;
@@ -5215,6 +5291,10 @@ a {
   }
 
   .formula-page-related {
+    grid-template-columns: 1fr;
+  }
+
+  .formula-page-guide-grid {
     grid-template-columns: 1fr;
   }
 
@@ -6110,6 +6190,54 @@ a {
   white-space: nowrap;
 }
 
+.formula-v6-root .search-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -8px 0 20px;
+}
+
+.formula-v6-root .search-suggestions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+  border: 1px solid rgba(118, 101, 188, 0.11);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--copy);
+  cursor: pointer;
+  font: 500 12px "DM Sans", sans-serif;
+  padding: 6px 10px;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.formula-v6-root .search-suggestions button:hover {
+  border-color: var(--purple-mid);
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+
+.formula-v6-root .search-suggestions button > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.formula-v6-root .search-suggestions small {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.formula-v6-root .search-hit {
+  border-radius: 4px;
+  background: rgba(108, 92, 231, 0.13);
+  color: inherit;
+  padding: 0 2px;
+}
+
 .formula-v6-root .filter-strip,
 .formula-v6-root .subfilter-strip {
   display: flex;
@@ -6228,6 +6356,64 @@ a {
 .formula-v6-root .results-label strong {
   color: var(--text);
   font-weight: 600;
+}
+
+.formula-v6-root .saved-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: -2px 0 16px;
+  border: 1px solid rgba(118, 101, 188, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 12px 14px;
+}
+
+.formula-v6-root .saved-toolbar strong,
+.formula-v6-root .saved-toolbar span {
+  display: block;
+}
+
+.formula-v6-root .saved-toolbar strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.formula-v6-root .saved-toolbar span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.formula-v6-root .saved-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.formula-v6-root .saved-toolbar-actions button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--copy);
+  cursor: pointer;
+  font: 600 12px "DM Sans", sans-serif;
+  padding: 6px 10px;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.formula-v6-root .saved-toolbar-actions button:hover:not(:disabled) {
+  border-color: var(--purple-mid);
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+
+.formula-v6-root .saved-toolbar-actions button:disabled {
+  cursor: default;
+  opacity: 0.45;
 }
 
 .formula-v6-root .cards {
@@ -7020,6 +7206,19 @@ a {
     border-left: 0;
     border-top: 1px solid var(--line);
     padding: 10px 0 0;
+  }
+
+  .formula-v6-root .search-suggestions button {
+    max-width: 100%;
+  }
+
+  .formula-v6-root .saved-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .formula-v6-root .saved-toolbar-actions {
+    justify-content: flex-start;
   }
 
   .formula-v6-root .sort-btn {
