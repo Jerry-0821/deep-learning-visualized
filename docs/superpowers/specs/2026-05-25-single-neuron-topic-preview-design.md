@@ -25,9 +25,9 @@ For this preview and every later topic redesign:
 - Live animation: `https://deep-learning-visualized.vercel.app/prototypes/neuron-structure.html`
 - Local animation artifact: `public/prototypes/neuron-structure.html`
 - Local supporting notes: `data/topicTeachingContent.ts`, key `neuron-structure`
-- Visual rules: `design_system_guidelines.md`
+- Local-only visual rules: `reference_materials/archive/project-materials/design-system/design_system_guidelines.md`
 - Layout reference only:
-  `../deep-learning-redesign/website/topic_prototypes/single_neuron_final.html`
+  `reference_materials/archive/project-materials/legacy-topic-examples/single_neuron_final.html`
 
 The layout reference is not an authoritative content source. It embeds the animation canvas
 but omits the existing dynamic calculation display, activation formula display, activation

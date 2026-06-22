@@ -131,15 +131,21 @@ npm run build
 app/          Main Next.js app routes and pages
 components/   Reusable UI and visualization components
 data/         Topic and curriculum data
+docs/         Project guides, style rules, and handoff notes
 public/       Static assets and prototype files
 scripts/      Utility scripts
+topic-design-previews/ Editable redesigned topic HTML source
 ```
 
 Some folders or files may change as the project continues to evolve.
 
-## Visualization Source Files
+Local-only archive material, including older design inputs and source exports, is kept under
+`reference_materials/`. That folder is ignored by Git so the GitHub repository stays focused on
+the active website code.
 
-The original Colab-runnable visualization notebooks and prototype files are stored in `visualization-source/`. These files are kept separately from the main Next.js website code so the project is easier to understand and maintain.
+## Local Reference Files
+
+Original Colab-runnable visualization notebooks, old design inputs, and historical HTML exports are kept locally under `reference_materials/archive/`. They are intentionally not tracked by Git because they are reference material, not active website runtime code.
 
 ## Project Status
 

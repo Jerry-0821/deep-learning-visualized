@@ -37,7 +37,7 @@ The build script copies those files into `public/topic-design-previews/`.
 ## Older Prototype Code
 
 - `public/prototypes/*.html`: older standalone prototype pages that have not yet been migrated to the redesigned template.
-- `visualization-source/`: original source archive for earlier visuals.
+- Local-only archives such as original visualization source exports, design inputs, and old site editions live under `reference_materials/archive/` and are intentionally not tracked by Git.
 
 ## Mindmap
 

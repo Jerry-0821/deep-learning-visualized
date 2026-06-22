@@ -161,9 +161,9 @@ Every topic uses the same `On This Page` left navigation behavior:
 - Live comparison pages:
   `https://deep-learning-visualized.vercel.app/topic/neuron-structure` and
   `https://deep-learning-visualized.vercel.app/prototypes/neuron-structure.html`
-- Design guidance: `design_system_guidelines.md`
+- Local-only design guidance: `reference_materials/archive/project-materials/design-system/design_system_guidelines.md`
 - Layout reference only:
-  `../deep-learning-redesign/website/topic_prototypes/single_neuron_final.html`
+  `reference_materials/archive/project-materials/legacy-topic-examples/single_neuron_final.html`
 
 The layout reference omitted dynamic calculation/formula and current-moment displays from the
 original interactive lesson. It is not a valid source for Single Neuron teaching content.
