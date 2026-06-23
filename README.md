@@ -134,18 +134,23 @@ data/         Topic and curriculum data
 docs/         Project guides, style rules, and handoff notes
 public/       Static assets and prototype files
 scripts/      Utility scripts
+source/       Colab/Python source files for standalone visualizations
 topic-design-previews/ Editable redesigned topic HTML source
 ```
 
 Some folders or files may change as the project continues to evolve.
 
-Local-only archive material, including older design inputs and source exports, is kept under
+Local-only archive material, including older design inputs and raw historical exports, is kept under
 `reference_materials/`. That folder is ignored by Git so the GitHub repository stays focused on
 the active website code.
 
-## Local Reference Files
+## Visualization Source Files
 
-Original Colab-runnable visualization notebooks, old design inputs, and historical HTML exports are kept locally under `reference_materials/archive/`. They are intentionally not tracked by Git because they are reference material, not active website runtime code.
+Clean Colab/Python source files for the standalone visualizations are tracked under `source/visualizations/`.
+The exported HTML versions used by the website remain under `public/prototypes/` and `topic-design-previews/`.
+
+Older design inputs, historical HTML exports, and raw handoff files remain local-only under `reference_materials/archive/`.
+Those files are intentionally not tracked by Git because they are reference material, not active website runtime code.
 
 ## Project Status
 

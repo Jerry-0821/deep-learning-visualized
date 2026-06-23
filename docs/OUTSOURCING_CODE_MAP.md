@@ -37,7 +37,9 @@ The build script copies those files into `public/topic-design-previews/`.
 ## Older Prototype Code
 
 - `public/prototypes/*.html`: older standalone prototype pages that have not yet been migrated to the redesigned template.
-- Local-only archives such as original visualization source exports, design inputs, and old site editions live under `reference_materials/archive/` and are intentionally not tracked by Git.
+- `source/visualizations/`: clean Colab/Python source files behind the standalone visualization HTML.
+- `docs/HTML_AND_SOURCE_MAP.md`: maps editable HTML, public runtime HTML, and source files.
+- Local-only archives such as raw design inputs, historical HTML handoffs, and old site editions live under `reference_materials/archive/` and are intentionally not tracked by Git.
 
 ## Mindmap
 
