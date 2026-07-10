@@ -46,6 +46,7 @@ Card covers should match the site style and should not be pasted full teaching s
 ## Documentation
 
 - `docs/PROJECT_STYLE_GUIDE.md`: main style and workflow guide for future chats.
+- `docs/FILE_ISOLATION_PLAN.md`: cleanup boundary and archive decision plan.
 - `docs/OUTSOURCING_CODE_MAP.md`: guide for handing work to external designers/developers.
 - `docs/README_DEV_RUN.md`: local development commands.
 - `docs/superpowers/`: implementation notes and plans from previous work.

@@ -129,11 +129,11 @@ Important topic routing rule:
 - External runtime script:
   - `https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js`
 
-Current local maintenance branch note:
+Isolated experiment note:
 
-- `components/formula-hub/FormulaHubExplorer.tsx` is untracked and not part of production `origin/main`.
-- The local modified `FormulaHubClient.tsx` dynamically imports `FormulaHubExplorer` with `ssr: false`.
-- Treat this as an experimental/local change until reviewed, because it may alter first render, SEO, and no-JS behavior.
+- The Formula Hub dynamic-loading experiment is isolated on local branch `codex/formula-hub-dynamic-experiment`.
+- It is not part of production `main`.
+- Treat it as experimental until reviewed, because it may alter first render, SEO, and no-JS behavior.
 
 ### Formula Detail Pages: `/formula-hub/[id]`
 
@@ -269,22 +269,16 @@ These should remain isolated from GitHub and do not affect the deployed site unl
 - `tsconfig.tsbuildinfo`
 - log files and local env files covered by `.gitignore`
 
-## Current Uncommitted Maintenance Branch Files
+## Isolated Local Branch Experiments
 
-Branch: `codex/maintenance-local-cleanup`
+These are not part of production `main` unless intentionally merged later:
 
-These are not production until committed and pushed:
-
-- `app/globals.css`
-  - Adds Formula Hub loading skeleton styles.
-- `components/formula-hub/FormulaHubClient.tsx`
-  - Changes Formula Hub entry to dynamic client-only loading.
-- `components/formula-hub/FormulaHubExplorer.tsx`
-  - New untracked component containing the extracted Formula Hub implementation.
-- `docs/PROJECT_STRUCTURE_MAP.md`
-  - Useful maintenance doc, no direct website impact.
-- `docs/PROJECT_STYLE_GUIDE.md`
-  - Useful maintenance doc, no direct website impact.
+- Branch: `codex/formula-hub-dynamic-experiment`
+  - Contains the Formula Hub dynamic-loading experiment.
+  - Treat it as experimental because it may alter `/formula-hub` first render, SEO, and no-JS behavior.
+- Branch: `codex/final-edition-index-redesign`
+  - Older local branch.
+  - Review before deleting the branch or reusing its files.
 
 ## Safe Cleanup Rule
 
