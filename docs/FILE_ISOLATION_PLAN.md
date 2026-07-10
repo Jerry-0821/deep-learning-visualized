@@ -104,6 +104,16 @@ No Formula Hub files were moved, merged, deleted, or edited during this pass.
 | Formula Hub experiment files | Commit `6ad4075` modifies `app/globals.css`, `components/formula-hub/FormulaHubClient.tsx`, and adds `components/formula-hub/FormulaHubExplorer.tsx`. | Do not touch these experiment files from `main` cleanup. They affect `/formula-hub` first-render/loading behavior. |
 | Branch freshness | The branch fork point is `0e67cb6`; current `main` has several later docs/source-maintenance commits. A raw branch diff includes stale docs differences because the experiment branch is behind `main`. | Do not merge the branch directly. If the experiment is resumed later, start from current `main` and port only the intended Formula Hub changes deliberately. |
 
+## Stage 3F Local Reference Archive Index
+
+No tracked source, runtime files, or public website assets were moved or deleted during this pass.
+
+| Area | Evidence checked | Current decision |
+| --- | --- | --- |
+| `reference_materials/**` | Ignored by `.gitignore`; `git check-ignore` confirms the folder stays outside Git. Current local inventory is 158 files, about 42 MB. | Keep local-only. Do not upload to GitHub. |
+| `reference_materials/README.md` | Added as a local ignored index describing `archive/`, `content_sources/`, `legacy_web_versions/`, `blog-inputs/`, and `project_notes/`. | Keep as local-only map. It makes the archive understandable without promoting old materials into `main`. |
+| Archive promotion rule | The folder contains old design handoffs, source inputs, previous website versions, and generated drafts. | Promote only a specific file when a future task needs it; never bulk-copy an archive folder back into tracked code. |
+
 ## Candidate Items For Later Isolation
 
 Do not move these yet. They need one more verification pass before any cleanup action.
@@ -126,9 +136,10 @@ Resolved cleanup notes:
 1. Keep `main` focused on website code and maintenance docs.
 2. Leave `reference_materials/**` as the local archive boundary.
 3. Leave `codex/formula-hub-dynamic-experiment` frozen until Formula Hub work is resumed intentionally.
-4. Review duplicate or unreferenced public artifacts, starting with `public/prototypes/adam-optimizer-vs-sgd.html` and `public/blog/batch-normalization/batchnorm-04.png`.
-5. Keep `docs/superpowers/**` as visible historical project memory unless a later cleanup explicitly moves it to a tracked docs archive.
-6. For any `public/**` candidate, prefer a deprecation note or redirect strategy over immediate deletion.
+4. Use the local `reference_materials/README.md` index when deciding whether any old material is worth promoting.
+5. Review duplicate or unreferenced public artifacts, starting with `public/prototypes/adam-optimizer-vs-sgd.html` and `public/blog/batch-normalization/batchnorm-04.png`.
+6. Keep `docs/superpowers/**` as visible historical project memory unless a later cleanup explicitly moves it to a tracked docs archive.
+7. For any `public/**` candidate, prefer a deprecation note or redirect strategy over immediate deletion.
 
 ## Current Decision
 
