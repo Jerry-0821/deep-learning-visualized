@@ -43,7 +43,7 @@ These files are useful but do not directly render the website unless a developer
 | Visualization source | `source/visualizations/**` | Source of truth for regenerating prototype HTML. |
 | Documentation | `docs/**`, `README.md`, `LICENSE` | Maintenance and handoff knowledge. |
 | Verification scripts | `scripts/verify_*.mjs`, `scripts/formula_hub_test_utils.mjs` | Useful for checks, not directly used by production routes. |
-| Prototype export script | `scripts/export_notebook_prototypes.py` | Useful when regenerating `public/prototypes/**`. |
+| Prototype export script | `scripts/export_notebook_prototypes.py` | Useful when intentionally regenerating `public/prototypes/**` from `source/visualizations/**`. |
 | README screenshots | `public/readme/**` | Used by GitHub README, not website runtime. |
 | Local Vercel binding | `.vercel/project.json` | Useful locally, ignored by Git, not committed. |
 
@@ -66,7 +66,7 @@ Do not move these yet. They need one more verification pass before any cleanup a
 | Candidate | Current evidence | Risk | Suggested later action |
 | --- | --- | --- | --- |
 | `public/prototypes/adam-optimizer-vs-sgd.html` | App routes map both `adam-vs-sgd` and `adam-optimizer-vs-sgd` to `public/prototypes/adam-vs-sgd.html`. | Medium, because it is still a public direct URL and documented as a historical runtime artifact. | Check production URL and search traffic/bookmark risk before archiving or redirecting. |
-| RNN source mapping names in `data/prototypeMappings.ts` and `scripts/export_notebook_prototypes.py` | They mention `rnn_v4_label_fixed_requested_fix.html`, while the tracked source is `source/visualizations/rnn-structure/rnn_structure_colab.py`. | Low for runtime, but confusing for maintenance. | Rename mapping metadata or update comments/scripts after confirming exporter behavior. |
+| RNN source mapping name in `data/prototypeMappings.ts` | It mentions `rnn_v4_label_fixed_requested_fix.html`, while the tracked source is `source/visualizations/rnn-structure/rnn_structure_colab.py`. | Low for runtime, but confusing for maintenance. | Rename mapping metadata after confirming the displayed topic page is unchanged. |
 | Old local-only material in `reference_materials/archive/**` | Already ignored by Git and not used by routes. | Low for website, possible historical-value risk. | Keep isolated. Only summarize or index it; do not copy it back into tracked folders unless needed. |
 | Old local branch `codex/final-edition-index-redesign` | Local branch only, not part of `main`. | Low for website, but could confuse future work. | Review branch purpose later before deleting any branch. |
 

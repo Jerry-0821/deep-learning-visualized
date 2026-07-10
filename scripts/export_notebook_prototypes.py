@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+"""Manual exporter for standalone prototype HTML.
+
+This script is not part of the Vercel build. It writes files under
+public/prototypes/, so run it only when intentionally regenerating prototype
+HTML from the tracked source files.
+"""
+
 import ast
 import json
 import re
@@ -7,29 +14,29 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-NOTEBOOK_DIR = ROOT / "better_content"
+SOURCE_DIR = ROOT / "source" / "visualizations"
 OUTPUT_DIR = ROOT / "public" / "prototypes"
 
 
 MAPPINGS = {
-    "single_neuron.ipynb": "neuron-structure.html",
-    "Activations.ipynb": "activation-functions-comparison.html",
-    "loss_functions_style_source.py": "loss-functions.html",
-    "Backpropagation.ipynb": "backpropagation-intuition.html",
-    "Gradient Descent.ipynb": "gradient-descent-learning-rate.html",
-    "overfitting_top_controls_colab.py": "overfitting-vs-underfitting.html",
-    "Dropout.ipynb": "dropout.html",
-    "adam_vs_sgd_white_style_source.py": "adam-vs-sgd.html",
-    "Mini-batch Training and Batch Size Intuition.ipynb": "mini-batch-training-batch-size.html",
-    "train_val_test_split_visualization.py": "train-val-test-split.html",
-    "bias_variance_diagnosis_dashboard.py": "bias-vs-variance-diagnosis.html",
-    "transfer_learning_intuition_source.py": "transfer-learning-intuition.html",
-    "convolution_operation_stepwise_source.py": "convolution-operation.html",
-    "pooling_style_aligned_source.py": "pooling.html",
-    "feature_map_visualization_source.py": "feature-map-visualization.html",
-    "rnn_v4_label_fixed_requested_fix.html": "rnn-structure.html",
-    "transfomer.ipynb": "attention-mechanism-intuition.html",
-    "Evaluation Metrics _ Confusion Matrix Intuition.ipynb": "evaluation-metrics-confusion-matrix.html",
+    "single-neuron/single_neuron.ipynb": "neuron-structure.html",
+    "activation-functions-comparison/Activations.ipynb": "activation-functions-comparison.html",
+    "loss-functions/loss_functions_style_source.py": "loss-functions.html",
+    "backpropagation/Backpropagation.ipynb": "backpropagation-intuition.html",
+    "gradient-descent/Gradient Descent.ipynb": "gradient-descent-learning-rate.html",
+    "overfitting-vs-underfitting/overfitting_top_controls_colab.py": "overfitting-vs-underfitting.html",
+    "dropout/Dropout.ipynb": "dropout.html",
+    "adam-vs-sgd/adam_vs_sgd_white_style_source.py": "adam-vs-sgd.html",
+    "mini-batch-training/Mini-batch Training and Batch Size Intuition.ipynb": "mini-batch-training-batch-size.html",
+    "train-val-test-split/train_val_test_split_visualization.py": "train-val-test-split.html",
+    "bias-vs-variance-diagnosis/bias_variance_diagnosis_dashboard.py": "bias-vs-variance-diagnosis.html",
+    "transfer-learning-intuition/transfer_learning_intuition_source.py": "transfer-learning-intuition.html",
+    "cnn-convolution-operation/convolution_operation_stepwise_source.py": "convolution-operation.html",
+    "pooling-and-downsampling/pooling_style_aligned_source.py": "pooling.html",
+    "feature-map-visualization/feature_map_visualization_source.py": "feature-map-visualization.html",
+    "rnn-structure/rnn_structure_colab.py": "rnn-structure.html",
+    "attention-mechanism-intuition/transfomer.ipynb": "attention-mechanism-intuition.html",
+    "evaluation-metrics-confusion-matrix/Evaluation Metrics _ Confusion Matrix Intuition.ipynb": "evaluation-metrics-confusion-matrix.html",
 }
 
 # Intentionally left unmapped for now:
@@ -57,7 +64,7 @@ def collect_html_outputs(notebook_path: Path) -> list[str]:
                 html_outputs.append(html)
 
     if not html_outputs:
-      raise ValueError(f"No text/html outputs found in {notebook_path}")
+        raise ValueError(f"No text/html outputs found in {notebook_path}")
 
     return html_outputs
 
@@ -198,9 +205,11 @@ def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for source_name, output_name in MAPPINGS.items():
-        source_path = NOTEBOOK_DIR / source_name
+        source_path = SOURCE_DIR / source_name
+        if not source_path.exists():
+            raise FileNotFoundError(f"Prototype source not found: {source_path}")
         html_outputs = collect_source_outputs(source_path)
-        document = to_document(source_name, html_outputs)
+        document = to_document(source_path.name, html_outputs)
         (OUTPUT_DIR / output_name).write_text(document, encoding="utf-8")
 
 

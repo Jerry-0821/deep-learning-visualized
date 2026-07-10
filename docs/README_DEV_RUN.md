@@ -31,36 +31,31 @@ http://localhost:3000/
 ## Routes Ready
 
 - `/`
-- `/module/1`
-- `/module/2`
-- `/module/3`
-- `/module/4`
-- `/module/5`
-
-## Placeholder Routes
-
+- `/topics`
 - `/topic/[slug]`
+- `/formula-hub`
+- `/formula-hub/[id]`
+- `/formula-hub/saved`
+- `/blog`
+- `/blog/[slug]`
+- `/mindmap`
+- `/about`
 
-These topic routes are intentionally placeholders for future PAGE 3 teaching content. They preserve navigation without introducing broken links.
+## Topic Routes And Prototype Sources
 
-## Notebook-Backed Topic Routes
+Topic routes are now backed by two layers:
 
-These topic routes now embed preserved notebook prototype output from `better_content/`:
+- Redesigned topic pages use editable HTML from `topic-design-previews/`.
+- Older fallback prototype pages use exported HTML from `public/prototypes/`.
 
-- `/topic/neuron-structure`
-- `/topic/backpropagation-intuition`
-- `/topic/gradient-descent-learning-rate`
-- `/topic/convolution-operation`
-
-These notebook files were intentionally left unmapped because they do not cleanly match a current syllabus route one-to-one:
-
-- `Evaluation Metrics _ Confusion Matrix Intuition.ipynb`
-- `Mini-batch Training and Batch Size Intuition.ipynb`
+Clean notebook and Python source files for the standalone prototypes are tracked under
+`source/visualizations/`. Historical raw inputs and older local handoffs stay under
+`reference_materials/`, which is ignored by Git.
 
 ## Migration Notes
 
 - The approved static site in `site/` was used as the primary visual reference.
 - Module pages are data-driven through `data/modules.tsx`.
-- Topic placeholder routing is driven through `data/topics.ts`.
+- Topic routing is driven through `data/topics.ts`, `data/redesignedTopicPreviews.ts`, and `data/prototypeMappings.ts`.
 - Styling was migrated into `app/globals.css` with the same layout values, spacing, and card treatments as the approved static version.
 - Preserved notebook prototype exports are stored in `public/prototypes/` and embedded via same-origin iframe routes to avoid changing prototype internals.
