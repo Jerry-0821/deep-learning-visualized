@@ -20,7 +20,7 @@ This document explains which scripts are part of the build and which are manual 
 | --- | --- |
 | `scripts/formula_hub_test_utils.mjs` | Shared loader/assertion helpers for Formula Hub checks. |
 | `scripts/verify_formula_hub_integrity.mjs` | Checks duplicate ids, missing source ids, broken relations, and empty steps. |
-| `scripts/verify_formula_hub_search.mjs` | Older Formula Hub search verification. Keep until search coverage is consolidated. |
+| `scripts/verify_formula_hub_search.mjs` | Checks required Formula Hub source/topic-model coverage. Despite the name, this is not the current ranking-quality check. |
 | `scripts/verify_formula_hub_search_v2.mjs` | Current Formula Hub search ranking verification. |
 | `scripts/verify_formula_hub_batch_*.mjs` | Batch-specific Formula Hub content checks for graph, logistic, activation/loss, optimizers, initialization, regularization, CNN, RNN/LSTM, and attention/Transformer groups. |
 
@@ -37,7 +37,7 @@ This document explains which scripts are part of the build and which are manual 
 | Script | Purpose | Notes |
 | --- | --- | --- |
 | `scripts/verify_blog_editorial_rollout.mjs` | Checks blog content/layout/editorial rollout files. | Manual verification helper. |
-| `scripts/generate_siamese_blog_assets.mjs` | Generates Siamese Network blog images and cover art. | Manual asset-generation script. It depends on `sharp`; use only when intentionally regenerating those public images. |
+| `scripts/generate_siamese_blog_assets.mjs` | Generates Siamese Network blog images and cover art used by `data/blogPosts.ts`. | Manual asset-generation script. It writes `public/blog/siamese-network/**` and `public/edition-art/blog-siamese-network.svg`; do not run unless intentionally regenerating those website assets. It imports `sharp`, which is currently available through Next's optional dependency lockfile entry rather than a direct `package.json` dependency. |
 
 ## Cleanup Guidance
 
