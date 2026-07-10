@@ -94,6 +94,16 @@ No files were moved or deleted during this pass.
 | `docs/superpowers/specs/**` | Five tracked design specs for topic previews and the blog editorial shell. They explain approved layout/content decisions that shaped current files. | User decided to keep on 2026-07-10. Historical design memory, not runtime-critical. |
 | `docs/superpowers/**` old workflow lines | Several files contain old `REQUIRED SUB-SKILL` text from the workflow used when the plans were written. | Treat as historical notes, not active instructions for current maintenance. Added `docs/superpowers/README.md` to make this clear. |
 
+## Stage 3E Formula Hub Freeze
+
+No Formula Hub files were moved, merged, deleted, or edited during this pass.
+
+| Item | Evidence checked | Current decision |
+| --- | --- | --- |
+| `codex/formula-hub-dynamic-experiment` | Local branch only; remote branches are only `origin/main`. It contains local experiment commit `6ad4075 Isolate Formula Hub dynamic loading experiment`. | Freeze this branch. It is a half-finished local experiment and must not be merged into `main` during cleanup. |
+| Formula Hub experiment files | Commit `6ad4075` modifies `app/globals.css`, `components/formula-hub/FormulaHubClient.tsx`, and adds `components/formula-hub/FormulaHubExplorer.tsx`. | Do not touch these experiment files from `main` cleanup. They affect `/formula-hub` first-render/loading behavior. |
+| Branch freshness | The branch fork point is `0e67cb6`; current `main` has several later docs/source-maintenance commits. A raw branch diff includes stale docs differences because the experiment branch is behind `main`. | Do not merge the branch directly. If the experiment is resumed later, start from current `main` and port only the intended Formula Hub changes deliberately. |
+
 ## Candidate Items For Later Isolation
 
 Do not move these yet. They need one more verification pass before any cleanup action.
@@ -104,7 +114,7 @@ Do not move these yet. They need one more verification pass before any cleanup a
 | `public/blog/batch-normalization/batchnorm-04.png` | Present in `public/blog/**` but not referenced by `data/blogPosts.ts` in the Stage 3B scan. | Medium, because it is still a public direct URL and may have been kept for future blog expansion. | Open the file, confirm it is not part of the published article, then decide whether to archive or keep as spare source art. |
 | `docs/superpowers/**` | Tracked historical plans/specs from the topic preview rollout. Not used by website runtime; `docs/superpowers/README.md` now marks it as historical, not active instructions. | Low for website, medium for project memory. | Keep, per user decision on 2026-07-10. If GitHub needs to look cleaner later, move to a tracked docs archive folder with the README index instead of deleting. |
 | Old local-only material in `reference_materials/archive/**` | Already ignored by Git and not used by routes. | Low for website, possible historical-value risk. | Keep isolated. Only summarize or index it; do not copy it back into tracked folders unless needed. |
-| Local branch `codex/formula-hub-dynamic-experiment` | Local branch only, not part of `main`; contains Formula Hub dynamic loading experiment. | Medium if merged, because it changes `/formula-hub` first-render behavior. | Keep isolated until the Formula Hub loading strategy is intentionally reviewed. |
+| Local branch `codex/formula-hub-dynamic-experiment` | Local branch only, not part of `main`; contains half-finished Formula Hub dynamic loading experiment. | Medium if merged, because it changes `/formula-hub` first-render behavior and is behind current `main`. | Frozen during cleanup. Do not merge, delete, rebase, or tidy this branch until the Formula Hub loading strategy is intentionally resumed. |
 
 Resolved cleanup notes:
 
@@ -115,9 +125,10 @@ Resolved cleanup notes:
 
 1. Keep `main` focused on website code and maintenance docs.
 2. Leave `reference_materials/**` as the local archive boundary.
-3. Review duplicate or unreferenced public artifacts, starting with `public/prototypes/adam-optimizer-vs-sgd.html` and `public/blog/batch-normalization/batchnorm-04.png`.
-4. Keep `docs/superpowers/**` as visible historical project memory unless a later cleanup explicitly moves it to a tracked docs archive.
-5. For any `public/**` candidate, prefer a deprecation note or redirect strategy over immediate deletion.
+3. Leave `codex/formula-hub-dynamic-experiment` frozen until Formula Hub work is resumed intentionally.
+4. Review duplicate or unreferenced public artifacts, starting with `public/prototypes/adam-optimizer-vs-sgd.html` and `public/blog/batch-normalization/batchnorm-04.png`.
+5. Keep `docs/superpowers/**` as visible historical project memory unless a later cleanup explicitly moves it to a tracked docs archive.
+6. For any `public/**` candidate, prefer a deprecation note or redirect strategy over immediate deletion.
 
 ## Current Decision
 
