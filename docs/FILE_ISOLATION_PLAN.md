@@ -75,6 +75,15 @@ No files were moved or deleted during this pass.
 | `docs/superpowers/**` | Historical tracked planning/spec files, not imported by app code or build scripts. | Useful history, but not runtime-critical. Could be moved to a tracked docs archive later if GitHub cleanup is desired. |
 | `reference_materials/**` | Ignored by Git and has no tracked files. | Already isolated locally. Keep ignored unless a specific item is promoted intentionally. |
 
+## Stage 3C Candidate Evidence
+
+No files were moved or deleted during this pass.
+
+| Candidate | Evidence checked | Current decision |
+| --- | --- | --- |
+| `public/prototypes/adam-optimizer-vs-sgd.html` | Same SHA256 hash and same length as `public/prototypes/adam-vs-sgd.html`; no app/preview reference points directly to this file; `/topic/adam-optimizer-vs-sgd` resolves through canonical slug `adam-vs-sgd`; production direct URL `/prototypes/adam-optimizer-vs-sgd.html` still returns 200. | Confirmed duplicate public artifact. Do not delete blindly because the direct URL is live. If isolated later, add or accept a redirect/deprecation decision first. |
+| `public/blog/batch-normalization/batchnorm-04.png` | 1448x1086 PNG; teaching image about MLP vs CNN BatchNorm axes; not referenced by `data/blogPosts.ts`; production direct URL `/blog/batch-normalization/batchnorm-04.png` still returns 200. | Useful but currently unpublished spare blog image. Do not delete blindly. Later choices are: keep as spare art, add to the article intentionally, or archive with acceptance that the direct public URL disappears. |
+
 ## Candidate Items For Later Isolation
 
 Do not move these yet. They need one more verification pass before any cleanup action.
