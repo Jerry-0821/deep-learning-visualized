@@ -114,14 +114,23 @@ No tracked source, runtime files, or public website assets were moved or deleted
 | `reference_materials/README.md` | Added as a local ignored index describing `archive/`, `content_sources/`, `legacy_web_versions/`, `blog-inputs/`, and `project_notes/`. | Keep as local-only map. It makes the archive understandable without promoting old materials into `main`. |
 | Archive promotion rule | The folder contains old design handoffs, source inputs, previous website versions, and generated drafts. | Promote only a specific file when a future task needs it; never bulk-copy an archive folder back into tracked code. |
 
+## Stage 3G Public Candidate Strategy
+
+No `public/**` files were moved, deleted, renamed, or edited during this pass.
+
+| Candidate | Evidence checked | Current decision |
+| --- | --- | --- |
+| `public/prototypes/adam-optimizer-vs-sgd.html` | Same SHA256 hash and same length as `public/prototypes/adam-vs-sgd.html`; production direct URL `/prototypes/adam-optimizer-vs-sgd.html` returns 200; `/prototypes/adam-vs-sgd.html` also returns 200. | Keep in `public/` for now to preserve the direct URL. If reducing duplication later, add a redirect/deprecation strategy before removing the file. |
+| `public/blog/batch-normalization/batchnorm-04.png` | Not referenced by `data/blogPosts.ts`; production direct URL `/blog/batch-normalization/batchnorm-04.png` returns 200; image is valid BatchNorm teaching art. | Keep in `public/` for now as spare article art. Do not archive unless the user accepts that the direct image URL will disappear, or first adds it intentionally to the article. |
+
 ## Candidate Items For Later Isolation
 
 Do not move these yet. They need one more verification pass before any cleanup action.
 
 | Candidate | Current evidence | Risk | Suggested later action |
 | --- | --- | --- | --- |
-| `public/prototypes/adam-optimizer-vs-sgd.html` | App routes map both `adam-vs-sgd` and `adam-optimizer-vs-sgd` to `public/prototypes/adam-vs-sgd.html`. | Medium, because it is still a public direct URL and documented as a historical runtime artifact. | Check production URL and search traffic/bookmark risk before archiving or redirecting. |
-| `public/blog/batch-normalization/batchnorm-04.png` | Present in `public/blog/**` but not referenced by `data/blogPosts.ts` in the Stage 3B scan. | Medium, because it is still a public direct URL and may have been kept for future blog expansion. | Open the file, confirm it is not part of the published article, then decide whether to archive or keep as spare source art. |
+| `public/prototypes/adam-optimizer-vs-sgd.html` | App routes map both `adam-vs-sgd` and `adam-optimizer-vs-sgd` to `public/prototypes/adam-vs-sgd.html`; the duplicate direct public URL still returns 200. | Medium, because removing it would break a public static URL. | Keep for now. If cleanup later requires removal, add/verify redirect behavior first. |
+| `public/blog/batch-normalization/batchnorm-04.png` | Present in `public/blog/**` but not referenced by `data/blogPosts.ts`; the direct public URL still returns 200. | Medium, because it is useful teaching art and still public. | Keep for now as spare article art. Later either add it to the BatchNorm article intentionally or archive only after accepting the URL change. |
 | `docs/superpowers/**` | Tracked historical plans/specs from the topic preview rollout. Not used by website runtime; `docs/superpowers/README.md` now marks it as historical, not active instructions. | Low for website, medium for project memory. | Keep, per user decision on 2026-07-10. If GitHub needs to look cleaner later, move to a tracked docs archive folder with the README index instead of deleting. |
 | Old local-only material in `reference_materials/archive/**` | Already ignored by Git and not used by routes. | Low for website, possible historical-value risk. | Keep isolated. Only summarize or index it; do not copy it back into tracked folders unless needed. |
 | Local branch `codex/formula-hub-dynamic-experiment` | Local branch only, not part of `main`; contains half-finished Formula Hub dynamic loading experiment. | Medium if merged, because it changes `/formula-hub` first-render behavior and is behind current `main`. | Frozen during cleanup. Do not merge, delete, rebase, or tidy this branch until the Formula Hub loading strategy is intentionally resumed. |
@@ -137,7 +146,7 @@ Resolved cleanup notes:
 2. Leave `reference_materials/**` as the local archive boundary.
 3. Leave `codex/formula-hub-dynamic-experiment` frozen until Formula Hub work is resumed intentionally.
 4. Use the local `reference_materials/README.md` index when deciding whether any old material is worth promoting.
-5. Review duplicate or unreferenced public artifacts, starting with `public/prototypes/adam-optimizer-vs-sgd.html` and `public/blog/batch-normalization/batchnorm-04.png`.
+5. Keep `public/prototypes/adam-optimizer-vs-sgd.html` and `public/blog/batch-normalization/batchnorm-04.png` in place unless a future task explicitly chooses redirect/content/archive behavior.
 6. Keep `docs/superpowers/**` as visible historical project memory unless a later cleanup explicitly moves it to a tracked docs archive.
 7. For any `public/**` candidate, prefer a deprecation note or redirect strategy over immediate deletion.
 
