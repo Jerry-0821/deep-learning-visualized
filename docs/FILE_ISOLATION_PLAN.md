@@ -66,17 +66,19 @@ Do not move these yet. They need one more verification pass before any cleanup a
 | Candidate | Current evidence | Risk | Suggested later action |
 | --- | --- | --- | --- |
 | `public/prototypes/adam-optimizer-vs-sgd.html` | App routes map both `adam-vs-sgd` and `adam-optimizer-vs-sgd` to `public/prototypes/adam-vs-sgd.html`. | Medium, because it is still a public direct URL and documented as a historical runtime artifact. | Check production URL and search traffic/bookmark risk before archiving or redirecting. |
-| RNN source mapping name in `data/prototypeMappings.ts` | It mentions `rnn_v4_label_fixed_requested_fix.html`, while the tracked source is `source/visualizations/rnn-structure/rnn_structure_colab.py`. | Low for runtime, but confusing for maintenance. | Rename mapping metadata after confirming the displayed topic page is unchanged. |
 | Old local-only material in `reference_materials/archive/**` | Already ignored by Git and not used by routes. | Low for website, possible historical-value risk. | Keep isolated. Only summarize or index it; do not copy it back into tracked folders unless needed. |
 | Old local branch `codex/final-edition-index-redesign` | Local branch only, not part of `main`. | Low for website, but could confuse future work. | Review branch purpose later before deleting any branch. |
+
+Resolved cleanup notes:
+
+- RNN source metadata now points to `source/visualizations/rnn-structure/rnn_structure_colab.py`.
 
 ## Recommended Cleanup Order
 
 1. Keep `main` focused on website code and maintenance docs.
 2. Leave `reference_materials/**` as the local archive boundary.
-3. Fix confusing metadata first, such as the RNN source mapping.
-4. Only then review duplicate public artifacts, starting with `public/prototypes/adam-optimizer-vs-sgd.html`.
-5. For any `public/**` candidate, prefer a deprecation note or redirect strategy over immediate deletion.
+3. Review duplicate public artifacts, starting with `public/prototypes/adam-optimizer-vs-sgd.html`.
+4. For any `public/**` candidate, prefer a deprecation note or redirect strategy over immediate deletion.
 
 ## Current Decision
 

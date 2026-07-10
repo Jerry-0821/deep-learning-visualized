@@ -86,7 +86,7 @@ export const prototypeMappings: Record<string, PrototypeMapping> = {
     iframeHeight: 3000,
   },
   "rnn-structure": {
-    sourceFile: "rnn_v4_label_fixed_requested_fix.html",
+    sourceFile: "rnn_structure_colab.py",
     publicPath: "/prototypes/rnn-structure.html",
     iframeHeight: 2600,
   },
