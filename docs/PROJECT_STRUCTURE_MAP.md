@@ -50,7 +50,7 @@ Card covers should match the site style and should not be pasted full teaching s
 - `docs/SCRIPT_INVENTORY.md`: script purpose and cleanup guide.
 - `docs/OUTSOURCING_CODE_MAP.md`: guide for handing work to external designers/developers.
 - `docs/README_DEV_RUN.md`: local development commands.
-- `docs/superpowers/`: implementation notes and plans from previous work.
+- `docs/superpowers/`: historical implementation plans and design specs from previous work; not active website runtime code.
 - `reference_materials/archive/formula-hub-design/`: local-only formula hub planning notes.
 
 New chat sessions should read `docs/PROJECT_STYLE_GUIDE.md` first.

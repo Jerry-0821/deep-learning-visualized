@@ -84,6 +84,16 @@ No files were moved or deleted during this pass.
 | `public/prototypes/adam-optimizer-vs-sgd.html` | Same SHA256 hash and same length as `public/prototypes/adam-vs-sgd.html`; no app/preview reference points directly to this file; `/topic/adam-optimizer-vs-sgd` resolves through canonical slug `adam-vs-sgd`; production direct URL `/prototypes/adam-optimizer-vs-sgd.html` still returns 200. | Confirmed duplicate public artifact. Do not delete blindly because the direct URL is live. If isolated later, add or accept a redirect/deprecation decision first. |
 | `public/blog/batch-normalization/batchnorm-04.png` | 1448x1086 PNG; teaching image about MLP vs CNN BatchNorm axes; not referenced by `data/blogPosts.ts`; production direct URL `/blog/batch-normalization/batchnorm-04.png` still returns 200. | Useful but currently unpublished spare blog image. Do not delete blindly. Later choices are: keep as spare art, add to the article intentionally, or archive with acceptance that the direct public URL disappears. |
 
+## Stage 3D Historical Docs Evidence
+
+No files were moved or deleted during this pass.
+
+| Area | Evidence checked | Current decision |
+| --- | --- | --- |
+| `docs/superpowers/plans/**` | Four tracked implementation plans for topic preview rollout work. They reference files such as `topic-design-previews/**` and verification scripts, but nothing imports or executes these plan files. | Keep as historical project memory for now. Not runtime-critical. |
+| `docs/superpowers/specs/**` | Five tracked design specs for topic previews and the blog editorial shell. They explain approved layout/content decisions that shaped current files. | Keep as design history for now. Not runtime-critical. |
+| `docs/superpowers/**` old workflow lines | Several files contain old `REQUIRED SUB-SKILL` text from the workflow used when the plans were written. | Treat as historical notes, not active instructions for current maintenance. Added `docs/superpowers/README.md` to make this clear. |
+
 ## Candidate Items For Later Isolation
 
 Do not move these yet. They need one more verification pass before any cleanup action.
@@ -92,7 +102,7 @@ Do not move these yet. They need one more verification pass before any cleanup a
 | --- | --- | --- | --- |
 | `public/prototypes/adam-optimizer-vs-sgd.html` | App routes map both `adam-vs-sgd` and `adam-optimizer-vs-sgd` to `public/prototypes/adam-vs-sgd.html`. | Medium, because it is still a public direct URL and documented as a historical runtime artifact. | Check production URL and search traffic/bookmark risk before archiving or redirecting. |
 | `public/blog/batch-normalization/batchnorm-04.png` | Present in `public/blog/**` but not referenced by `data/blogPosts.ts` in the Stage 3B scan. | Medium, because it is still a public direct URL and may have been kept for future blog expansion. | Open the file, confirm it is not part of the published article, then decide whether to archive or keep as spare source art. |
-| `docs/superpowers/**` | Tracked historical plans/specs from the topic preview rollout. Not used by website runtime. | Low for website, medium for project memory. | If GitHub needs to look cleaner, move to a tracked docs archive folder with a short index instead of deleting. |
+| `docs/superpowers/**` | Tracked historical plans/specs from the topic preview rollout. Not used by website runtime; `docs/superpowers/README.md` now marks it as historical, not active instructions. | Low for website, medium for project memory. | Keep for now. If GitHub needs to look cleaner later, move to a tracked docs archive folder with the README index instead of deleting. |
 | Old local-only material in `reference_materials/archive/**` | Already ignored by Git and not used by routes. | Low for website, possible historical-value risk. | Keep isolated. Only summarize or index it; do not copy it back into tracked folders unless needed. |
 | Local branch `codex/formula-hub-dynamic-experiment` | Local branch only, not part of `main`; contains Formula Hub dynamic loading experiment. | Medium if merged, because it changes `/formula-hub` first-render behavior. | Keep isolated until the Formula Hub loading strategy is intentionally reviewed. |
 
