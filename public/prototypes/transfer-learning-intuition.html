@@ -242,6 +242,8 @@
       font-size: 13px;
       color: var(--gray-500);
       line-height: 1.7;
+      /* Reserve the taller X-ray copy before the iframe height is locked. */
+      min-height: 3.4em;
       transition: opacity 0.25s ease;
     }
     .p2-result-note.fading { opacity: 0; }
@@ -486,6 +488,7 @@
       .p2-flow { flex-direction: column; }
       .p2-arrow { padding: 8px 0; justify-content: center; }
       .p2-arrow svg { transform: rotate(90deg); }
+      .p2-result-note { min-height: 8.5em; }
       .p3-steps { grid-template-columns: 1fr 1fr; }
       .p3-controls { flex-direction: column; align-items: flex-start; }
       .closing-numbers { flex-direction: column; align-items: flex-start; }
