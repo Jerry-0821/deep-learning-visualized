@@ -5317,22 +5317,33 @@ a {
 .blog-reading-layout {
   position: relative;
   z-index: 1;
-  display: block;
-  max-width: 780px;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1000px);
+  column-gap: 60px;
+  justify-content: center;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 58px 28px 108px;
+  padding: 58px 42px 108px;
+  transition: column-gap 0.2s ease;
+}
+
+.blog-reading-layout.navigation-collapsed {
+  grid-template-columns: 0 minmax(0, 1000px);
+  column-gap: 0;
 }
 
 .blog-reading-rail {
-  position: fixed;
-  top: 122px;
-  left: 20px;
-  z-index: 35;
-  width: 330px;
-  min-height: 52px;
+  position: static;
+  align-self: stretch;
+  width: auto;
+  min-width: 0;
 }
 
 .blog-reading-navigation-toggle {
+  position: fixed;
+  top: 122px;
+  left: 20px;
+  z-index: 36;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5362,9 +5373,10 @@ a {
 }
 
 .blog-reading-navigation {
+  position: sticky;
+  top: 122px;
   width: 220px;
-  margin-top: 34px;
-  margin-left: 120px;
+  margin: 34px 0 0;
   opacity: 1;
   transform: translateX(0);
   transition: opacity 0.18s ease, transform 0.18s ease;
@@ -5410,7 +5422,8 @@ a {
 
 .blog-reading-article {
   min-width: 0;
-  max-width: 780px;
+  width: 100%;
+  max-width: 1000px;
 }
 
 .blog-reading-back-link {
@@ -5445,7 +5458,7 @@ a {
 }
 
 .blog-reading-root .blog-post-header h1 {
-  max-width: 730px;
+  max-width: 850px;
   margin: 0 0 22px;
   color: var(--edition-text);
   font-family: "Instrument Serif", Georgia, serif;
@@ -5456,7 +5469,7 @@ a {
 }
 
 .blog-reading-root .blog-post-header p {
-  max-width: 670px;
+  max-width: 820px;
   margin: 0;
   color: var(--edition-copy);
   font-size: 18px;
@@ -5522,11 +5535,15 @@ a {
 
 .blog-reading-root .blog-formula-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
+  min-width: 0;
   padding-top: 10px;
 }
 
 .blog-reading-root .blog-formula-card {
+  min-width: 0;
+  max-width: 100%;
   padding: 5px 0 5px 26px;
   border: 0;
   border-left: 1px solid rgba(108, 92, 231, 0.28);
@@ -5535,13 +5552,29 @@ a {
 }
 
 .blog-reading-root .blog-formula-expression {
+  min-width: 0;
+  max-width: 100%;
   margin: 0 0 7px;
   padding: 0;
   border: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
   color: var(--edition-text);
   font-family: "Instrument Serif", Georgia, serif;
   font-size: 21px;
   font-weight: 400;
+}
+
+.blog-reading-root .blog-content-card mjx-container {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.blog-reading-root .blog-content-card p > mjx-container {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .blog-reading-root .blog-formula-card p {
@@ -5638,6 +5671,7 @@ a {
   }
 
   .blog-reading-layout.navigation-mobile-open .blog-reading-navigation-backdrop {
+    left: min(320px, calc(100vw - 54px));
     pointer-events: auto;
     opacity: 1;
   }
