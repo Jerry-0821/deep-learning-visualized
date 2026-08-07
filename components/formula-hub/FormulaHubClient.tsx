@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import {
   formulaCategories,
   formulaHubEntryAliasesById,
@@ -851,7 +851,9 @@ export function FormulaHubClient() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const query = searchParams.get("q") ?? "";
+  const urlQuery = searchParams.get("q") ?? "";
+  const [query, setQuery] = useState(urlQuery);
+  const deferredQuery = useDeferredValue(query);
   const categoryParam = searchParams.get("category");
   const sortParam = searchParams.get("sort");
   const typeParam = searchParams.get("type");
@@ -871,11 +873,11 @@ export function FormulaHubClient() {
   const searchedResults = useMemo(
     () =>
       searchFormulaEntries({
-        query,
+        query: deferredQuery,
         category,
         sort: sort === "type" || sort === "use" ? "relevance" : sort,
       }),
-    [category, query, sort],
+    [category, deferredQuery, sort],
   );
 
   const results = useMemo(() => {
@@ -925,6 +927,14 @@ export function FormulaHubClient() {
   const updateParams = (updates: Record<string, string | null>) => {
     const nextParams = new URLSearchParams(searchParams.toString());
 
+    if (!Object.prototype.hasOwnProperty.call(updates, "q")) {
+      if (query) {
+        nextParams.set("q", query);
+      } else {
+        nextParams.delete("q");
+      }
+    }
+
     for (const [key, value] of Object.entries(updates)) {
       if (
         value === null ||
@@ -941,6 +951,10 @@ export function FormulaHubClient() {
       } else {
         nextParams.set(key, value);
       }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(updates, "q")) {
+      setQuery(updates.q ?? "");
     }
 
     const queryString = nextParams.toString();
@@ -1017,6 +1031,34 @@ export function FormulaHubClient() {
   };
 
   useEffect(() => {
+    setQuery(urlQuery);
+  }, [urlQuery]);
+
+  useEffect(() => {
+    if (query === urlQuery) return;
+
+    const timer = window.setTimeout(() => {
+      const nextParams = new URLSearchParams(window.location.search);
+      const trimmedQuery = query.trim();
+
+      if (trimmedQuery) {
+        nextParams.set("q", query);
+      } else {
+        nextParams.delete("q");
+      }
+
+      nextParams.delete("formula");
+      nextParams.delete("page");
+
+      const queryString = nextParams.toString();
+      const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      window.history.replaceState(window.history.state, "", nextUrl);
+    }, 280);
+
+    return () => window.clearTimeout(timer);
+  }, [pathname, query, urlQuery]);
+
+  useEffect(() => {
     try {
       const raw = window.localStorage.getItem(savedStorageKey);
       const parsed = raw ? (JSON.parse(raw) as unknown) : [];
@@ -1079,7 +1121,7 @@ export function FormulaHubClient() {
 
       mathJax?.typesetClear?.(elements);
       void mathJax?.typesetPromise?.(elements);
-    }, 24);
+    }, 180);
 
     return () => window.clearTimeout(timer);
   }, [drawerOpen, modalOpen, visibleMathKey]);
@@ -1184,7 +1226,7 @@ export function FormulaHubClient() {
               value={query}
               placeholder="Search Adam, RMSProp, BatchNorm, dW, QK^T, CNN output size..."
               onChange={(event) => {
-                updateParams({ q: event.target.value, formula: null, page: null });
+                setQuery(event.target.value);
                 setDrawerOpen(false);
                 setModalOpen(false);
               }}
