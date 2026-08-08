@@ -1,0 +1,13 @@
+.formulaApp {
+  z-index: auto !important;
+}
+
+.formulaSidebar {
+  display: block;
+}
+
+@media (max-width: 760px) {
+  .formulaSidebar {
+    display: none;
+  }
+}

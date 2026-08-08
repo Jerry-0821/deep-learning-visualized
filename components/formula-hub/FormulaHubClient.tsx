@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import styles from "./FormulaHubClient.module.css";
 import {
   formulaCategories,
   formulaHubEntryAliasesById,
@@ -422,7 +423,20 @@ function FormulaResultCard({
   const stepCount = entry.steps?.length ?? 1;
 
   return (
-    <article className={`fcard ${selected ? "active" : ""}`} onClick={onSelect}>
+    <article
+      aria-label={`Open ${entry.title} details`}
+      className={`fcard ${selected ? "active" : ""}`}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+    >
       <div className={`fcard-icon ${accent}`}>{formulaIconLabel(entry.category)}</div>
       <div className="fcard-body">
         <div className="fcard-title">
@@ -628,9 +642,11 @@ function FormulaFilterSelect({
 
 function FormulaDrawerContent({
   entry,
+  headingId,
   onSelectRelated,
 }: {
   entry: FormulaHubEntry;
+  headingId: string;
   onSelectRelated: (id: string) => void;
 }) {
   const relatedEntries = entry.relatedFormulaIds
@@ -643,7 +659,7 @@ function FormulaDrawerContent({
   return (
     <>
       {entry.nodeLabel ? <div className="drawer-node">{entry.nodeLabel}</div> : null}
-      <h2 className="drawer-title">{entry.title}</h2>
+      <h2 className="drawer-title" id={headingId}>{entry.title}</h2>
       <div className="drawer-formula-wrap">
         <FormulaMath latex={entry.latex} display />
       </div>
@@ -791,17 +807,29 @@ function FormulaDrawer({
 
   return (
     <>
-      <div className={`drawer-overlay ${open ? "open" : ""}`} onClick={onClose} />
-      <aside className={`drawer ${open ? "open" : ""}`} aria-label="Formula details">
+      <div aria-hidden="true" className={`drawer-overlay ${open ? "open" : ""}`} onClick={onClose} />
+      <aside
+        aria-hidden={!open}
+        aria-labelledby="formula-drawer-title"
+        aria-modal="true"
+        className={`drawer ${open ? "open" : ""}`}
+        role="dialog"
+      >
         <div className="drawer-header">
           <span className={`drawer-tag ${accent}`}>{entry.category}</span>
           <div className="drawer-actions">
-            <button className="drawer-expand-btn" type="button" onClick={onModalOpen} title="Expand to full view">
+            <button aria-label="Expand formula details" className="drawer-expand-btn" type="button" onClick={onModalOpen} title="Expand to full view">
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
               </svg>
             </button>
-            <button className={`drawer-btn star ${saved ? "saved" : ""}`} type="button" onClick={onSave}>
+            <button
+              aria-label={saved ? `Unsave ${entry.title}` : `Save ${entry.title}`}
+              aria-pressed={saved}
+              className={`drawer-btn star ${saved ? "saved" : ""}`}
+              type="button"
+              onClick={onSave}
+            >
               <svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
@@ -815,13 +843,19 @@ function FormulaDrawer({
         </div>
 
         <div className="drawer-body">
-          <FormulaDrawerContent entry={entry} onSelectRelated={onSelectRelated} />
+          <FormulaDrawerContent entry={entry} headingId="formula-drawer-title" onSelectRelated={onSelectRelated} />
         </div>
       </aside>
 
       {modalOpen ? (
         <div className="modal-overlay open" onClick={onModalClose}>
-          <div className="modal" onClick={(event) => event.stopPropagation()}>
+          <div
+            aria-labelledby="formula-modal-title"
+            aria-modal="true"
+            className="modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
             <div className="modal-header">
               <span className={`drawer-tag ${accent}`}>{entry.category}</span>
               <button className="drawer-btn" type="button" onClick={onModalClose} aria-label="Close expanded formula">
@@ -830,7 +864,7 @@ function FormulaDrawer({
                 </svg>
               </button>
             </div>
-            <FormulaDrawerContent entry={entry} onSelectRelated={onSelectRelated} />
+            <FormulaDrawerContent entry={entry} headingId="formula-modal-title" onSelectRelated={onSelectRelated} />
           </div>
         </div>
       ) : null}
@@ -842,6 +876,7 @@ export function FormulaHubClient() {
   const canvasRef = useNeuralCanvas();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const savedImportInputRef = useRef<HTMLInputElement | null>(null);
+  const skipNextQueryUrlSyncRef = useRef(false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -903,7 +938,7 @@ export function FormulaHubClient() {
   const searchSuggestions = useMemo(() => {
     const trimmedQuery = query.trim();
     if (trimmedQuery.length > 0) {
-      return searchedResults.slice(0, 5).map((entry) => ({
+      return results.slice(0, 5).map((entry) => ({
         entry,
         label: entry.title,
         meta: entry.nodeLabel ?? entry.category,
@@ -916,7 +951,7 @@ export function FormulaHubClient() {
       meta: "try search",
       type: "query" as const,
     }));
-  }, [query, searchedResults]);
+  }, [query, results]);
   const visibleMathKey = [
     pageResults.map((entry) => entry.id).join(","),
     selectedEntry?.id ?? "",
@@ -924,7 +959,7 @@ export function FormulaHubClient() {
     modalOpen ? "modal" : "",
   ].join("|");
 
-  const updateParams = (updates: Record<string, string | null>) => {
+  const updateParams = useCallback((updates: Record<string, string | null>) => {
     const nextParams = new URLSearchParams(searchParams.toString());
 
     if (!Object.prototype.hasOwnProperty.call(updates, "q")) {
@@ -954,12 +989,19 @@ export function FormulaHubClient() {
     }
 
     if (Object.prototype.hasOwnProperty.call(updates, "q")) {
+      skipNextQueryUrlSyncRef.current = true;
       setQuery(updates.q ?? "");
     }
 
     const queryString = nextParams.toString();
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
-  };
+  }, [pathname, query, router, searchParams]);
+
+  const closeFormula = useCallback(() => {
+    updateParams({ formula: null });
+    setDrawerOpen(false);
+    setModalOpen(false);
+  }, [updateParams]);
 
   const selectFormula = (id: string) => {
     updateParams({ formula: id });
@@ -1037,6 +1079,11 @@ export function FormulaHubClient() {
   useEffect(() => {
     if (query === urlQuery) return;
 
+    if (skipNextQueryUrlSyncRef.current) {
+      skipNextQueryUrlSyncRef.current = false;
+      return;
+    }
+
     const timer = window.setTimeout(() => {
       const nextParams = new URLSearchParams(window.location.search);
       const trimmedQuery = query.trim();
@@ -1087,21 +1134,34 @@ export function FormulaHubClient() {
       }
 
       if (event.key === "Escape") {
-        setDrawerOpen(false);
-        setModalOpen(false);
+        closeFormula();
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [closeFormula]);
 
   useEffect(() => {
-    if (!selectedEntry) {
+    if (!selectedId || !selectedEntry) {
       setDrawerOpen(false);
       setModalOpen(false);
+      return;
     }
-  }, [selectedEntry]);
+
+    setDrawerOpen(true);
+  }, [selectedEntry, selectedId]);
+
+  useEffect(() => {
+    if (!drawerOpen && !modalOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [drawerOpen, modalOpen]);
 
   useEffect(() => {
     if (!window.MathJax?.typesetPromise) return;
@@ -1139,9 +1199,9 @@ export function FormulaHubClient() {
   };
 
   return (
-    <div className="formula-v6-app">
+    <div className={`${styles.formulaApp} formula-v6-app`}>
       <div className="page">
-        <aside className="sidebar">
+        <aside className={`${styles.formulaSidebar} sidebar`}>
           <p className="sidebar-label">Browse Topics</p>
           <nav className="side-nav" aria-label="Formula categories">
             <Link className={`side-item ${!savedOnly && category === "All" ? "active" : ""}`} href="/formula-hub">
@@ -1319,7 +1379,7 @@ export function FormulaHubClient() {
 
           <p className="results-label">
             {savedOnly ? "Saved formulas - " : ""}
-            Showing <strong>{results.length === 0 ? 0 : pageStart + 1}-{Math.min(pageStart + pageSize, results.length)}</strong> of{" "}
+            Showing <strong>{results.length === 0 ? "0" : `${pageStart + 1}-${Math.min(pageStart + pageSize, results.length)}`}</strong> of{" "}
             <strong>{results.length} results</strong>
           </p>
 
@@ -1419,8 +1479,8 @@ export function FormulaHubClient() {
         modalOpen={modalOpen}
         open={drawerOpen}
         saved={selectedEntry ? savedIds.has(selectedEntry.id) : false}
-        onClose={() => setDrawerOpen(false)}
-        onModalClose={() => setModalOpen(false)}
+        onClose={closeFormula}
+        onModalClose={closeFormula}
         onModalOpen={() => {
           setDrawerOpen(false);
           setModalOpen(true);
