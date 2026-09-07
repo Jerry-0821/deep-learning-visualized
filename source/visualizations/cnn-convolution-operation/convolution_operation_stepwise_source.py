@@ -594,6 +594,7 @@ html_code = r"""
     momentDesc.innerText = desc;
 
     if (latex !== lastLatex) {
+      formulaMain.dataset.drawerLatex = `\\[ ${latex} \\]`;
       formulaMain.innerHTML = `\\[ ${latex} \\]`;
       lastLatex = latex;
       if (window.MathJax && window.MathJax.typesetPromise) {
@@ -611,7 +612,7 @@ html_code = r"""
   }
 
   function getActivePositionIndex() {
-    let idx = 0;
+    let idx = -1;
     for (let i = 0; i < positions.length; i++) {
       if (animator.elapsed >= STEP_TIMES[i + 1]) idx = i;
     }
@@ -623,8 +624,8 @@ html_code = r"""
     timeLabel.textContent = animator.elapsed.toFixed(2) + " s";
     playBtn.textContent = animator.playing ? "⏸ Pause" : "▶ Play";
 
-    const posIndex = positions.length ? getActivePositionIndex() : 0;
-    stepSlider.value = String(posIndex);
+    const posIndex = positions.length ? getActivePositionIndex() : -1;
+    stepSlider.value = String(Math.max(posIndex, 0));
     stepLabel.textContent = positions.length ? `${posIndex + 1} / ${positions.length}` : "0 / 0";
   }
 
@@ -663,7 +664,12 @@ html_code = r"""
 
   prevBtn.onclick = () => {
     const activeIdx = getActivePositionIndex();
-    jumpToPosition(activeIdx - 1);
+    if (activeIdx <= 0) {
+      animator.pause();
+      animator.applyAt(0);
+    } else {
+      jumpToPosition(activeIdx - 1);
+    }
   };
 
   nextBtn.onclick = () => {
