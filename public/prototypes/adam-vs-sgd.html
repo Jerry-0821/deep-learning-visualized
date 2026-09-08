@@ -882,7 +882,8 @@
           <h2>3D loss surface</h2>
           <p>
             Drag to rotate freely. Each optimizer traces its own path on the same surface.
-            The floor projection shows the (x, y) trajectory from above.
+            The floor projection shows the (x, y) trajectory from above. The displayed &eta; values are
+            surface-specific presets; the scale control multiplies them without changing the update equations.
           </p>
         </div>
       </div>
@@ -919,7 +920,7 @@
 
         <!-- Seek slider -->
         <div id="stepRow">
-          <div class="smallLabel">Step</div>
+          <div class="smallLabel">Iteration</div>
           <input class="range" id="seekSlider" type="range" min="0" max="120" step="1" value="0">
           <div id="stepValue">0 / 120</div>
         </div>
@@ -928,10 +929,10 @@
         <div id="paramGrid">
           <div class="paramBox">
             <div class="paramHead">
-              <div class="paramName">Learning rate &eta;</div>
-              <div class="paramVal" id="lrVal">0.010</div>
+              <div class="paramName">Learning-rate scale</div>
+              <div class="paramVal" id="lrVal">1.00&times;</div>
             </div>
-            <input class="range" id="lrSlider" type="range" min="1" max="50" step="1" value="10">
+            <input class="range" id="lrSlider" type="range" min="50" max="150" step="5" value="100">
           </div>
           <div class="paramBox">
             <div class="paramHead">
@@ -942,10 +943,10 @@
           </div>
           <div class="paramBox">
             <div class="paramHead">
-              <div class="paramName">Steps</div>
-              <div class="paramVal" id="stepsVal">120</div>
+              <div class="paramName">Animation detail</div>
+              <div class="paramVal" id="stepsVal">120 frames</div>
             </div>
-            <input class="range" id="stepsSlider" type="range" min="20" max="200" step="10" value="120">
+            <input class="range" id="stepsSlider" type="range" min="60" max="180" step="10" value="120">
           </div>
           <div class="paramBox">
             <div class="paramHead">
@@ -965,8 +966,8 @@
           <label class="check"><input type="checkbox" id="showProj" checked> Floor projection</label>
           <label class="check"><input type="checkbox" id="showSeg"  checked> Highlight step</label>
           <label class="check">
-            Speed: <input class="range" id="speedSlider" type="range" min="60" max="800" step="20" value="300" style="width:90px; margin-left:6px;">
-            <span id="speedVal" style="margin-left:6px; font-size:12px; color:#355fc1;">300 ms</span>
+            Speed: <input class="range" id="speedSlider" type="range" min="80" max="600" step="20" value="140" style="width:90px; margin-left:6px;">
+            <span id="speedVal" style="margin-left:6px; font-size:12px; color:#355fc1;">140 ms</span>
           </label>
         </div>
       </div>
@@ -1094,6 +1095,33 @@
     },
   };
 
+  // Surface-specific presets keep the raw optimizer equations stable and visible.
+  // The learning rates are intentionally shown in the UI; no gradient or coordinate
+  // clipping is used to force a trajectory to stay on the surface.
+  const DEMO_PRESETS = {
+    rosenbrock: {
+      iterations: 5000,
+      focusIterations: 30,
+      tolerance: 0.05,
+      learningRates: { adam: 0.05, sgd: 0.0015, sgdm: 0.0015 },
+      logHeight: true,
+    },
+    ravine: {
+      iterations: 300,
+      focusIterations: 24,
+      tolerance: 0.05,
+      learningRates: { adam: 0.05, sgd: 0.18, sgdm: 0.08 },
+      logHeight: false,
+    },
+    saddle: {
+      iterations: 400,
+      focusIterations: 24,
+      tolerance: 0.05,
+      learningRates: { adam: 0.03, sgd: 0.02, sgdm: 0.02 },
+      logHeight: false,
+    },
+  };
+
   // ── OPTIMIZER COLORS ─────────────────────────────────────────────────────────
   const C = {
     adam:  '#0069dc',
@@ -1111,16 +1139,17 @@
   const state = {
     surface:  'rosenbrock',
     opt:      'all',
-    lr:       0.01,
+    lrScale:  1,
     beta1:    0.90,
     beta2:    0.999,
     eps:      1e-8,
     maxSteps: 120,
+    iterations: DEMO_PRESETS.rosenbrock.iterations,
     step:     0,
     playing:  false,
     animId:   null,
     lastTs:   null,
-    speedMs:  300,
+    speedMs:  140,
     showPath: true,
     showProj: true,
     showSeg:  true,
@@ -1138,40 +1167,79 @@
     return arr;
   }
 
+  function preset() {
+    return DEMO_PRESETS[state.surface];
+  }
+
+  function learningRateFor(type) {
+    return preset().learningRates[type] * state.lrScale;
+  }
+
+  function displayZ(rawZ) {
+    return preset().logHeight ? Math.log1p(Math.max(0, rawZ)) : rawZ;
+  }
+
+  function iterationForFrame(frame) {
+    if (frame <= 0) return 0;
+    if (frame >= state.maxSteps) return state.iterations;
+
+    const focusFrames = Math.min(30, Math.max(12, Math.floor(state.maxSteps / 4)));
+    const focusIterations = Math.min(preset().focusIterations, state.iterations);
+    if (frame <= focusFrames) {
+      return Math.max(1, Math.round(frame * focusIterations / focusFrames));
+    }
+
+    const progress = (frame - focusFrames) / (state.maxSteps - focusFrames);
+    return Math.round(focusIterations + (state.iterations - focusIterations) * progress * progress);
+  }
+
+  function pathIndexAt(path, iteration) {
+    return Math.min(iteration, path.length - 1);
+  }
+
+  function fmtEta(value) {
+    return value < 0.01 ? value.toFixed(4) : value.toFixed(2);
+  }
+
   // ── BUILD SURFACE GRID ───────────────────────────────────────────────────────
   function buildSurf() {
     const S = SURFACES[state.surface];
     const xs = linspace(S.xRange[0], S.xRange[1], S.N);
     const ys = linspace(S.yRange[0], S.yRange[1], S.N);
     const zs = [];
+    const rawZs = [];
     let zMin = Infinity, zMax = -Infinity;
     for (let j = 0; j < ys.length; j++) {
       const row = [];
+      const rawRow = [];
       for (let i = 0; i < xs.length; i++) {
-        const z = S.f(xs[i], ys[j]);
+        const rawZ = S.f(xs[i], ys[j]);
+        const z = displayZ(rawZ);
         row.push(z);
+        rawRow.push(rawZ);
         if (z < zMin) zMin = z;
         if (z > zMax) zMax = z;
       }
       zs.push(row);
+      rawZs.push(rawRow);
     }
-    return { xs, ys, zs, zMin, zMax };
+    return { xs, ys, zs, rawZs, zMin, zMax };
   }
 
   // ── COMPUTE OPTIMIZER PATH ───────────────────────────────────────────────────
   function computePath(type) {
     const S   = SURFACES[state.surface];
-    const lr  = state.lr;
+    const lr  = learningRateFor(type);
     const b1  = state.beta1;
     const b2  = state.beta2;
     const eps = state.eps;
     let x = S.start[0], y = S.start[1];
     let mx=0, my=0, vx=0, vy=0, velx=0, vely=0;
 
-    const pts = [{ x, y, z: S.f(x,y) }];
+    const pts = [{ t: 0, x, y, z: S.f(x,y) }];
     state.pathStatus[type] = null;
 
-    for (let t = 1; t <= state.maxSteps; t++) {
+    for (let t = 1; t <= state.iterations; t++) {
       const [gx, gy] = S.g(x, y);
       if (!Number.isFinite(gx) || !Number.isFinite(gy)) {
         state.pathStatus[type] = { step: t, label: 'Diverged' };
@@ -1208,7 +1276,11 @@
         state.pathStatus[type] = { step: t, label: 'Out of view' };
         break;
       }
-      pts.push({ x, y, z });
+      pts.push({ t, x, y, z });
+      if (Math.hypot(x - S.min[0], y - S.min[1]) < preset().tolerance) {
+        state.pathStatus[type] = { step: t, label: 'Converged' };
+        break;
+      }
     }
     return pts;
   }
@@ -1224,6 +1296,8 @@
   // ── PLOTLY TRACES ─────────────────────────────────────────────────────────────
   function getTraces() {
     const step = state.step;
+    const iteration = iterationForFrame(step);
+    const previousIteration = iterationForFrame(Math.max(0, step - 1));
     const opt  = state.opt;
     const surf = state.surf;
     const ZF   = state.zFloor;
@@ -1235,6 +1309,7 @@
       x: surf.xs,
       y: surf.ys,
       z: surf.zs,
+      customdata: surf.rawZs,
       colorscale: [
         [0.00, '#56a6f1'],
         [0.35, '#67c8ef'],
@@ -1244,7 +1319,7 @@
       ],
       showscale: false,
       opacity: 0.97,
-      hovertemplate: 'x=%{x:.2f}<br>y=%{y:.2f}<br>f=%{z:.3f}<extra></extra>',
+      hovertemplate: 'x=%{x:.2f}<br>y=%{y:.2f}<br>loss=%{customdata:.3f}<extra></extra>',
       lighting: { ambient: 0.82, diffuse: 0.9, roughness: 0.48, specular: 0.12 },
     });
 
@@ -1256,18 +1331,21 @@
       const path = state.paths[key];
       const color = C[key];
       const name  = key === 'sgdm' ? 'SGD+M' : key.toUpperCase();
-      const slice = path.slice(0, step + 1);
+      const index = pathIndexAt(path, iteration);
+      const previousIndex = pathIndexAt(path, previousIteration);
+      const slice = path.slice(0, index + 1);
 
       const px = slice.map(d => d.x);
       const py = slice.map(d => d.y);
-      const pz = slice.map(d => d.z);
+      const pz = slice.map(d => displayZ(d.z));
 
       // Path line on surface
       if (state.showPath && slice.length > 1) {
         traces.push({
           type: 'scatter3d', mode: 'lines',
           x: px, y: py, z: pz,
-          line: { color, width: 7 },
+          line: { color, width: 5 },
+          opacity: 0.42,
           name,
           hoverinfo: 'skip',
           showlegend: false,
@@ -1279,8 +1357,8 @@
         traces.push({
           type: 'scatter3d', mode: 'lines',
           x: px, y: py, z: px.map(() => ZF),
-          line: { color, width: 3, dash: 'dash' },
-          opacity: 0.55,
+          line: { color, width: 5, dash: 'dash' },
+          opacity: 0.72,
           hoverinfo: 'skip',
           showlegend: false,
         });
@@ -1288,7 +1366,7 @@
         const cur = slice[slice.length-1];
         traces.push({
           type: 'scatter3d', mode: 'lines',
-          x: [cur.x, cur.x], y: [cur.y, cur.y], z: [ZF, cur.z],
+          x: [cur.x, cur.x], y: [cur.y, cur.y], z: [ZF, displayZ(cur.z)],
           line: { color, width: 2, dash: 'dot' },
           opacity: 0.45,
           hoverinfo: 'skip',
@@ -1304,38 +1382,42 @@
         });
       }
 
-      // Next-step segment highlight
-      if (state.showSeg && step < path.length - 1) {
-        const cur  = path[step];
-        const next = path[step+1];
+      // Bright recent tail makes direction and movement clear while the full path stays visible.
+      if (state.showSeg && index > 0) {
+        const recentCount = Math.max(7, index - previousIndex + 1);
+        const recent = path.slice(Math.max(0, index - recentCount), index + 1);
         traces.push({
           type: 'scatter3d', mode: 'lines',
-          x: [cur.x, next.x], y: [cur.y, next.y], z: [cur.z, next.z],
-          line: { color: '#ef4444', width: 11 },
+          x: recent.map(d => d.x),
+          y: recent.map(d => d.y),
+          z: recent.map(d => displayZ(d.z)),
+          line: { color, width: 10 },
+          opacity: 0.98,
           hoverinfo: 'skip',
           showlegend: false,
         });
       }
 
-      // Start marker
-      traces.push({
-        type: 'scatter3d', mode: 'markers',
-        x: [path[0].x], y: [path[0].y], z: [path[0].z],
-        marker: { size: 6, color: '#f59e0b', symbol: 'circle' },
-        name: `${name} start`,
-        hovertemplate: `${name} start<br>x=%{x:.3f}, y=%{y:.3f}<extra></extra>`,
-        showlegend: false,
-      });
-
       // Current position marker + label
       const cur = slice[slice.length - 1];
+      const status = state.pathStatus[key];
+      const isConverged = status && status.label === 'Converged' && iteration >= status.step;
+      const textPositions = { adam: 'top left', sgd: 'top right', sgdm: 'bottom center' };
+      const symbols = { adam: 'circle', sgd: 'square', sgdm: 'diamond' };
+      traces.push({
+        type: 'scatter3d', mode: 'markers',
+        x: [cur.x], y: [cur.y], z: [displayZ(cur.z)],
+        marker: { size: 17, color, opacity: 0.20 },
+        hoverinfo: 'skip',
+        showlegend: false,
+      });
       traces.push({
         type: 'scatter3d', mode: 'markers+text',
-        x: [cur.x], y: [cur.y], z: [cur.z],
-        text: [name],
-        textposition: 'top center',
+        x: [cur.x], y: [cur.y], z: [displayZ(cur.z)],
+        text: [`${name}${isConverged ? ' \u2713' : ''}`],
+        textposition: textPositions[key],
         textfont: { size: 13, color, family: 'Inter, sans-serif' },
-        marker: { size: 9, color, line: { color: '#fff', width: 3 } },
+        marker: { size: 11, color, symbol: symbols[key], line: { color: '#fff', width: 3 } },
         name,
         hovertemplate: `${name}<br>x=%{x:.3f}, y=%{y:.3f}<br>loss=%{customdata:.4f}<extra></extra>`,
         customdata: [cur.z],
@@ -1343,13 +1425,26 @@
       });
     }
 
-    // Global minimum star
+    // All optimizers share the same initial parameters, so one start marker avoids overlap.
     const S = SURFACES[state.surface];
+    const [sx, sy] = S.start;
+    traces.push({
+      type: 'scatter3d', mode: 'markers+text',
+      x: [sx], y: [sy], z: [displayZ(S.f(sx, sy))],
+      text: ['start'],
+      textposition: 'bottom left',
+      textfont: { size: 11, color: '#b56b00', family: 'Inter, sans-serif' },
+      marker: { size: 7, color: '#f59e0b', symbol: 'circle', line:{ color:'#fff', width:2 } },
+      hovertemplate: 'Shared start<br>x=%{x:.3f}, y=%{y:.3f}<extra></extra>',
+      showlegend: false,
+    });
+
+    // Global minimum star
     const [mx,my] = S.min;
     const mz = S.f(mx,my);
     traces.push({
       type: 'scatter3d', mode: 'markers+text',
-      x: [mx], y: [my], z: [mz],
+      x: [mx], y: [my], z: [displayZ(mz)],
       text: ['★ min'],
       textposition: 'top center',
       textfont: { size: 12, color: '#f5a623', family: 'Inter, sans-serif' },
@@ -1378,6 +1473,7 @@
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor:  'rgba(0,0,0,0)',
       uirevision: 'keep-view',
+      transition: { duration: Math.min(120, Math.round(state.speedMs * 0.65)), easing: 'cubic-in-out' },
       scene: {
         xaxis: {
           title: { text:'x', font:{ size:14, color:'#263b6b' } },
@@ -1398,7 +1494,7 @@
           showspikes: false,
         },
         zaxis: {
-          title: { text:'loss f(x,y)', font:{ size:14, color:'#263b6b' } },
+          title: { text: preset().logHeight ? 'display: log(1 + loss)' : 'loss f(x,y)', font:{ size:14, color:'#263b6b' } },
           range: [state.zFloor, zMax + 0.05*(zMax - state.zFloor)],
           backgroundcolor: '#fbfdff',
           gridcolor: '#dde5f5',
@@ -1433,33 +1529,49 @@
     return Math.sqrt((x1-x2)**2 + (y1-y2)**2).toFixed(3);
   }
 
-  function pathStatusAt(type, step) {
+  function pathStatusAt(type, iteration) {
     const status = state.pathStatus[type];
-    return status && step >= status.step ? status.label : '';
+    return status && iteration >= status.step ? status.label : '';
+  }
+
+  function updateRulesMeta() {
+    const rates = ['adam', 'sgd', 'sgdm']
+      .map(type => `${type === 'sgdm' ? 'SGD+M' : type.toUpperCase()} \u03b7=${fmtEta(learningRateFor(type))}`)
+      .join('  \u00b7  ');
+    document.getElementById('rulesMeta').textContent = rates;
   }
 
   function updateUI() {
     const step = state.step;
+    const iteration = iterationForFrame(step);
     const S    = SURFACES[state.surface];
     const [mx,my] = S.min;
 
-    const ap = state.paths.adam[Math.min(step, state.paths.adam.length-1)];
-    const sp = state.paths.sgd[Math.min(step, state.paths.sgd.length-1)];
-    const mp = state.paths.sgdm[Math.min(step, state.paths.sgdm.length-1)];
-    const adamStatus = pathStatusAt('adam', step);
-    const sgdStatus = pathStatusAt('sgd', step);
-    const sgdmStatus = pathStatusAt('sgdm', step);
+    const ap = state.paths.adam[pathIndexAt(state.paths.adam, iteration)];
+    const sp = state.paths.sgd[pathIndexAt(state.paths.sgd, iteration)];
+    const mp = state.paths.sgdm[pathIndexAt(state.paths.sgdm, iteration)];
+    const adamStatus = pathStatusAt('adam', iteration);
+    const sgdStatus = pathStatusAt('sgd', iteration);
+    const sgdmStatus = pathStatusAt('sgdm', iteration);
 
-    document.getElementById('stepMeta').textContent    = `step ${step} of ${state.maxSteps}`;
-    document.getElementById('stepValue').textContent   = `${step} / ${state.maxSteps}`;
+    const lossText = (status, point) => status === 'Converged'
+      ? `\u2713 ${fmtLoss(point.z)}`
+      : status || fmtLoss(point.z);
+    const distText = (status, point) => status === 'Converged'
+      ? `\u2713 ${fmtDist(point.x,point.y,mx,my)}`
+      : status || fmtDist(point.x,point.y,mx,my);
+
+    document.getElementById('stepMeta').textContent    = `iteration ${iteration.toLocaleString()} of ${state.iterations.toLocaleString()}`;
+    document.getElementById('stepValue').textContent   = `${iteration.toLocaleString()} / ${state.iterations.toLocaleString()}`;
     document.getElementById('seekSlider').value        = step;
 
-    document.getElementById('mAdam').textContent    = adamStatus || fmtLoss(ap.z);
-    document.getElementById('mSgd').textContent     = sgdStatus || fmtLoss(sp.z);
-    document.getElementById('mSgdm').textContent    = sgdmStatus || fmtLoss(mp.z);
-    document.getElementById('mDistAdam').textContent = adamStatus || fmtDist(ap.x,ap.y,mx,my);
-    document.getElementById('mDistSgd').textContent  = sgdStatus || fmtDist(sp.x,sp.y,mx,my);
-    document.getElementById('mDistSgdm').textContent = sgdmStatus || fmtDist(mp.x,mp.y,mx,my);
+    document.getElementById('mAdam').textContent     = lossText(adamStatus, ap);
+    document.getElementById('mSgd').textContent      = lossText(sgdStatus, sp);
+    document.getElementById('mSgdm').textContent     = lossText(sgdmStatus, mp);
+    document.getElementById('mDistAdam').textContent = distText(adamStatus, ap);
+    document.getElementById('mDistSgd').textContent  = distText(sgdStatus, sp);
+    document.getElementById('mDistSgdm').textContent = distText(sgdmStatus, mp);
+    updateRulesMeta();
   }
 
   function renderAll() {
@@ -1511,10 +1623,14 @@
   window.setSurface = function(s) {
     stopAnim();
     state.surface = s;
+    state.iterations = preset().iterations;
+    state.lrScale = 1;
     state.step = 0;
     state.surf = buildSurf();
     state.zFloor = state.surf.zMin - (state.surf.zMax - state.surf.zMin) * 0.08;
     buildAllPaths();
+    document.getElementById('lrSlider').value = '100';
+    document.getElementById('lrVal').innerHTML = '1.00&times;';
     document.getElementById('surfVal').textContent = SURFACES[s].label.slice(0,6);
     [['rosenbrock','surfRosen'], ['ravine','surfRavine'], ['saddle','surfSaddle']].forEach(([k,id]) => {
       document.getElementById(id).classList.toggle('active', k === s);
@@ -1535,12 +1651,14 @@
 
   // ── INIT ──────────────────────────────────────────────────────────────────────
   function init() {
+    state.iterations = preset().iterations;
     state.surf   = buildSurf();
     state.zFloor = state.surf.zMin - (state.surf.zMax - state.surf.zMin) * 0.08;
     buildAllPaths();
 
     document.getElementById('seekSlider').max   = String(state.maxSteps);
     document.getElementById('stepsSlider').value= String(state.maxSteps);
+    document.getElementById('stepsVal').textContent = `${state.maxSteps} frames`;
 
     Plotly.newPlot('plot', getTraces(), getLayout(), {
       displayModeBar: false,
@@ -1577,8 +1695,8 @@
       stopAnim(); state.step = Number(e.target.value); renderAll();
     });
     document.getElementById('lrSlider').addEventListener('input', e => {
-      state.lr = Number(e.target.value)/1000;
-      document.getElementById('lrVal').textContent = state.lr.toFixed(3);
+      state.lrScale = Number(e.target.value)/100;
+      document.getElementById('lrVal').textContent = `${state.lrScale.toFixed(2)}\u00d7`;
       rebuildPaths();
     });
     document.getElementById('momSlider').addEventListener('input', e => {
@@ -1588,7 +1706,7 @@
     });
     document.getElementById('stepsSlider').addEventListener('input', e => {
       state.maxSteps = Number(e.target.value);
-      document.getElementById('stepsVal').textContent = String(state.maxSteps);
+      document.getElementById('stepsVal').textContent = `${state.maxSteps} frames`;
       document.getElementById('seekSlider').max = String(state.maxSteps);
       rebuildPaths();
     });
