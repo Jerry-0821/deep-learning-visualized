@@ -1214,9 +1214,13 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
         var sum = 0;
         for (var ky = 0; ky < kh; ky++) {
           for (var kx = 0; kx < kw; kx++) {
-            var iy = clamp(y + ky - oy, 0, SIZE - 1);
-            var ix = clamp(x + kx - ox, 0, SIZE - 1);
-            sum += input[iy][ix] * kernel[ky][kx];
+            var iy = y + ky - oy;
+            var ix = x + kx - ox;
+            // Same-sized output uses one cell of zero padding. Values outside
+            // the image are zeros, rather than replicated edge pixels.
+            if (iy >= 0 && iy < SIZE && ix >= 0 && ix < SIZE) {
+              sum += input[iy][ix] * kernel[ky][kx];
+            }
           }
         }
         out[y][x] = sum;
@@ -1523,7 +1527,17 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
   // PHASE 2 — Step-by-step filter demo
   // ═══════════════════════════════════
   var P2_SIZE = 8;
-  var p2State = { step: 0, running: false, timer: null, input: null, output: null, filterKey: "vedge" };
+  var p2State = {
+    step: 0,
+    running: false,
+    timer: null,
+    input: null,
+    output: null,
+    fullOutput: null,
+    normMin: 0,
+    normMax: 1,
+    filterKey: "vedge"
+  };
 
   var p2Filters = {
     vedge: {
@@ -1610,7 +1624,12 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
     if (highlight) {
       ctx.strokeStyle = "#2563eb";
       ctx.lineWidth = 3;
-      ctx.strokeRect(highlight.x * cellW + 1, highlight.y * cellH + 1, 3 * cellW - 2, 3 * cellH - 2);
+      ctx.strokeRect(
+        highlight.x * cellW + 1,
+        highlight.y * cellH + 1,
+        highlight.width * cellW - 2,
+        highlight.height * cellH - 2
+      );
     }
   }
 
@@ -1620,17 +1639,10 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
     var W = canvas.width, H = canvas.height;
     var cellW = W / P2_SIZE, cellH = H / P2_SIZE;
 
-    // Find min/max of revealed values for normalization
-    var min = Infinity, max = -Infinity;
-    for (var y = 0; y < P2_SIZE; y++) {
-      for (var x = 0; x < P2_SIZE; x++) {
-        if (p2State.output[y][x] !== null) {
-          if (p2State.output[y][x] < min) min = p2State.output[y][x];
-          if (p2State.output[y][x] > max) max = p2State.output[y][x];
-        }
-      }
-    }
-    if (max - min < 1e-8) { min = 0; max = 1; }
+    // Normalize every revealed cell against the final map's fixed scale so a
+    // cell's brightness never changes merely because later cells appeared.
+    var min = p2State.normMin;
+    var max = p2State.normMax;
 
     ctx.clearRect(0, 0, W, H);
     for (var y = 0; y < P2_SIZE; y++) {
@@ -1659,9 +1671,10 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
     var terms = [];
     for (var ky = 0; ky < 3; ky++) {
       for (var kx = 0; kx < 3; kx++) {
-        var iy = clamp(fy + ky - 1, 0, P2_SIZE - 1);
-        var ix = clamp(fx + kx - 1, 0, P2_SIZE - 1);
-        var pixVal = p2State.input[iy][ix];
+        var iy = fy + ky - 1;
+        var ix = fx + kx - 1;
+        var inside = iy >= 0 && iy < P2_SIZE && ix >= 0 && ix < P2_SIZE;
+        var pixVal = inside ? p2State.input[iy][ix] : 0;
         var kVal = p2Kernel[ky][kx];
         sum += pixVal * kVal;
         if (kVal !== 0) {
@@ -1672,6 +1685,25 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
     return { sum: sum, terms: terms };
   }
 
+  function p2BuildFullOutput() {
+    var fullOutput = [];
+    var min = Infinity;
+    var max = -Infinity;
+    for (var y = 0; y < P2_SIZE; y++) {
+      fullOutput[y] = [];
+      for (var x = 0; x < P2_SIZE; x++) {
+        var value = Math.max(0, p2ComputeDot(y, x).sum);
+        fullOutput[y][x] = value;
+        if (value < min) min = value;
+        if (value > max) max = value;
+      }
+    }
+    if (max - min < 1e-8) { min = 0; max = 1; }
+    p2State.fullOutput = fullOutput;
+    p2State.normMin = min;
+    p2State.normMax = max;
+  }
+
   function p2Step() {
     if (p2State.step >= P2_SIZE * P2_SIZE) return;
     var fx = p2State.step % P2_SIZE;
@@ -1679,10 +1711,17 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
 
     // Compute
     var result = p2ComputeDot(fy, fx);
-    p2State.output[fy][fx] = Math.max(0, result.sum); // ReLU
+    p2State.output[fy][fx] = p2State.fullOutput[fy][fx]; // ReLU result on the fixed map scale
 
     // Draw
-    p2DrawInput({ x: Math.max(0, fx - 1), y: Math.max(0, fy - 1) });
+    var highlightX = Math.max(0, fx - 1);
+    var highlightY = Math.max(0, fy - 1);
+    p2DrawInput({
+      x: highlightX,
+      y: highlightY,
+      width: Math.min(P2_SIZE, fx + 2) - highlightX,
+      height: Math.min(P2_SIZE, fy + 2) - highlightY
+    });
     p2DrawOutput();
 
     // Update dot product display
@@ -1729,6 +1768,7 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
     if (p2State.timer) { clearInterval(p2State.timer); p2State.timer = null; }
     p2State.step = 0;
     p2State.running = false;
+    p2BuildFullOutput();
     p2State.output = [];
     for (var y = 0; y < P2_SIZE; y++) {
       p2State.output[y] = [];

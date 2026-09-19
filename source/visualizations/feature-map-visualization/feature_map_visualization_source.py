@@ -987,9 +987,13 @@ html_code = r'''
         let sum = 0;
         for (let ky = 0; ky < kh; ky++) {
           for (let kx = 0; kx < kw; kx++) {
-            const iy = clamp(y + ky - oy, 0, SIZE - 1);
-            const ix = clamp(x + kx - ox, 0, SIZE - 1);
-            sum += input[iy][ix] * kernel[ky][kx];
+            const iy = y + ky - oy;
+            const ix = x + kx - ox;
+            // Same-sized output uses one cell of zero padding. Values outside
+            // the image are zeros, rather than replicated edge pixels.
+            if (iy >= 0 && iy < SIZE && ix >= 0 && ix < SIZE) {
+              sum += input[iy][ix] * kernel[ky][kx];
+            }
           }
         }
         out[y][x] = sum;

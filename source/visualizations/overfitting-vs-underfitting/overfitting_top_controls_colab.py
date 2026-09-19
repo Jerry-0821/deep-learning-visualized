@@ -794,7 +794,7 @@ display(HTML(r'''
   function makeComplexityCurve(noise, count, lambda) {
     const train=[], val=[];
     const trainPts=generateData(count, noise, 0);
-    const valPts=generateData(32, noise+0.18, 999);
+    const valPts=generateData(32, noise, 999);
     for (let deg=1;deg<=12;deg++) {
       let coef;
       try { coef=polyFitRidge(trainPts, deg, lambda); } catch(e){coef=[0];}
@@ -803,28 +803,57 @@ display(HTML(r'''
     }
     return {train, val};
   }
-  function classify(degree, trainErr, valErr, lambda) {
-    const gap=valErr-trainErr;
-    if (degree<=2 && trainErr>1.0) return {
-      key:'under', label:'Underfitting',
-      title:'High bias — model too simple',
-      body:'The curve cannot bend enough to capture the real structure. Both training and validation errors are high. Add more complexity.'
-    };
-    if (gap>0.75 && degree>=7 && lambda<0.22) return {
-      key:'over', label:'Overfitting',
-      title:'High variance — memorising noise',
-      body:'Training error is low, but validation error is climbing. The model is fitting the noise in the training set rather than the true pattern.'
-    };
+  function estimateBiasVariance(degree, count, noise, lambda) {
+    const runs = 24;
+    const grid = Array.from({length:81}, (_, i) => -3.9 + 7.8*(i/80));
+    const predictions = [];
+
+    for (let run=0; run<runs; run++) {
+      const sample = generateData(count, noise, 10000 + run*997);
+      let coef;
+      try { coef=polyFitRidge(sample, degree, lambda); } catch(e) { coef=[0]; }
+      predictions.push(grid.map(x => evalPoly(coef, x)));
+    }
+
+    let biasSquared = 0;
+    let variance = 0;
+    for (let i=0; i<grid.length; i++) {
+      let meanPrediction = 0;
+      for (let run=0; run<runs; run++) meanPrediction += predictions[run][i];
+      meanPrediction /= runs;
+      biasSquared += (meanPrediction - trueFn(grid[i]))**2;
+      for (let run=0; run<runs; run++) {
+        variance += (predictions[run][i] - meanPrediction)**2;
+      }
+    }
     return {
+      bias: biasSquared/grid.length,
+      variance: variance/(grid.length*runs)
+    };
+  }
+
+  function classify(bv, noise) {
+    const reducibleError = bv.bias + bv.variance;
+    const acceptableReducibleError = Math.max(0.18, noise*noise*0.75);
+    const largerComponent = Math.max(bv.bias, bv.variance);
+    const smallerComponent = Math.max(0.05, Math.min(bv.bias, bv.variance));
+    const balanced = largerComponent <= smallerComponent*3;
+
+    if (reducibleError <= acceptableReducibleError && (balanced || reducibleError <= 0.12)) return {
       key:'good', label:'Good fit',
       title:'Balanced generalization',
       body:'The model is flexible enough to learn the underlying trend while keeping the validation error relatively low and the train–validation gap small.'
     };
-  }
-  function estimateBiasVariance(degree, trainErr, valErr, lambda) {
-    const bias=Math.max(0.2, 3.9-degree*0.44+lambda*1.2+trainErr*0.18);
-    const variance=Math.max(0.2, -0.3+degree*0.42-lambda*2.0+Math.max(0,valErr-trainErr)*0.9);
-    return { bias:Math.min(5.0,bias), variance:Math.min(5.0,variance) };
+    if (bv.bias >= bv.variance) return {
+      key:'under', label:'Underfitting',
+      title:'High bias — model too simple',
+      body:'The curve cannot bend enough to capture the real structure. Both training and validation errors are high. Add more complexity.'
+    };
+    return {
+      key:'over', label:'Overfitting',
+      title:'High variance — memorising noise',
+      body:'Training error is low, but validation error is climbing. The model is fitting the noise in the training set rather than the true pattern.'
+    };
   }
 
   /* ── SVG HELPERS ────────────────────────────────────────── */
@@ -875,7 +904,7 @@ display(HTML(r'''
       state.preset==='good'?'Good fit': state.preset==='under'?'Underfit': state.preset==='over'?'Overfit':'Custom';
 
     const trainPts = generateData(state.count, state.noise, 0);
-    const valPts   = generateData(32, state.noise+0.18, 999);
+    const valPts   = generateData(32, state.noise, 999);
 
     let coef;
     try { coef=polyFitRidge(trainPts, state.degree, state.lambda); }
@@ -883,19 +912,21 @@ display(HTML(r'''
 
     const trainErr = mse(trainPts, coef);
     const valErr   = mse(valPts,   coef);
-    const diagnosis = classify(state.degree, trainErr, valErr, state.lambda);
-    const bv        = estimateBiasVariance(state.degree, trainErr, valErr, state.lambda);
+    const curves    = makeComplexityCurve(state.noise, state.count, state.lambda);
+    const bv        = estimateBiasVariance(state.degree, state.count, state.noise, state.lambda);
+    const diagnosis = classify(bv, state.noise);
 
     document.getElementById('trainErr').textContent = trainErr.toFixed(2);
     document.getElementById('valErr').textContent   = valErr.toFixed(2);
-    document.getElementById('biasVal').textContent  = bv.bias.toFixed(1);
-    document.getElementById('varVal').textContent   = bv.variance.toFixed(1);
+    document.getElementById('biasVal').textContent  = bv.bias.toFixed(2);
+    document.getElementById('varVal').textContent   = bv.variance.toFixed(2);
 
     // bias/variance bars
-    document.getElementById('biasBar').style.width    = Math.min(100, bv.bias/5*100)+'%';
-    document.getElementById('varBar').style.width     = Math.min(100, bv.variance/5*100)+'%';
-    document.getElementById('biasBarLabel').textContent  = bv.bias.toFixed(1)+' / 5';
-    document.getElementById('varBarLabel').textContent   = bv.variance.toFixed(1)+' / 5';
+    const bvScale = Math.max(bv.bias, bv.variance, 1e-9);
+    document.getElementById('biasBar').style.width    = Math.min(100, bv.bias/bvScale*100)+'%';
+    document.getElementById('varBar').style.width     = Math.min(100, bv.variance/bvScale*100)+'%';
+    document.getElementById('biasBarLabel').textContent  = bv.bias.toFixed(2);
+    document.getElementById('varBarLabel').textContent   = bv.variance.toFixed(2);
 
     document.getElementById('explainTitle').textContent = diagnosis.title;
     document.getElementById('explainBody').textContent  = diagnosis.body;
@@ -906,7 +937,7 @@ display(HTML(r'''
     pill.innerHTML=`<span class="status-dot"></span><span>${diagnosis.label}</span>`;
 
     drawFitChart(trainPts, coef);
-    drawErrorChart();
+    drawErrorChart(curves);
   }
 
   function drawFitChart(trainPts, coef) {
@@ -947,10 +978,10 @@ display(HTML(r'''
     }
   }
 
-  function drawErrorChart() {
+  function drawErrorChart(curves) {
     errorSvg.innerHTML='';
     const dims={w:760,h:260,ml:46,mr:18,mt:18,mb:34};
-    const curves=makeComplexityCurve(state.noise, state.count, state.lambda);
+    curves = curves || makeComplexityCurve(state.noise, state.count, state.lambda);
     const yMax=Math.max(1.3,...curves.train.map(p=>p.y),...curves.val.map(p=>p.y))*1.12;
     const xMap=x=>dims.ml+((x-1)/11)*(dims.w-dims.ml-dims.mr);
     const yMap=y=>dims.mt+(1-(y/yMax))*(dims.h-dims.mt-dims.mb);
