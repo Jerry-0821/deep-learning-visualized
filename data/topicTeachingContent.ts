@@ -210,12 +210,12 @@ export const topicTeachingContentBySlug: Record<string, TopicTeachingContent> = 
     ],
     formulas: [
       {
-        expression: "r<sub>i</sub><sup>(l)</sup> ~ Bernoulli(1 - p)",
-        explanation: "Each unit is randomly kept with probability 1 - p.",
+        expression: "q = 1 - p; r<sub>i</sub><sup>(l)</sup> ~ Bernoulli(q)",
+        explanation: "p is the drop probability, q is the keep probability, and each binary mask value ri is sampled independently.",
       },
       {
-        expression: "a&#771;<sup>(l)</sup> = r<sup>(l)</sup> &odot; a<sup>(l)</sup> / (1 - p)",
-        explanation: "In inverted dropout, the surviving activations are divided by 1 - p to preserve their expected value.",
+        expression: "a&#771;<sup>(l)</sup> = r<sup>(l)</sup> &odot; a<sup>(l)</sup> / q",
+        explanation: "a is the activation before dropout; ã is the train-time activation after masking and scaling. Dividing kept units by q preserves the expected activation.",
       },
     ],
     pros: [

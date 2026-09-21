@@ -632,8 +632,6 @@
     }
     mask1 = Array(5).fill(0).map(() => Math.random() >= currentP ? 1 : 0);
     mask2 = Array(5).fill(0).map(() => Math.random() >= currentP ? 1 : 0);
-    if(mask1.every(m => m === 0)) mask1[Math.floor(Math.random()*5)] = 1;
-    if(mask2.every(m => m === 0)) mask2[Math.floor(Math.random()*5)] = 1;
   }
   generateRandomMasks();
 
@@ -851,50 +849,60 @@
 
   let lastLatex = "";
   function updateText(s, t) {
+    const keepProbability = (1.0 - currentP).toFixed(2);
     const scale = currentP === 0 ? "1.00" : (1.0 / (1.0 - currentP)).toFixed(2);
+    const fullyDroppedLayers = [];
+    if (mask1.every(value => value === 0)) fullyDroppedLayers.push("Hidden 1");
+    if (mask2.every(value => value === 0)) fullyDroppedLayers.push("Hidden 2");
 
     let title = "Setup Phase";
-    let desc = "The network is fully connected. During training, we select a dropout probability (p).";
+    let desc = "p is the drop probability and q = 1 - p is the keep probability. Every hidden unit samples its own independent binary mask value.";
     let badgeTxt = "Initialization";
-    let latex = String.raw`p = ${currentP.toFixed(2)} \quad \text{(Probability of dropping a node)}`;
+    let latex = String.raw`
+      p = ${currentP.toFixed(2)} \; \text{(drop probability)},
+      \qquad q = 1-p = ${keepProbability} \; \text{(keep probability)}
+    `;
 
     if (t >= 1.0 && t < 2.5) {
       title = "Apply Random Dropout Masks";
-      desc = `We generate independent Bernoulli masks for Hidden 1 and Hidden 2. Nodes assigned '0' are dropped. Click "Randomize Iteration" to sample a new pattern.`;
+      desc = `We generate independent Bernoulli masks for Hidden 1 and Hidden 2. Nodes assigned '0' are dropped. Click "Randomize Iteration" to sample a new pattern.${fullyDroppedLayers.length ? ` This valid sample dropped all five units in ${fullyDroppedLayers.join(" and ")}.` : ""}`;
       badgeTxt = "Mask Generation";
       latex = String.raw`
         \begin{aligned}
-        \mathbf{r}^{(1)} &\sim \text{Bernoulli}(1 - p) \rightarrow \mathbf{r}^{(1)} = [${mask1.join(', ')}]^T \\
-        \mathbf{r}^{(2)} &\sim \text{Bernoulli}(1 - p) \rightarrow \mathbf{r}^{(2)} = [${mask2.join(', ')}]^T
+        r_i^{(l)} &\overset{\mathrm{iid}}{\sim} \text{Bernoulli}(q), \quad q=${keepProbability} \\
+        \mathbf{r}^{(1)} &= [${mask1.join(', ')}]^T, \quad
+        \mathbf{r}^{(2)} = [${mask2.join(', ')}]^T
         \end{aligned}
       `;
     } else if (t >= 2.5 && t < 4.0) {
       title = "Forward Pass to Hidden 1";
-      desc = "Input signals only propagate to the surviving nodes in Hidden 1.";
+      desc = "First compute the ordinary Hidden 1 activations a^(1). The next step applies the sampled mask and inverted scaling to form the train-time activations ã^(1).";
       badgeTxt = "Forward Pass (H1)";
       latex = String.raw`
-        \mathbf{a}^{(1)} = \sigma(W^{(1)} \mathbf{x} + \mathbf{b}^{(1)}) \odot \mathbf{r}^{(1)}
+        \mathbf{a}^{(1)} = \sigma(W^{(1)} \mathbf{x} + \mathbf{b}^{(1)})
       `;
     } else if (t >= 4.0 && t < 5.5) {
       title = "Inverted Scaling (Hidden 1)";
-      desc = `Because roughly ${Math.round(currentP*100)}% of nodes are dead, the expected sum drops. We scale the active nodes by 1/(1-p) to compensate.`;
+      desc = `Multiply by the mask, then divide surviving activations by q = ${keepProbability}. This preserves each activation's expected value; an all-zero sample correctly remains all zero.`;
       badgeTxt = "Scaling (H1)";
       latex = String.raw`
-        \tilde{\mathbf{a}}^{(1)} = \frac{\mathbf{a}^{(1)}}{1 - p} = \mathbf{a}^{(1)} \times \mathbf{${scale}}
+        \tilde{\mathbf{a}}^{(1)} = \frac{\mathbf{r}^{(1)} \odot \mathbf{a}^{(1)}}{q}
+        = \left(\mathbf{r}^{(1)} \odot \mathbf{a}^{(1)}\right) \times ${scale}
       `;
     } else if (t >= 5.5 && t < 7.0) {
       title = "Forward Pass to Hidden 2";
-      desc = "The scaled signals from H1 propagate to the surviving nodes in H2.";
+      desc = "Use the post-dropout activations ã^(1) to compute the ordinary Hidden 2 activations a^(2).";
       badgeTxt = "Forward Pass (H2)";
       latex = String.raw`
-        \mathbf{a}^{(2)} = \sigma(W^{(2)} \tilde{\mathbf{a}}^{(1)} + \mathbf{b}^{(2)}) \odot \mathbf{r}^{(2)}
+        \mathbf{a}^{(2)} = \sigma(W^{(2)} \tilde{\mathbf{a}}^{(1)} + \mathbf{b}^{(2)})
       `;
     } else if (t >= 7.0 && t < 8.5) {
       title = "Inverted Scaling (Hidden 2)";
-      desc = "We apply the same inverted dropout scaling to the surviving nodes in Hidden 2.";
+      desc = `Apply Hidden 2's independent mask and divide surviving activations by q = ${keepProbability}.`;
       badgeTxt = "Scaling (H2)";
       latex = String.raw`
-        \tilde{\mathbf{a}}^{(2)} = \frac{\mathbf{a}^{(2)}}{1 - p} = \mathbf{a}^{(2)} \times \mathbf{${scale}}
+        \tilde{\mathbf{a}}^{(2)} = \frac{\mathbf{r}^{(2)} \odot \mathbf{a}^{(2)}}{q}
+        = \left(\mathbf{r}^{(2)} \odot \mathbf{a}^{(2)}\right) \times ${scale}
       `;
     } else if (t >= 8.5) {
       title = "Final Output Calculation";

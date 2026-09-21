@@ -71,12 +71,12 @@
       ],
       formulas: [
         {
-          expression: "r<sub>i</sub><sup>(l)</sup> ~ Bernoulli(1 - p)",
-          explanation: "Each unit is randomly kept with probability 1 - p.",
+          expression: "q = 1 - p; r<sub>i</sub><sup>(l)</sup> ~ Bernoulli(q)",
+          explanation: "p is the drop probability, q is the keep probability, and each binary mask value rᵢ is sampled independently.",
         },
         {
-          expression: "a&#771;<sup>(l)</sup> = r<sup>(l)</sup> &odot; a<sup>(l)</sup> / (1 - p)",
-          explanation: "In inverted dropout, the surviving activations are divided by 1 - p to preserve their expected value.",
+          expression: "a&#771;<sup>(l)</sup> = r<sup>(l)</sup> &odot; a<sup>(l)</sup> / q",
+          explanation: "a is the activation before dropout; ã is the train-time activation after masking and scaling. Dividing kept units by q preserves the expected activation.",
         },
       ],
       pros: [
@@ -1912,12 +1912,12 @@ Dev &rarr; Test = dev overfitting</pre>
         <div class="lesson-formula">\[
           m_i \sim \text{Bernoulli}(q), \qquad q = 1 - p
         \]</div>
-        <p>Each unit is kept with probability \(q\), where \(p\) is the dropout rate.</p>
+        <p>Here, \(p\) is the drop probability, \(q\) is the keep probability, and each binary mask value \(m_i\) is sampled independently.</p>
         <h3 class="reading-subheading">2. Inverted dropout (training)</h3>
         <div class="lesson-formula">\[
           \tilde{a}_i = \frac{m_i a_i}{q}
         \]</div>
-        <p>If a unit is kept, its activation is scaled by \(1/q\). This keeps the expected activation magnitude stable.</p>
+        <p>Here, \(a_i\) is the activation before dropout and \(\tilde{a}_i\) is its train-time value after masking and scaling. If a unit is kept, it is scaled by \(1/q\), preserving its expected value.</p>
         <h3 class="reading-subheading">3. Inference</h3>
         <div class="lesson-formula">\[
           \tilde{a}_i = a_i
