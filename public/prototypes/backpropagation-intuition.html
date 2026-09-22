@@ -692,9 +692,9 @@
       {t:2.85, title:"Store hidden pre-activations and activations", desc:"Now we store Z1 and A1. These are exactly the intermediate values backward will need later."},
       {t:3.45, title:"Forward pass: hidden to output", desc:"The hidden activations travel to the output neuron."},
       {t:4.20, title:"Store output pre-activation and prediction", desc:"Now we store Z2 and A2=ŷ. These are essential for the output delta."},
-      {t:4.85, title:"Loss is computed", desc:"The loss compares the prediction with the target y."},
+      {t:4.85, title:"Loss is computed", desc:"This demo uses half-squared error L = 1/2(A2 - y)^2 to compare the prediction with the target."},
       {t:5.60, title:"Backward signal starts", desc:"The red backward sweep starts from the output side. Backprop will now reuse cached forward values."},
-      {t:6.45, title:"Output delta uses cache", desc:"To compute δ², we need the prediction A2 and the output pre-activation Z2."},
+      {t:6.45, title:"Output delta uses cache", desc:"For half-squared error, ∂L/∂A2 = A2 - y; multiply by σ′(Z2) to obtain δ²."},
       {t:6.95, title:"Hidden deltas use cache", desc:"To compute hidden deltas, we reuse Z1 and the downstream error signal."},
       {t:7.55, title:"Output gradients use cache", desc:"∂L/∂W2 uses δ² together with A1, which came from the forward cache."},
       {t:8.20, title:"Hidden gradients use cache", desc:"∂L/∂W1 uses hidden delta together with A0, which is the cached input activation."},
@@ -821,6 +821,11 @@
       \]`;
     } else if (t < 6.95) {
       subEq = String.raw`\[
+      L=\frac{1}{2}(A_2-y)^2
+      \quad\Longrightarrow\quad
+      \frac{\partial L}{\partial A_2}=A_2-y
+      \]
+      \[
       \delta^{(2)} = (A_2 - y)\,\sigma'(Z_2)
       = (${yhat.toFixed(3)} - ${DATA.y.toFixed(1)})\sigma'(${z_o.toFixed(3)})
       = ${delta_o.toFixed(3)}

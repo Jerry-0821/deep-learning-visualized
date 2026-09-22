@@ -1502,6 +1502,11 @@ Dev &rarr; Test = dev overfitting</pre>
             <div class="lesson-formula compact">\[
               x \rightarrow \hat{y}^{\langle 1\rangle}, \hat{y}^{\langle 2\rangle}, \dots, \hat{y}^{\langle T_y\rangle}
             \]</div>
+            <p>Each \(\hat{y}^{\langle t\rangle}\) is a probability distribution, not the next input itself. Select a token by argmax or sampling, then look up its embedding:</p>
+            <div class="lesson-formula compact">\[
+              k^{\langle t\rangle}=\operatorname{select}(\hat{y}^{\langle t\rangle}),\qquad
+              x^{\langle t+1\rangle}=E[k^{\langle t\rangle}]
+            \]</div>
           </article>
           <article>
             <h3>Many-to-One</h3>
@@ -2138,7 +2143,11 @@ Dev &rarr; Test = dev overfitting</pre>
         <div class="lesson-formula compact">\[
           \text{cache} = \{A_0,\ Z_1,\ A_1,\ Z_2,\ A_2\}
         \]</div>
-        <p>Then the backward pass starts from the output gradient:</p>
+        <p>This numerical animation uses the half-squared error:</p>
+        <div class="lesson-formula compact">\[
+          L=\frac{1}{2}(A_2-y)^2
+        \]</div>
+        <p>The factor \(\frac{1}{2}\) cancels the \(2\) produced when the square is differentiated, so \(\frac{\partial L}{\partial A_2}=A_2-y\). Then the backward pass starts from the output gradient:</p>
         <div class="lesson-formula">\[
           \frac{\partial L}{\partial Z^{[2]}} = (A_2-y)\sigma'(Z_2)
         \]</div>

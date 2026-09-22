@@ -370,28 +370,28 @@ const DATA = {
     ],
   },
   one2many:{
-    name:'One-to-Many', fn:'\\(\\hat{y}^{\\langle t\\rangle}\\) is fed back as the next input.',
-    app:['Music & Text Generation','A single seed generates an entire sequence. Each output feeds the next step, creating an autoregressive chain.'],
+    name:'One-to-Many', fn:'A token is selected from \\(\\hat{y}^{\\langle t\\rangle}\\), then embedded as the next input.',
+    app:['Music & Text Generation','A single seed generates an entire sequence. Each predicted distribution is decoded to a token whose embedding drives the next step.'],
     formulaTitle:'Generate a sequence from one seed',
-    formulaNote:'After the seed, the previous output becomes the next input.',
+    formulaNote:'After the seed, select or sample a token from the output distribution, then embed that token as the next input.',
     formulas:[
       '\\[a^{\\langle t\\rangle}=\\tanh(W_{aa}a^{\\langle t-1\\rangle}+W_{ax}x^{\\langle t\\rangle}+b_a)\\]',
       '\\[\\hat{y}^{\\langle t\\rangle}=\\operatorname{softmax}(W_{ya}a^{\\langle t\\rangle}+b_y)\\]',
-      '\\[x^{\\langle t+1\\rangle}=\\hat{y}^{\\langle t\\rangle}\\]'
+      '\\[k^{\\langle t\\rangle}=\\operatorname{select}(\\hat{y}^{\\langle t\\rangle}),\\qquad x^{\\langle t+1\\rangle}=E[k^{\\langle t\\rangle}]\\]'
     ],
     stepMath:[
       '\\(a^{\\langle 0\\rangle}\\rightarrow\\text{first RNN cell}\\)',
       '\\(\\hat{y}^{\\langle 1\\rangle}=\\operatorname{softmax}(W_{ya}a^{\\langle 1\\rangle}+b_y)\\)',
-      '\\(x^{\\langle 2\\rangle}=\\hat{y}^{\\langle 1\\rangle}\\)',
+      '\\(k^{\\langle 1\\rangle}=\\operatorname{select}(\\hat{y}^{\\langle 1\\rangle}),\\quad x^{\\langle 2\\rangle}=E[k^{\\langle 1\\rangle}]\\)',
       '\\(a^{\\langle 2\\rangle}=\\tanh(W_{aa}a^{\\langle 1\\rangle}+W_{ax}x^{\\langle 2\\rangle}+b_a)\\)',
       '\\(\\hat{y}^{\\langle T_y\\rangle}\\text{ generated until stop}\\)'
     ],
-    arch:`<strong>One-to-Many</strong> — a single seed input launches an autoregressive sequence. After step 1, each output <em>ŷ⟨t⟩</em> is fed back as the input for the next step. The hidden state carries the generation theme forward.`,
+    arch:`<strong>One-to-Many</strong> — a single seed input launches an autoregressive sequence. At each step, <em>ŷ⟨t⟩</em> is a probability distribution; a token is selected (by argmax or sampling), and its embedding becomes the next input. The hidden state carries the generation theme forward.`,
     hs:['a⟨0⟩','a⟨1⟩','a⟨2⟩','…','a⟨Ty⟩'], hsNote:'Hidden state threads the generation theme through every output step.',
     steps:[
       {pill:'① Seed',    title:'x seeds the first cell',         body:'One seed vector — a genre tag, a starting pitch, or a topic word — initialises the generation chain.'},
-      {pill:'② ŷ⟨1⟩',   title:'First output ŷ⟨1⟩ generated',   body:'The first token is produced. Hidden state a⟨1⟩ now carries the seed\'s "theme" forward.'},
-      {pill:'③ Loop',    title:'ŷ⟨1⟩ fed back as next input',   body:'The output becomes the input at the next step — the autoregressive feedback loop that drives generation.'},
+      {pill:'② ŷ⟨1⟩',   title:'First distribution ŷ⟨1⟩ generated', body:'The model produces probabilities over possible first tokens. Hidden state a⟨1⟩ now carries the seed\'s "theme" forward.'},
+      {pill:'③ Loop',    title:'Select token, then embed it',    body:'Choose a token from ŷ⟨1⟩ by argmax or sampling. The selected token\'s embedding becomes the next input.'},
       {pill:'④ ŷ⟨2⟩',   title:'ŷ⟨2⟩ generated, a⟨2⟩ updates', body:'The hidden state blends seed + step-1 context. Each new token is conditioned on everything before it.'},
       {pill:'⑤ …ŷ⟨Ty⟩','title':'Sequence continues to ŷ⟨Ty⟩',  body:'The loop repeats until a stop token is produced or a fixed output length is reached.'},
     ],
@@ -447,21 +447,21 @@ const DATA = {
     ],
   },
   many2many_neq:{
-    name:'Encoder–Decoder', fn:'Encoder builds \\(c=a_{enc}^{\\langle T_x\\rangle}\\); decoder feeds \\(\\hat{y}^{\\langle t\\rangle}\\) forward.',
+    name:'Encoder–Decoder', fn:'Encoder builds \\(c=a_{enc}^{\\langle T_x\\rangle}\\); decoder selects a token and embeds it for the next step.',
     app:['Machine Translation','Encode full English sentence → context vector. Decode to French: "The cat sat" (3 tokens) → "Le chat était assis" (4 tokens).'],
     formulaTitle:'Encode first, decode after context',
     formulaNote:'The encoder creates a context vector, then the decoder generates a different-length sequence.',
     formulas:[
       '\\[a_{enc}^{\\langle t\\rangle}=\\tanh(W_{aa}^{enc}a_{enc}^{\\langle t-1\\rangle}+W_{ax}^{enc}x^{\\langle t\\rangle}+b_a^{enc})\\]',
       '\\[c=a_{enc}^{\\langle T_x\\rangle}\\]',
-      '\\[d^{\\langle t\\rangle}=\\tanh(W_{dd}d^{\\langle t-1\\rangle}+W_{dy}y^{\\langle t-1\\rangle}+b_d)\\]',
-      '\\[\\hat{y}^{\\langle t\\rangle}=\\operatorname{softmax}(W_{yd}d^{\\langle t\\rangle}+b_y)\\]'
+      '\\[d^{\\langle t\\rangle}=\\tanh(W_{dd}d^{\\langle t-1\\rangle}+W_{dx}x_{dec}^{\\langle t\\rangle}+b_d)\\]',
+      '\\[\\hat{y}^{\\langle t\\rangle}=\\operatorname{softmax}(W_{yd}d^{\\langle t\\rangle}+b_y),\\quad k^{\\langle t\\rangle}=\\operatorname{select}(\\hat{y}^{\\langle t\\rangle}),\\quad x_{dec}^{\\langle t+1\\rangle}=E[k^{\\langle t\\rangle}]\\]'
     ],
     stepMath:[
       '\\(a_{enc}^{\\langle t\\rangle}\\text{ reads }x^{\\langle 1\\rangle},\\ldots,x^{\\langle T_x\\rangle}\\)',
       '\\(c=a_{enc}^{\\langle T_x\\rangle}\\)',
-      '\\(d^{\\langle 0\\rangle}=c,\\quad y^{\\langle 0\\rangle}=\\langle SOS\\rangle\\)',
-      '\\(\\hat{y}^{\\langle t\\rangle}\\rightarrow y^{\\langle t\\rangle}\\text{ for the next decoder step}\\)',
+      '\\(d^{\\langle 0\\rangle}=c,\\quad x_{dec}^{\\langle 1\\rangle}=E[\\langle SOS\\rangle]\\)',
+      '\\(\\hat{y}^{\\langle t\\rangle}\\rightarrow k^{\\langle t\\rangle}=\\operatorname{select}(\\hat{y}^{\\langle t\\rangle})\\rightarrow x_{dec}^{\\langle t+1\\rangle}=E[k^{\\langle t\\rangle}]\\)',
       '\\(\\hat{y}^{\\langle T_y\\rangle}=\\langle EOS\\rangle\\)'
     ],
     arch:`<strong>Encoder–Decoder</strong> — two phases. The <em>encoder</em> reads the full source and compresses it into a context vector c. The <em>decoder</em> generates the target sequence from ⟨SOS⟩, primed by c. Input and output lengths can differ freely.`,
@@ -470,7 +470,7 @@ const DATA = {
       {pill:'① Encode',  title:'Encoder reads x⟨1⟩ … x⟨Tx⟩',   body:'The encoder processes every source token. Hidden state updates at each step. No output yet.'},
       {pill:'② Context', title:'Final encoder state → context c',  body:'a⟨Tx⟩ becomes the context vector c — a fixed-size summary of the entire source sequence.'},
       {pill:'③ ⟨SOS⟩',  title:'Decoder starts from ⟨SOS⟩ + c',  body:'A start-of-sequence token triggers the decoder, which is initialised with c as its hidden state.'},
-      {pill:'④ Decode',  title:'ŷ⟨1⟩ generated, fed back',       body:'Each decoder output becomes the next input — autoregressive decoding, guided by the context.'},
+      {pill:'④ Decode',  title:'Select token, then embed it',    body:'Each output is a probability distribution. A selected token is embedded as the next decoder input, guided by the context.'},
       {pill:'⑤ ⟨EOS⟩',  title:'Decoding until ⟨EOS⟩',            body:'Generation stops at the end-of-sequence token. Output length Ty can differ from source Tx.'},
     ],
   },
