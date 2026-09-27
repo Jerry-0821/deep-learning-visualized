@@ -1805,7 +1805,7 @@ Dev &rarr; Test = dev overfitting</pre>
           <div><dt>\(S\)</dt><dd>The stride.</dd></div>
           <div><dt>\(\lfloor \cdot \rfloor\)</dt><dd>The floor operation.</dd></div>
         </dl>
-        <p>Stride, padding, and filter size determine how large the output feature map will be.</p>
+        <p>Stride, padding, and filter size determine how large the output feature map will be. In the interactive walkthrough above, \(H=W=8\), \(k_h=k_w=3\), \(S=1\), and zero padding \(P=1\), so \(\lfloor(8+2(1)-3)/1\rfloor+1=8\): the 8×8 input produces an 8×8 feature map.</p>
 
         <h3 class="reading-subheading">Deeper Layers</h3>
         <div class="lesson-formula compact">\[

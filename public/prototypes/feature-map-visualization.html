@@ -800,7 +800,7 @@
   <section id="phase2" data-animate>
     <div class="phase-label">Phase 2 · The Mechanism</div>
     <div class="phase-title">A filter is a small window that <span class="hl">slides across the image</span></div>
-    <div class="phase-desc">Every feature map starts with one filter: a small grid of numbers. It slides across the image, does a dot product at each position, and writes the result. That's it.</div>
+    <div class="phase-desc">Every feature map starts with one filter: a small grid of numbers. It slides across the image, does a dot product at each position, and writes the result. This demo uses stride S=1 and one-cell zero padding P=1, so an 8×8 input produces an 8×8 output.</div>
 
     <!-- Filter selector -->
     <div class="p2-filter-selector">
@@ -855,7 +855,7 @@
     </div>
 
     <!-- Dynamic explanation -->
-    <div class="p2-explain state-default" id="p2Explain">The filter starts at the top-left corner. It covers a 3×3 region of the input.</div>
+    <div class="p2-explain state-default" id="p2Explain">At the top-left output position, the 3×3 window contains 4 image cells and 5 zero-padding cells outside the image. The outline shows only the 2×2 in-bounds part.</div>
 
     <!-- Completion card -->
     <div class="p2-complete" id="p2Complete">
@@ -1669,11 +1669,13 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
   function p2ComputeDot(fy, fx) {
     var sum = 0;
     var terms = [];
+    var paddingCount = 0;
     for (var ky = 0; ky < 3; ky++) {
       for (var kx = 0; kx < 3; kx++) {
         var iy = fy + ky - 1;
         var ix = fx + kx - 1;
         var inside = iy >= 0 && iy < P2_SIZE && ix >= 0 && ix < P2_SIZE;
+        if (!inside) paddingCount++;
         var pixVal = inside ? p2State.input[iy][ix] : 0;
         var kVal = p2Kernel[ky][kx];
         sum += pixVal * kVal;
@@ -1682,7 +1684,7 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
         }
       }
     }
-    return { sum: sum, terms: terms };
+    return { sum: sum, terms: terms, paddingCount: paddingCount };
   }
 
   function p2BuildFullOutput() {
@@ -1734,7 +1736,8 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
     } else {
       termStr = result.terms.join(" + ");
     }
-    dpEl.textContent = termStr + " = " + result.sum.toFixed(2) + reluNote;
+    var paddingNote = result.paddingCount > 0 ? "  ·  zero padding: " + result.paddingCount + " cells × 0" : "";
+    dpEl.textContent = termStr + " = " + result.sum.toFixed(2) + reluNote + paddingNote;
 
     // Update progress
     p2State.step++;
@@ -1760,7 +1763,10 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
       var reluSuffix = rawSum < 0
         ? " The raw dot product was " + rawSum.toFixed(2) + " — ReLU clamps all negatives to 0, so this position writes 0 to the output."
         : "";
-      explainEl.textContent = p2Filters[p2State.filterKey].explainActive(fx, fy, afterRelu) + reluSuffix;
+      var paddingSuffix = result.paddingCount > 0
+        ? " This border window includes " + result.paddingCount + " zero-padding cells outside the image; the outline shows only the in-bounds part."
+        : "";
+      explainEl.textContent = p2Filters[p2State.filterKey].explainActive(fx, fy, afterRelu) + reluSuffix + paddingSuffix;
     }
   }
 
@@ -1781,7 +1787,7 @@ layer1_output = model.features[:<span class="cn">2</span>](image_tensor)
     document.getElementById("p2ProgressPct").textContent = "0%";
     document.getElementById("p2DotProd").textContent = "Press Step to begin.";
     document.getElementById("p2Explain").className = "p2-explain state-default";
-    document.getElementById("p2Explain").textContent = "The filter starts at the top-left corner. It covers a 3×3 region of the input.";
+    document.getElementById("p2Explain").textContent = "At the top-left output position, the 3×3 window contains 4 image cells and 5 zero-padding cells outside the image. The outline shows only the 2×2 in-bounds part.";
     document.getElementById("p2Complete").classList.remove("visible");
     document.getElementById("p2RunBtn").textContent = "Run";
     document.getElementById("p2RunBtn").classList.remove("active");

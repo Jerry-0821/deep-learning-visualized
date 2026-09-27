@@ -606,11 +606,11 @@
     <div class="p3-tl-icons"><span></span><span>🔄 Iterate</span><span>🔒</span></div>
     <div class="p3-tl-labels"><span>Training — fit weights on train set</span><span>Val — compare &amp; pick</span><span>Test</span></div>
     <div class="p3-timeline"><div class="p3-tl-train"></div><div class="p3-tl-val"></div><div class="p3-tl-test"></div></div>
-    <div class="p3-tl-note">The test split is locked during the entire development process. You only open it once, at the very end, to get an honest final number.</div>
+    <div class="p3-tl-note">The test split stays outside the development loop. Use it only after model, data, and hyperparameter decisions are finalized so it can provide an independent estimate.</div>
     <div class="p3-roles">
       <div class="p3-role-card p3-role-train"><div class="p3-role-tag">Train</div><div class="p3-role-title">Learn parameters</div><div class="p3-role-core">Runs gradient descent. Updates every weight in the network.</div><ul class="p3-role-points"><li>More data usually helps</li><li>Train distribution matters less — it can include messier sources</li><li>Never used for model selection</li></ul></div>
       <div class="p3-role-card p3-role-val"><div class="p3-role-tag">Val / Dev</div><div class="p3-role-title">Choose ideas</div><div class="p3-role-core">Compare architectures, hyperparameters, and data strategies. Pick the winner.</div><ul class="p3-role-points"><li>Must reflect future users — this is your compass</li><li>If it's wrong, every decision is wrong</li><li>Can be looked at many times</li></ul></div>
-      <div class="p3-role-card p3-role-test"><div class="p3-role-tag">Test</div><div class="p3-role-title">Final honest check</div><div class="p3-role-core">Gives the one number you can trust. Only valid if you haven't touched it during development.</div><ul class="p3-role-points"><li>Must also reflect future users</li><li>Opened exactly once</li><li>Every extra peek makes this number less trustworthy</li></ul></div>
+      <div class="p3-role-card p3-role-test"><div class="p3-role-tag">Test</div><div class="p3-role-title">Final honest check</div><div class="p3-role-core">Provides an independent final estimate when its results have not influenced development decisions.</div><ul class="p3-role-points"><li>Must also reflect future users</li><li>Not used to choose models or settings</li><li>Reusing its results for decisions turns it into selection data</li></ul></div>
     </div>
   </section>
 
@@ -629,10 +629,11 @@
       <!-- Q1 -->
       <div class="mt-question shown" id="mtQ1">
         <div class="mt-q-text">How much training data do you have?</div>
+        <div class="mt-q-sub">These ranges are illustrative, not universal thresholds. The right method also depends on task complexity, class balance, grouping, time dependence, and acceptable uncertainty.</div>
         <div class="mt-btn-row">
-          <button class="mt-btn" data-q="q1" data-val="small">Small — fewer than 1,000 examples</button>
-          <button class="mt-btn" data-q="q1" data-val="medium">Medium — 1,000 to 50,000 examples</button>
-          <button class="mt-btn" data-q="q1" data-val="large">Large — more than 50,000 examples</button>
+          <button class="mt-btn" data-q="q1" data-val="small">Relatively small — e.g. under ~1,000</button>
+          <button class="mt-btn" data-q="q1" data-val="medium">Medium — e.g. ~1,000 to ~50,000</button>
+          <button class="mt-btn" data-q="q1" data-val="large">Relatively large — e.g. above ~50,000</button>
         </div>
       </div>
 
@@ -696,7 +697,7 @@
             </div>
             <div class="holdout-note">Proportions vary by project. 70/15/15 is a common starting point.</div>
           </div>
-          <div class="mc-warn mc-warn-amber">⚠️ Unstable with small datasets. If your sample is small, the specific examples that land in val can swing your score by 10–15 points. The number you see may not be representative of real performance.</div>
+          <div class="mc-warn mc-warn-amber">⚠️ A single hold-out can be unstable with limited data. Different random splits may produce noticeably different validation scores; the amount varies with the dataset, metric, and class balance.</div>
         </div>
 
         <!-- Card 2: K-Fold -->
@@ -714,7 +715,7 @@
             </div>
             <div class="kfold-avg">Average: 81.8%</div>
           </div>
-          <div class="mc-warn mc-warn-amber">⚠️ K-Fold replaces val — not test. Many people train with K-Fold, take the average as their "final score", and skip the test set entirely. That's wrong. The average is for model selection. Test is still opened once, at the very end, on data the whole training loop never touched.</div>
+          <div class="mc-warn mc-warn-amber">⚠️ K-Fold replaces val — not test. Many people train with K-Fold, take the average as their "final score", and skip the test set entirely. That's wrong. The average is for model selection. Test remains outside that selection loop and is used only for the final evaluation.</div>
         </div>
 
         <!-- Card 3: Stratified K-Fold -->
@@ -764,7 +765,7 @@
               </div>
             </div>
           </div>
-          <div class="mc-warn mc-warn-amber">⚠️ You must explicitly pass group labels to the splitter. If you forget, sklearn will silently fall back to regular K-Fold and your val scores will be optimistically inflated.</div>
+          <div class="mc-warn mc-warn-amber">⚠️ GroupKFold requires group labels. If groups are missing, scikit-learn raises an error; it does not silently switch to regular K-Fold. Deliberately using regular K-Fold instead can leak the same source across folds.</div>
         </div>
 
         <!-- Card 5: Walk-forward -->
@@ -789,7 +790,7 @@
       <!-- Block C: universal warning -->
       <div class="mt-final-warn">
         <div class="mt-final-warn-title">One rule that applies to every method above</div>
-        <div class="mt-final-warn-text">K-Fold, Stratified K-Fold, Group K-Fold — all of these replace val. None of them replace test.<br><br>No matter which method you use for model selection, test is still reserved, still locked, and still opened exactly once at the end.</div>
+        <div class="mt-final-warn-text">K-Fold, Stratified K-Fold, Group K-Fold — all of these replace val. None of them replace test.<br><br>No matter which method you use for model selection, keep test outside the development loop and use it only after your decisions are finalized.</div>
       </div>
     </div>
   </section>
@@ -836,23 +837,23 @@
   ════════════════════════════════════════════════ -->
   <section id="phase6-peek" data-animate>
     <div class="phase-label">Phase 6 · The Second Trap</div>
-    <div class="phase-title">Your dev set is perfect. But you kept <span class="hl">peeking at test.</span></div>
-    <div class="phase-desc">There are two ways to get a misleading final number. Phase 5 showed you the first. Here's the second.</div>
+    <div class="phase-title">Your dev set is perfect. But test results started <span class="hl">guiding development.</span></div>
+    <div class="phase-desc">The problem is not that a score appeared on screen. Bias enters when test results influence which model, feature, or hyperparameter you choose.</div>
     <div class="p5-setup">
-      <div class="p5-setup-card"><div class="p5-setup-title">The setup</div><div class="p5-setup-text">The team fixed their splits. Dev and test both reflect real users. They're doing everything right — except one thing: every time they feel uncertain, they check the test score "just to see".</div></div>
-      <div class="p5-setup-card"><div class="p5-setup-title">What they're doing</div><ul class="p5-checklist"><li>✅ Dev set matches real users</li><li>✅ Test set matches real users</li><li>✅ Train on train, evaluate on dev</li><li class="bad-item">❌ Test opened multiple times during development</li></ul></div>
+      <div class="p5-setup-card"><div class="p5-setup-title">The setup</div><div class="p5-setup-text">The team fixed their splits. Dev and test both reflect real users. But after seeing each test result, they decide what to change next and then test again.</div></div>
+      <div class="p5-setup-card"><div class="p5-setup-title">What they're doing</div><ul class="p5-checklist"><li>✅ Dev set matches real users</li><li>✅ Test set matches real users</li><li>✅ Train on train, evaluate on dev</li><li class="bad-item">❌ Test results influence development decisions</li></ul></div>
     </div>
     <div class="p5-peek-section">
-      <div class="p5-peek-label"><span>How many times did they peek at test?</span><span class="p5-peek-value" id="peekValue">0 times</span></div>
+      <div class="p5-peek-label"><span>How many development decisions used test results?</span><span class="p5-peek-value" id="peekValue">0 decisions</span></div>
       <input type="range" id="peekSlider" min="0" max="15" step="1" value="0">
       <div class="p5-months" id="peekMonths"></div>
     </div>
     <div class="p5-metrics">
-      <div class="p5-metric-card"><div class="p5-metric-title">Reported test score</div><div class="p5-metric-big" id="p5TestScore" style="color:var(--green)">91%</div><div class="p5-metric-sub">What they'd write in the report</div></div>
-      <div class="p5-metric-card"><div class="p5-metric-title">True generalization</div><div class="p5-metric-big" id="p5TrueScore" style="color:var(--green)">89%</div><div class="p5-metric-sub">What you'd see on truly new data</div></div>
-      <div class="p5-metric-card"><div class="p5-metric-title">Trust in final number</div><div class="p5-metric-big" id="p5TrustPct" style="color:var(--green)">100%</div><div class="p5-trust-bar-wrap"><div class="p5-trust-track"><div class="p5-trust-fill" id="p5TrustFill" style="width:100%;background:var(--green)"></div></div></div><div class="p5-trust-verdict" id="p5TrustVerdict" style="color:var(--green)">Trustworthy</div></div>
+      <div class="p5-metric-card"><div class="p5-metric-title">Test-set role</div><div class="p5-metric-big" id="p5TestScore" style="color:var(--green)">Final only</div><div class="p5-metric-sub">Whether test influences model selection</div></div>
+      <div class="p5-metric-card"><div class="p5-metric-title">True generalization</div><div class="p5-metric-big" id="p5TrueScore" style="color:var(--gray-700)">Unknown</div><div class="p5-metric-sub">Must be estimated using untouched future-like data</div></div>
+      <div class="p5-metric-card"><div class="p5-metric-title">Selection-bias risk</div><div class="p5-metric-big" id="p5TrustPct" style="color:var(--green)">Low</div><div class="p5-trust-bar-wrap"><div class="p5-trust-track"><div class="p5-trust-fill" id="p5TrustFill" style="width:12%;background:var(--green)"></div></div></div><div class="p5-trust-verdict" id="p5TrustVerdict" style="color:var(--green)">Qualitative teaching aid — not a confidence score</div></div>
     </div>
-    <div class="p5-explain-box" id="p5Explain" style="background:var(--green-light);border-color:rgba(22,163,74,0.2);">Test has never been touched. When you open it at the end, the number will be a genuine surprise — and that surprise is the point.</div>
+    <div class="p5-explain-box" id="p5Explain" style="background:var(--green-light);border-color:rgba(22,163,74,0.2);">No development decision used test results. Test remains an independent final evaluation.</div>
   </section>
 
   <!-- ════════════════════════════════════════════════
@@ -863,7 +864,7 @@
       <div class="closing-big-title">Two rules. That's it.</div>
       <div class="closing-rules">
         <div class="closing-rule"><div class="closing-rule-num">1</div><div class="closing-rule-text"><strong>Dev and test must reflect the users you actually care about.</strong><br>Not the data that was easy to collect.</div></div>
-        <div class="closing-rule"><div class="closing-rule-num">2</div><div class="closing-rule-text"><strong>Test is opened once. At the very end.</strong><br>Every additional peek makes the number less honest.</div></div>
+        <div class="closing-rule"><div class="closing-rule-num">2</div><div class="closing-rule-text"><strong>Keep test outside the development loop.</strong><br>Using its results to choose what to try next compromises its independence.</div></div>
       </div>
       <div class="closing-code-label">In practice, this looks like:</div>
       <div class="closing-code-wrap">
@@ -916,7 +917,7 @@ model.evaluate(test_data)   <span class="code-annot">← final honest number</sp
       name: 'K-Fold Cross-Validation',
       color: 'color-blue',
       reason: 'With a medium-sized dataset, one split is too noisy. K-Fold trains k times and averages the scores for a stable estimate.',
-      warn: '⚠️ K-Fold replaces val — not test. The averaged score is used for model selection. You still need a separate test set, opened once at the very end.',
+      warn: '⚠️ K-Fold replaces val — not test. The averaged score is used for model selection. You still need a separate test set that stays outside the selection loop until final evaluation.',
       cardId: 'card-kfold'
     },
     stratifiedkfold: {
@@ -930,7 +931,7 @@ model.evaluate(test_data)   <span class="code-annot">← final honest number</sp
       name: 'Group K-Fold',
       color: 'color-blue',
       reason: 'If the same source (user, patient, device) appears in both train and val, the model can "remember" patterns from that source. Group K-Fold ensures each source appears in only one fold.',
-      warn: '⚠️ Easy to miss: you must explicitly pass the group labels to the splitter. If you forget, sklearn will silently fall back to regular K-Fold and your val scores will be optimistically inflated.',
+      warn: '⚠️ GroupKFold requires group labels. If groups are missing, scikit-learn raises an error; it does not silently switch to regular K-Fold. Deliberately using regular K-Fold instead can leak the same source across folds.',
       cardId: 'card-groupkfold'
     },
     walkforward: {
@@ -1195,41 +1196,36 @@ model.evaluate(test_data)   <span class="code-annot">← final honest number</sp
 
   function updatePhase6() {
     var p = state.peeks;
-    document.getElementById('peekValue').textContent = p === 0 ? '0 times' : p === 1 ? '1 time' : p + ' times';
+    document.getElementById('peekValue').textContent = p === 0 ? '0 decisions' : p === 1 ? '1 decision' : p + ' decisions';
     document.querySelectorAll('.p5-month').forEach(function (m, i) { m.classList.toggle('peeked', i < p); });
 
-    var ts = Math.round(clamp(91 + p * 0.4, 0, 99));
-    var tr = Math.round(clamp(89 - p * 1.5, 0, 99));
-    var trust = Math.round(clamp(100 - p * 7, 0, 100));
+    var tsEl = document.getElementById('p5TestScore');
+    tsEl.textContent = p === 0 ? 'Final only' : 'Used ' + p + '×';
+    tsEl.style.color = p === 0 ? 'var(--green)' : p <= 3 ? 'var(--amber)' : 'var(--red)';
+    tsEl.classList.remove('glitch-active');
 
-    var tsEl = document.getElementById('p5TestScore'); tsEl.textContent = ts + '%';
-    tsEl.style.color = p <= 3 ? 'var(--green)' : p <= 7 ? 'var(--amber)' : 'var(--red)';
-    
-    if (p > 10) { 
-      tsEl.classList.add('glitch-active'); 
-      if (Math.random() > 0.5) { tsEl.textContent = '#$%&'; setTimeout(function(){ tsEl.textContent = ts + '%'; }, 80); }
-    } else { 
-      tsEl.classList.remove('glitch-active'); 
-    }
+    var trEl = document.getElementById('p5TrueScore');
+    trEl.textContent = 'Unknown';
+    trEl.style.color = 'var(--gray-700)';
 
-    var trEl = document.getElementById('p5TrueScore'); trEl.textContent = tr + '%';
-    trEl.style.color = tr >= 80 ? 'var(--green)' : tr >= 60 ? 'var(--amber)' : 'var(--red)';
+    var risk, riskWidth;
+    if      (p === 0) { risk = 'Low';       riskWidth = 12; }
+    else if (p <= 3)  { risk = 'Moderate';  riskWidth = 38; }
+    else if (p <= 7)  { risk = 'High';      riskWidth = 68; }
+    else              { risk = 'Very high'; riskWidth = 92; }
 
-    var tpEl = document.getElementById('p5TrustPct'); tpEl.textContent = trust + '%';
-    var tf = document.getElementById('p5TrustFill'); tf.style.width = trust + '%';
+    var tpEl = document.getElementById('p5TrustPct'); tpEl.textContent = risk;
+    var tf = document.getElementById('p5TrustFill'); tf.style.width = riskWidth + '%';
     var tv = document.getElementById('p5TrustVerdict');
-    var tc, tl;
-    if      (trust >= 80) { tc = 'var(--green)'; tl = 'Trustworthy'; }
-    else if (trust >= 58) { tc = 'var(--green)'; tl = 'Slightly compromised'; }
-    else if (trust >= 37) { tc = 'var(--amber)'; tl = 'Questionable'; }
-    else                  { tc = 'var(--red)';   tl = 'Not trustworthy'; }
+    var tc = p === 0 ? 'var(--green)' : p <= 3 ? 'var(--amber)' : 'var(--red)';
+    var tl = 'Qualitative teaching aid — not a confidence score';
     tpEl.style.color = tc; tf.style.background = tc; tv.style.color = tc; tv.textContent = tl;
 
     var ex = document.getElementById('p5Explain'), msg, bg, bc;
-    if      (p === 0) { msg = 'Test has never been touched. When you open it at the end, the number will be a genuine surprise — and that surprise is the point.'; bg = 'var(--green-light)'; bc = 'rgba(22,163,74,0.2)'; }
-    else if (p <= 3)  { msg = 'You\'ve peeked a few times. The number is still mostly trustworthy, but each peek slightly biases your project decisions toward test.'; bg = 'var(--green-light)'; bc = 'rgba(22,163,74,0.2)'; }
-    else if (p <= 7)  { msg = 'At this point, test is acting like a second dev set. You\'re making decisions that inflate the test number without realizing it.'; bg = 'var(--amber-light)'; bc = 'rgba(217,119,6,0.2)'; }
-    else              { msg = 'The test number is now meaningless as a final evaluation. You\'ve optimized your entire project around a number you were never supposed to see during development.'; bg = 'var(--red-light)'; bc = 'rgba(220,38,38,0.2)'; }
+    if      (p === 0) { msg = 'No development decision used test results. Test remains an independent final evaluation.'; bg = 'var(--green-light)'; bc = 'rgba(22,163,74,0.2)'; }
+    else if (p <= 3)  { msg = 'This demo assumes each test result influenced what the team tried next. That feedback creates selection bias. Merely viewing a score without changing any decision would not alter the model or its true generalization.'; bg = 'var(--amber-light)'; bc = 'rgba(217,119,6,0.2)'; }
+    else if (p <= 7)  { msg = 'Test is now part of model selection rather than an independent evaluation. Its score may become optimistic, but the size of that bias is not determined by a fixed formula.'; bg = 'var(--amber-light)'; bc = 'rgba(217,119,6,0.2)'; }
+    else              { msg = 'Test has effectively become another validation set. Reserve a new untouched holdout or collect fresh future-like data before reporting a final estimate.'; bg = 'var(--red-light)'; bc = 'rgba(220,38,38,0.2)'; }
     ex.textContent = msg; ex.style.background = bg; ex.style.borderColor = bc;
 
     if (p > 7) { ex.classList.add('pulse-warning'); } else { ex.classList.remove('pulse-warning'); }
