@@ -782,19 +782,19 @@
   <section id="phase1" data-animate>
     <div class="phase-label">Phase 1 · The Problem</div>
     <div class="phase-title">You have 8,000 images. <span class="hl">Is that enough?</span></div>
-    <div class="phase-desc">Training a medical classifier from scratch requires hundreds of thousands of examples. Most real projects don't have that.</div>
+    <div class="phase-desc">Illustrative scenario: a hospital has 8,000 labeled X-rays. Whether that is enough to train from scratch depends on the model and task; the scores below are examples, not measured results.</div>
 
     <div class="p1-grid">
       <div class="p1-counter">
         <div class="p1-number">8,000</div>
         <div class="p1-sublabel">your labeled X-ray images</div>
-        <div class="p1-note">A typical ImageNet-scale model needs ~1.2M images to train well from scratch.</div>
+        <div class="p1-note">For scale, ImageNet-style pretraining can use about 1.2M source images. That is not a minimum required for this medical task.</div>
         <div class="p1-bar-wrap">
           <div class="p1-bar-track">
             <div class="p1-bar-yours" style="width:0.67%"></div>
           </div>
           <div class="p1-bar-labels">
-            <span>8k yours</span><span>1.2M needed</span>
+            <span>8k target images</span><span>1.2M source images</span>
           </div>
         </div>
       </div>
@@ -802,14 +802,14 @@
       <div class="p1-results">
         <div class="p1-result-card p1-card-red">
           <div class="p1-card-title">Train from scratch</div>
-          <div class="p1-card-text">Validation accuracy: 61% — the model memorizes training data but fails on new images.</div>
+          <div class="p1-card-text">Illustrative validation accuracy: 61%. This score alone does not show whether the model memorized training data.</div>
           <div class="p1-acc-bar"><div class="p1-acc-fill p1-acc-red" style="width:61%"></div></div>
           <div class="p1-acc-label">61%</div>
         </div>
 
         <div class="p1-result-card p1-card-green p1-card-hidden" id="p1Card2">
           <div class="p1-card-title">Use a pretrained backbone</div>
-          <div class="p1-card-text">Validation accuracy: 89% — same 8,000 images, dramatically better result.</div>
+          <div class="p1-card-text">Illustrative validation accuracy: 89% on the same 8,000 images. An actual result must be measured.</div>
           <div class="p1-acc-bar"><div class="p1-acc-fill p1-acc-green" style="width:89%"></div></div>
           <div class="p1-acc-label">89%</div>
         </div>
@@ -824,8 +824,8 @@
   ════════════════════════════════════════════════ -->
   <section id="phase2" data-animate>
     <div class="phase-label">Phase 2 · Why It Works</div>
-    <div class="phase-title">The first layers learn <span class="hl">universal features</span></div>
-    <div class="phase-desc">A network trained on cats doesn't just learn "cat". It learns edges, textures, and shapes — and those are useful everywhere.</div>
+    <div class="phase-title">Early layers often learn <span class="hl">reusable patterns</span></div>
+    <div class="phase-desc">An image network may learn edges, textures, and simple shapes early on. Their usefulness for a new task depends on the source data and target domain.</div>
 
     <!-- Three-column feature cards -->
     <div class="p2-flow">
@@ -846,8 +846,8 @@
             <line x1="76" y1="76" x2="104" y2="104" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
           </svg>
         </div>
-        <div class="p2-col-text">Detects basic edges and gradients. Useful for <strong>any</strong> image task.</div>
-        <div class="p2-tag p2-tag-green">Universal ✓</div>
+        <div class="p2-col-text">Often responds to basic edges and gradients. These patterns <strong>may</strong> help on another image task.</div>
+        <div class="p2-tag p2-tag-green">Often reusable</div>
       </div>
 
       <div class="p2-arrow">
@@ -876,7 +876,7 @@
           </svg>
         </div>
         <div class="p2-col-text">Combines edges into textures and repeated patterns — like recognising brickwork without knowing what a brick <em>is</em>.</div>
-        <div class="p2-tag p2-tag-green">Usually transferable ✓</div>
+        <div class="p2-tag p2-tag-green">May transfer</div>
       </div>
 
       <div class="p2-arrow">
@@ -906,9 +906,8 @@
 
     <!--
       FIX 2: Interactive "Does it matter what Task A was?" block.
-      User toggles between two Task A options and discovers that Conv 1
-      always learns the same low-level edges — regardless of what Task A was.
-      This makes the core insight of transferability tangible.
+      User toggles between two Task A examples. The diagram illustrates
+      common categories of early patterns, not identical learned filters.
     -->
     <div class="p2-interact">
       <div class="p2-interact-header">
@@ -919,9 +918,9 @@
         </div>
       </div>
       <div class="p2-interact-result">
-        <div class="p2-result-feature">Conv 1 output: detects edges and gradients</div>
+        <div class="p2-result-feature">Schematic Conv 1 patterns: edges and gradients</div>
         <div class="p2-result-note" id="p2Note">
-          Trained on cats. But Conv 1 doesn't know that — it just learned edges.
+          A model trained on cat images may learn edge-like filters. Its labels influence these layers through backpropagation; the filters are not guaranteed to transfer.
         </div>
       </div>
     </div>
@@ -998,7 +997,7 @@
   <section id="phase4" data-animate>
     <div class="phase-label">Phase 4 · When To Use It</div>
     <div class="phase-title">Transfer learning isn't <span class="hl">always the right call</span></div>
-    <div class="phase-desc">Three conditions determine how much you'll benefit.</div>
+    <div class="phase-desc">These three clues form a qualitative checklist, not a measured prediction of accuracy. Compare pretrained and scratch models on a target validation set.</div>
 
     <div class="p4-cards">
       <div class="p4-card">
@@ -1027,12 +1026,12 @@
           <button class="p4-sim-btn" data-sim="related">Related domain</button>
           <button class="p4-sim-btn" data-sim="different">Different domain</button>
         </div>
-        <div class="p4-sim-explain" id="p4SimExplain">Both tasks use natural images — conv features transfer almost perfectly.</div>
+        <div class="p4-sim-explain" id="p4SimExplain">Similar image domains make feature reuse plausible, but transfer quality still needs target-task validation.</div>
       </div>
 
       <div class="p4-card">
         <div class="p4-card-title">③ Low-level features are shared between tasks</div>
-        <div class="p4-card-desc">Early conv layers learn edges and textures — these transfer well. But if Task B is completely unrelated, even early features may not help.</div>
+        <div class="p4-card-desc">Early conv layers often learn edges and textures. Whether those features help Task B depends on the target data and how the backbone is adapted.</div>
         <label class="p4-check">
           <input type="checkbox" id="p4Reusable" checked>
           <span>Low-level features are likely reusable</span>
@@ -1070,7 +1069,7 @@
         </div>
       </div>
       <div class="closing-story">
-        Same data. Same model architecture. The only difference was the starting point.
+        This example assumes the same target data and model architecture with different initial weights. Actual results also depend on the training setup.
       </div>
       <div class="closing-punchline">That's transfer learning.</div>
     </div>
@@ -1137,13 +1136,13 @@ optimizer = torch.optim.Adam(model.fc.parameters(), lr=1e-3)
   /* ══════════════════════════════════
      FIX 2 — PHASE 2 INTERACTIVE BLOCK
      Toggle between Task A: Cats and Task A: X-rays.
-     Both show the SAME Conv 1 output — making the user
-     discover that early-layer features don't depend on the domain.
+     Both show a schematic pattern category, while the learned filters and
+     activations may differ across domains.
   ══════════════════════════════════ */
   function initPhase2() {
     var notes = {
-      cats:   'Trained on cats. But Conv 1 doesn\'t know that — it just learned edges. The "cat" label never reached these early layers.',
-      xrays:  'Even trained on X-rays, Conv 1 still learns the same edges and gradients. Early features converge to the same thing regardless of domain — that\'s exactly why they transfer.'
+      cats:   'A network trained on cat images may learn edge-like filters early on. Labels affect those filters through backpropagation; transfer to X-rays is possible, not guaranteed.',
+      xrays:  'A network trained on X-rays may also learn edge-like patterns, but its filters and activations need not match those from cat images. Domain similarity affects reuse.'
     };
 
     document.querySelectorAll('[data-task]').forEach(function (btn) {
@@ -1416,9 +1415,9 @@ optimizer = torch.optim.Adam(model.fc.parameters(), lr=1e-3)
   ══════════════════════════════════ */
   function initPhase4() {
     var simExplains = {
-      same:      'Both tasks use natural images — conv features transfer almost perfectly.',
+      same:      'Similar image domains make feature reuse plausible, but transfer quality still needs target-task validation.',
       related:   'Medical images share some structure with natural images, but the model will still need to adapt to the new visual style.',
-      different: 'Completely different input types (e.g. images vs. text) — the pretrained features are unlikely to help at all.'
+      different: 'Completely different input types (e.g. images vs. text) usually need a different backbone or an adaptation method; direct feature reuse is less plausible.'
     };
 
     function formatData(val) {
@@ -1429,34 +1428,34 @@ optimizer = torch.optim.Adam(model.fc.parameters(), lr=1e-3)
       var ratio = state.aData / state.bData;
       var badge = document.getElementById('p4RatioBadge');
       var cls, text;
-      if (ratio > 10)     { cls = 'green';  text = ratio.toFixed(0) + '× gap — Strong case for transfer'; }
-      else if (ratio >= 3){ cls = 'yellow'; text = ratio.toFixed(1) + '× gap — Moderate benefit expected'; }
-      else                { cls = 'red';    text = ratio.toFixed(1) + '× gap — Limited benefit — consider training from scratch'; }
+      if (ratio > 10)     { cls = 'green';  text = ratio.toFixed(0) + '× gap — larger source dataset (illustrative clue)'; }
+      else if (ratio >= 3){ cls = 'yellow'; text = ratio.toFixed(1) + '× gap — some source-data advantage (illustrative clue)'; }
+      else                { cls = 'red';    text = ratio.toFixed(1) + '× gap — dataset size alone cannot decide'; }
       badge.className = 'p4-ratio-badge ' + cls;
       badge.textContent = text;
     }
 
     function updateVerdict() {
-      var score = 0;
-      if (state.aData / state.bData > 10) score++;
-      if (state.similarity === 'same')     score++;
-      if (state.reusable)                  score++;
+      // Teaching checklist only. These weights and cutoffs are not estimates of accuracy.
+      var score = (state.aData / state.bData > 10 ? 1 : 0)
+        + (state.similarity === 'same' ? 2 : state.similarity === 'related' ? 1 : 0)
+        + (state.reusable ? 1 : 0);
 
       var box = document.getElementById('p4Verdict');
       box.className = 'p4-verdict';
 
-      if (score >= 3) {
+      if (score === 4) {
         box.classList.add('p4-verdict-strong');
-        box.innerHTML = '<div class="p4-verdict-title">✅ Strong fit for transfer learning</div>' +
-          'All three conditions are in your favour. Expect a significant accuracy boost over training from scratch on your small Task B dataset.';
-      } else if (score === 2) {
+        box.innerHTML = '<div class="p4-verdict-title">✅ Strong checklist signal for trying transfer learning</div>' +
+          'All three clues support trying a pretrained backbone. The size or direction of any accuracy change must be measured on Task B validation data.';
+      } else if (score >= 2 && state.similarity !== 'different') {
         box.classList.add('p4-verdict-moderate');
-        box.innerHTML = '<div class="p4-verdict-title">⚠️ Moderate fit — worth trying, with realistic expectations</div>' +
-          'Transfer learning will still give you a head start. Starting from pretrained weights is better than starting from random ones — you just won\'t see the full benefit you\'d get if all three conditions were met.';
+        box.innerHTML = '<div class="p4-verdict-title">⚠️ Mixed checklist signal — compare both approaches</div>' +
+          'Some clues favor reuse, while others are uncertain. Train and evaluate both a pretrained and a scratch baseline on the same Task B validation split.';
       } else {
         box.classList.add('p4-verdict-weak');
-        box.innerHTML = '<div class="p4-verdict-title">❌ Weak fit — reconsider your approach</div>' +
-          'The conditions suggest limited benefit from reusing pretrained features. Look for a pretrained model from a more closely related domain, or consider starting fresh.';
+        box.innerHTML = '<div class="p4-verdict-title">⚠️ Weak checklist signal — test alternatives</div>' +
+          'These clues do not strongly support this backbone. Try a closer source domain and compare against a scratch baseline; this checklist cannot predict the winner.';
       }
     }
 

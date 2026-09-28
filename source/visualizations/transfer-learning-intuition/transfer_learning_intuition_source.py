@@ -713,7 +713,7 @@ html_code = r"""
               <div class="control-value" id="aDataValue">120k</div>
             </div>
             <input type="range" id="aDataSlider" min="20" max="200" step="5" value="120">
-            <div class="control-help">Task A should usually have much more data than Task B if you want pretraining to be especially useful.</div>
+            <div class="control-help">A larger source dataset can be a useful clue, but dataset size alone does not predict transfer performance.</div>
           </div>
 
           <div class="control-block">
@@ -722,7 +722,7 @@ html_code = r"""
               <div class="control-value" id="bDataValue">8k</div>
             </div>
             <input type="range" id="bDataSlider" min="1" max="80" step="1" value="8">
-            <div class="control-help">Smaller Task B datasets often benefit the most from a pretrained starting point.</div>
+            <div class="control-help">A smaller Task B dataset may benefit from pretraining; compare with a scratch baseline on target validation data.</div>
           </div>
 
           <div class="control-block">
@@ -827,13 +827,13 @@ html_code = r"""
             <div class="card-head">
               <div>
                 <div class="card-title">Suitability check</div>
-                <div class="card-sub">When transfer learning makes sense</div>
+                <div class="card-sub">Qualitative clues, not an accuracy prediction</div>
               </div>
             </div>
 
             <div id="fitPill" class="status-pill strong-fit">
               <span class="status-dot"></span>
-              <span id="fitPillText">Strong fit for transfer learning</span>
+              <span id="fitPillText">Promising checklist signal</span>
             </div>
 
             <div class="metric-grid">
@@ -842,7 +842,7 @@ html_code = r"""
                 <div class="metric-value" id="metricRatio">15×</div>
               </div>
               <div class="metric">
-                <div class="metric-label">Feature reuse score</div>
+                <div class="metric-label">Checklist signals (illustrative)</div>
                 <div class="metric-value" id="metricReuse">3 / 3</div>
               </div>
               <div class="metric">
@@ -896,7 +896,7 @@ html_code = r"""
               </div>
             </div>
             <div class="takeaway-box" id="takeawayBox">
-              Transfer learning works best when Task A has much more data than Task B, the input type is similar, and the low-level patterns learned on Task A still help the new task.
+              These clues support trying transfer learning, but they do not predict an accuracy boost. Validate against training from scratch on Task B.
             </div>
           </div>
         </aside>
@@ -927,7 +927,7 @@ html_code = r"""
       aInput: "Input: plant / object images",
       aOutput: "Output: source classes",
       bName: "Leaf disease detection",
-      bDesc: "A smaller agricultural dataset benefits from reusing earlier visual filters before specializing to disease labels.",
+      bDesc: "A smaller agricultural dataset may benefit from reusing earlier visual filters before specializing to disease labels.",
       bInput: "Input: leaf images",
       bOutput: "Output: healthy / diseased",
       defaultA: 150,
@@ -1072,18 +1072,19 @@ html_code = r"""
     const pill = document.getElementById("fitPill");
     const pillText = document.getElementById("fitPillText");
     const takeaway = document.getElementById("takeawayBox");
+    // This is a teaching checklist, not an estimated benefit or a statistical score.
     if (fit.score === 3) {
       pill.className = "status-pill strong-fit";
-      pillText.textContent = "Strong fit for transfer learning";
-      takeaway.innerHTML = "Transfer learning is a <strong>strong fit</strong> here because Task A has much more data, the input style is compatible, and the backbone's low-level features are likely to remain useful on Task B.";
+      pillText.textContent = "Promising checklist signal";
+      takeaway.innerHTML = "All three illustrative clues support <strong>trying</strong> a pretrained backbone. Measure its result against a scratch baseline on Task B validation data.";
     } else if (fit.score === 2) {
       pill.className = "status-pill weak-fit";
-      pillText.textContent = "Possible, but not ideal";
-      takeaway.innerHTML = "Transfer learning may still help, but one important condition is weak. The more the tasks disagree on input structure or reusable features, the less benefit you get from the pretrained backbone.";
+      pillText.textContent = "Mixed checklist signal";
+      takeaway.innerHTML = "One clue is weaker, but transfer learning may still help. Compare pretrained and scratch models on the same Task B validation split.";
     } else {
       pill.className = "status-pill poor-fit";
-      pillText.textContent = "Weak case for transfer learning";
-      takeaway.innerHTML = "This is a <strong>weak transfer-learning scenario</strong>. If the inputs differ too much or the old features are not reusable, it becomes harder to justify reusing the source backbone.";
+      pillText.textContent = "Weak checklist signal";
+      takeaway.innerHTML = "These clues do not strongly support this source backbone. Try a closer source domain and compare against a scratch baseline; the checklist cannot predict the winner.";
     }
   }
 

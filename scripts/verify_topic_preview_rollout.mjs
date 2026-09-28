@@ -66,7 +66,6 @@ const emptyDrawerTopics = [
 
 const reservedReadingTopics = [
   "attention-mechanism-intuition",
-  "transfer-learning-intuition",
 ];
 
 const liveDrawerTopics = [
@@ -116,6 +115,16 @@ for (const slug of reservedReadingTopics) {
     `${slug} needs reserved reading-section positions.`,
   );
 }
+
+const transferConfig = topicConfigBlock("transfer-learning-intuition");
+for (const marker of [
+  `reservedReading: false`,
+  `readingMode: "transfer-learning-supplement"`,
+  `drawerMode: "empty"`,
+]) {
+  assert.ok(transferConfig.includes(marker), `Transfer Learning configuration is missing: ${marker}`);
+}
+assert.ok(shellScript.includes("function renderTransferLearningSupplement()"), "Transfer Learning supplement is missing.");
 
 const evaluationConfig = topicConfigBlock("evaluation-metrics-confusion-matrix");
 const evaluationPage = readRequired("topic-design-previews/evaluation-metrics-confusion-matrix.html");
@@ -218,8 +227,8 @@ for (const flatStyleMarker of [".bias-interaction", ".bias-error-stack", ".bias-
 const rnnConfig = topicConfigBlock("rnn-structure");
 const rnnPage = readRequired("topic-design-previews/rnn-structure.html");
 assert.ok(
-  rnnPage.includes("topic-preview-shell.js?v=shell-safety-3") &&
-    rnnPage.includes("topic-preview-shell.css?v=shell-safety-3"),
+  rnnPage.includes("topic-preview-shell.js?v=shell-safety-5") &&
+    rnnPage.includes("topic-preview-shell.css?v=shell-safety-5"),
   "RNN must load its approved reading and drawer revision without stale assets.",
 );
 for (const rnnMarker of [
@@ -268,8 +277,10 @@ for (const treatmentMarker of ["rnn-editorial", "gradient-editorial", ".drawer-m
   );
 }
 assert.ok(
-  shellScript.includes('frame.style.height = "720px";'),
-  "Styled prototype frames must shrink to a measurement baseline before resizing so hidden panels do not leave a blank iframe gap.",
+  shellScript.includes("function lockFrameHeight(frameDocument)") &&
+    shellScript.includes("Math.ceil(measuredHeight || fallback)") &&
+    shellScript.includes("frame.style.height = `${lockedHeight}px`"),
+  "Styled prototype frames must measure their content before setting the iframe height.",
 );
 
 const dropoutConfig = topicConfigBlock("dropout");
