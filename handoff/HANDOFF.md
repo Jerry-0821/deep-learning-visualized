@@ -4,6 +4,22 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/attention-guided-lesson`
+
+User approved the redesigned Attention lesson (draft v3) and asked for it to replace the old one.
+
+What changed:
+- New `public/prototypes/attention-guided-lesson.html` (hand-written; it is its own source, not produced by the notebook exporter). Three stages of slides: The idea (question, embeddings, Q/K/V) / Scoring (dot product, sqrt(d_k) scaling, softmax) / Using the weights (causal mask, weighted sum, full formula + multi-head). Next moves within a stage; the last slide scrolls to the next stage. KaTeX for formulas; attention arcs, flowing particles, mask curtain, count-ups and slide transitions; respects reduced motion. All numbers are computed from the vectors in its script (no hand-tuned score terms). With `?embed=1` it hides its own title and reading sections.
+- `topic-design-previews/topic-preview-shell.js` (synced to `public/`): the Attention config now loads the guided lesson, has real `notes` (Background, 5 LaTeX formulas, Pros/Cons, Quick example, Common mistake) instead of the "RESERVED READING SECTION" placeholders, `notesMath: true` (MathJax for plain notes) and `autoFrameHeight: true` (ResizeObserver keeps the frame matched to the slide height).
+- `topic-design-previews/topic-preview-shell.css`: display LaTeX in formula rows can scroll sideways on narrow screens.
+- Small labels in the guided lesson match the other lessons' `.kicker` / `.section-kicker` (Inter 600, 0.2em / 0.16em, uppercase) and use the lesson palette.
+- `scripts/verify_topic_preview_rollout.mjs`: Attention is no longer expected to have reserved reading sections; new checks for the guided lesson wiring.
+- The old `public/prototypes/attention-mechanism-intuition.html` and `transfomer.ipynb` are kept (direct-URL retention policy) but no lesson uses them now.
+
+How it was checked: `npm run build` 160/160; all 18 verify scripts pass; in the browser the lesson page shows the guided lesson embedded (no duplicate title), 20 MathJax formulas render with no errors, no inner scrollbar; the draft's full 9-slide run-through passed earlier with no JS errors.
+
+Status: pushed to `claude/attention-guided-lesson` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/attention-and-author-text`
 
 User-approved content fixes after an animation review (all 18 animations load and pass a click-everything stress test with no JS errors; core math checked).
@@ -91,6 +107,7 @@ Not done / next:
 - Pooling fixes: `public/prototypes/pooling.html`, `source/visualizations/pooling-and-downsampling/pooling_style_aligned_source.py`, Pooling section of `data/topicTeachingContent.ts`. Details in `POOLING_UNPUSHED_NOTES.md`. The user said on 2026-10-17 to leave Pooling alone for now.
 - `scripts/export_notebook_prototypes.py`: safer preview-by-default exporter (needs `--write`). Finished, but kept local with the Pooling work.
 - `.claude/launch.json`: local preview-server config for Claude; not needed by the site.
+- Attention lesson design drafts: `design-review/attention-lesson-v2.html` (first draft) and `design-review/attention-lesson-v3.html` (approved draft, now shipped as `public/prototypes/attention-guided-lesson.html`). Folder is in `.git/info/exclude`; safe to delete once the guided lesson is live.
 
 ---
 

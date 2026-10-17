@@ -1679,3 +1679,10 @@ body.drawer-open .drawer-backdrop {
     left: min(312px, calc(100vw - 38px));
   }
 }
+
+/* LaTeX inside plain formula rows (Attention lesson notes). */
+.formula-expression mjx-container[display="true"] {
+  margin: 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}

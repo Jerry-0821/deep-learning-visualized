@@ -64,9 +64,7 @@ const emptyDrawerTopics = [
   "transfer-learning-intuition",
 ];
 
-const reservedReadingTopics = [
-  "attention-mechanism-intuition",
-];
+const reservedReadingTopics = [];
 
 const liveDrawerTopics = [
   "rnn-structure",
@@ -114,6 +112,21 @@ for (const slug of reservedReadingTopics) {
     configBlock.includes("reservedReading: true"),
     `${slug} needs reserved reading-section positions.`,
   );
+}
+
+const attentionConfig = topicConfigBlock("attention-mechanism-intuition");
+for (const marker of [
+  `prototype: "../public/prototypes/attention-guided-lesson.html?embed=1"`,
+  `reservedReading: false`,
+  `autoFrameHeight: true`,
+  `notesMath: true`,
+  `notes: {`,
+]) {
+  assert.ok(attentionConfig.includes(marker), `Attention lesson config omits: ${marker}`);
+}
+const guidedLesson = readRequired("public/prototypes/attention-guided-lesson.html");
+for (const marker of ['data-tex=', 'class="stage-map"', '"embedded"', "Math.sqrt(DK)"]) {
+  assert.ok(guidedLesson.includes(marker), `Guided attention lesson omits: ${marker}`);
 }
 
 const transferConfig = topicConfigBlock("transfer-learning-intuition");

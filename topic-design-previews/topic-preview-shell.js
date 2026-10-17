@@ -187,11 +187,56 @@
       moduleUrl: "https://deep-learning-visualized.vercel.app/module/2",
       title: "Attention Mechanism Inside a Transformer",
       subtitle: "Follow tokens through embeddings, Query/Key/Value projections, attention scores, softmax weights, and context vectors.",
-      prototype: "../public/prototypes/attention-mechanism-intuition.html",
-      frameHeight: 3000,
+      prototype: "../public/prototypes/attention-guided-lesson.html?embed=1",
+      frameHeight: 1400,
       drawerMode: "empty",
-      reservedReading: true,
-      decard: true,
+      reservedReading: false,
+      // The guided lesson changes height from slide to slide, so keep the frame matched to it.
+      autoFrameHeight: true,
+      notesMath: true,
+      notes: {
+        background: [
+          "Before attention, sequence models such as RNNs read a sentence one word at a time and squeezed everything they had read into a single hidden state. Long sentences made that state a bottleneck: by the time the model reached \"it\", information about \"cat\" might already be faded or mixed with everything else.",
+          "Attention removes the bottleneck. Instead of relying on one summary, every word can look directly at every other word it is allowed to see and decide, with learned weights, how much of each one to pull in. The result is a new, context-aware vector for that word.",
+          "In a transformer this happens for every word in parallel, in every layer. That is called self-attention: the sentence attends to itself.",
+        ],
+        formulas: [
+          {
+            expression: "\\[ \\text{score}(i,j) = \\frac{q_i \\cdot k_j}{\\sqrt{d_k}} \\]",
+            explanation: "How well word i's query matches word j's key. Dividing by \\(\\sqrt{d_k}\\) keeps scores in a range where softmax still spreads attention instead of locking onto one word.",
+          },
+          {
+            expression: "\\[ \\alpha_{ij} = \\operatorname{softmax}_j\\big(\\text{score}(i,j)\\big) = \\frac{e^{\\text{score}(i,j)}}{\\sum_{m} e^{\\text{score}(i,m)}} \\]",
+            explanation: "Turns one row of scores into weights between 0 and 1 that add up to 1. These are weights over the input words, not probabilities of the next word.",
+          },
+          {
+            expression: "\\[ \\text{output}_i = \\sum_{j} \\alpha_{ij}\\, v_j \\]",
+            explanation: "The new vector for word i is a weighted average of the value vectors.",
+          },
+          {
+            expression: "\\[ \\operatorname{Attention}(Q,K,V) = \\operatorname{softmax}\\!\\left(\\frac{QK^{\\top}}{\\sqrt{d_k}} + M\\right) V \\]",
+            explanation: "The same three steps for every word at once, written with matrices. M is the mask: 0 where looking is allowed and \\(-\\infty\\) where it is not (future words in a decoder such as GPT).",
+          },
+          {
+            expression: "\\[ \\operatorname{MultiHead}(Q,K,V) = \\operatorname{Concat}(\\text{head}_1,\\dots,\\text{head}_h)\\,W^{O} \\]",
+            explanation: "Several attention heads run side by side, each with its own \\(W^Q, W^K, W^V\\), so different heads can track different relationships. Their outputs are joined and mixed by \\(W^O\\).",
+          },
+        ],
+        pros: [
+          "Direct long-range links: any two words are one step apart, however far apart they sit in the sentence.",
+          "Parallel: all words are processed at once, which suits GPUs far better than step-by-step RNNs.",
+          "Inspectable: attention weights give a rough view of which words influenced which.",
+        ],
+        cons: [
+          "Cost grows with length squared: n words need n x n scores, so very long inputs get expensive.",
+          "No built-in word order: attention itself ignores position, so transformers add positional information to the embeddings.",
+          "Weights are not full explanations: a high weight shows where information flowed, not why the model made its final decision.",
+        ],
+        quickExample:
+          "For \"it\" in \"The cat sat because it was tired\", the query of \"it\" matches the key of \"cat\" best. After scaling and softmax, \"cat\" receives about 58% of the attention, so the new vector for \"it\" is built mostly from the value of \"cat\". The model has, in effect, linked the pronoun to the right noun.",
+        commonMistake:
+          "A common mistake is reading attention weights as next-word probabilities; they are weights over the input words. Others are forgetting the mask in a decoder (the model can then see the answer during training), leaving out the \\(\\sqrt{d_k}\\) scaling (softmax saturates and gradients become tiny), and thinking Q, K and V are three different inputs, when in self-attention they all come from the same words through three learned weight matrices.",
+      },
     },
     "evaluation-metrics-confusion-matrix": {
       moduleLabel: "Module 03 / Evaluation",
@@ -2679,7 +2724,8 @@ Dev &rarr; Test = dev overfitting</pre>
         "convolution-supplement",
         "backpropagation-supplement",
         "activation-supplement",
-      ].includes(config.readingMode)
+      ].includes(config.readingMode) &&
+      !config.notesMath
     ) return;
     window.MathJax = {
       tex: {
@@ -3975,6 +4021,18 @@ Dev &rarr; Test = dev overfitting</pre>
       removeDuplicateOutputPanels(frameDocument);
       updateMirroredBlocks(frameDocument);
       lockFrameHeight(frameDocument);
+      if (config.autoFrameHeight && "ResizeObserver" in window) {
+        let pending = 0;
+        const observer = new ResizeObserver(() => {
+          if (pending) return;
+          pending = window.requestAnimationFrame(() => {
+            pending = 0;
+            if (frame.isConnected && frame.contentDocument === frameDocument) lockFrameHeight(frameDocument);
+          });
+        });
+        Array.from(frameBody.children).forEach((child) => observer.observe(child));
+        window.addEventListener("pagehide", () => observer.disconnect(), { once: true });
+      }
       if (config.freezeFrameAfterLoad) {
         window.setTimeout(() => {
           removeDuplicateOutputPanels(frameDocument);
