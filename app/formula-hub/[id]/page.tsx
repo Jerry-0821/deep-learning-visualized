@@ -372,7 +372,7 @@ export default async function FormulaDetailPage({ params }: FormulaDetailPagePro
       </Script>
       <Script
         id="formula-detail-mathjax"
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"
         strategy="afterInteractive"
       />
       <MathJaxRefresh />

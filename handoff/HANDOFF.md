@@ -4,6 +4,18 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/mathjax-404-noindex`
+
+User approved three items.
+
+1. MathJax pinned: every CDN URL `mathjax@3/` -> `mathjax@3.2.2/` (37 occurrences: site pages for blog + Formula Hub, lesson shell, 4 standalone lessons, 8 animations and their notebook/py sources so the exporter stays in sync). Both `tex-svg.js` and `tex-mml-chtml.js` exist at 3.2.2; formulas render with `MathJax.version === "3.2.2"` on a formula page, an animation and the Pooling notes.
+2. 404 page rebuilt (`app/not-found.tsx` + "404 page" block at the end of `app/globals.css`): shared site nav/backdrop/footer (so dark mode and the menu work), gradient "404", "This page doesn't exist.", buttons back to the curriculum and all topics, cards for Topics / Formula Hub / Blog and three popular lessons. The old page's outdated developer text ("all five module pages", "PAGE 1 and PAGE 2 routes only") is gone. Status is still 404.
+3. Embedded-only pages get `X-Robots-Tag: noindex, indexifembedded` via `headers()` in `next.config.ts`: `/topic-design-previews/*`, `/prototypes/*`, `/mindmap/*` (the `:path+` patterns need at least one segment, so the real `/mindmap` page is not affected). Search engines no longer list those pages on their own but may still credit their content to the `/topic/*` lesson that embeds them. No lesson or animation file was edited for this.
+
+How it was checked: `npm run build` 194/194; all 18 verify scripts pass; exporter preview unchanged; on `next start`: header present on embedded pages and absent on /mindmap, /topic/pooling, /, /formula-hub; 404 returns 404 with the new page; MathJax 3.2.2 renders with no errors.
+
+Status: pushed to `claude/mathjax-404-noindex` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/seo-sitemap-share`
 
 User approved adding a sitemap, robots.txt and share preview images.

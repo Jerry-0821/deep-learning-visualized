@@ -74,7 +74,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       </Script>
       <Script
         id="blog-mathjax"
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"
         strategy="afterInteractive"
       />
       <MathJaxRefresh />

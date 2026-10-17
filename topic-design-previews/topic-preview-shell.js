@@ -2618,7 +2618,7 @@ Dev &rarr; Test = dev overfitting</pre>
       },
     };
     const mathScript = document.createElement("script");
-    mathScript.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+    mathScript.src = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js";
     mathScript.async = true;
     mathScript.onload = () => {
       if (window.MathJax && window.MathJax.typesetPromise) {
