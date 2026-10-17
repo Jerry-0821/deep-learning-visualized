@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/data/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Deep Learning Visualized",
-  description:
-    "Learn deep learning visually: interactive lessons, formulas and essays, from single neurons to transformers.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_NAME,
+  description: SITE_DESCRIPTION,
+  // Share previews: the images come from the opengraph-image files (site default, lessons, blog posts).
+  openGraph: {
+    siteName: SITE_NAME,
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({

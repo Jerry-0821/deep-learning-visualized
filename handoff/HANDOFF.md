@@ -4,6 +4,20 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/seo-sitemap-share`
+
+User approved adding a sitemap, robots.txt and share preview images.
+
+- `data/site.ts`: one place for the site URL, name and description (used by layout, sitemap, robots, share cards).
+- `app/sitemap.ts` -> `/sitemap.xml`: 151 URLs (home, topics, Formula Hub, blog, mindmap, about, the 18 lessons, all blog posts, all Formula Hub pages). Left out on purpose: the topic alias route, `/formula-hub/saved` (per reader), `/module/*` (redirects).
+- `app/robots.ts` -> `/robots.txt`: allow everything except `/formula-hub/saved`, and point to the sitemap. (Embedded lesson/prototype pages are still crawlable; giving them `noindex` is a separate, not-yet-approved item.)
+- Share preview cards (1200 x 630, generated at build time with `next/og`): `components/share/ShareCard.tsx` (shared design: site background with purple glow, eyebrow, Instrument Serif title, subtitle, purple badge + site address, teal 4 x 4 grid with an amber 2 x 2 window from the guided lessons). `app/opengraph-image.tsx` (site default, used by every page without its own), `app/topic/[slug]/opengraph-image.tsx` (one per lesson: module + lesson title + subtitle), `app/blog/[slug]/opengraph-image.tsx` (one per post). Fonts are fetched from Google Fonts during the build; if that fails the cards fall back to the built-in font instead of breaking the build.
+- `app/layout.tsx`: `metadataBase`, Open Graph site name/type/locale and `summary_large_image` Twitter card. Pages keep their own titles/descriptions.
+
+How it was checked: `npm run build` 194/194 (now includes the image routes, sitemap and robots); all 18 verify scripts pass; on `next start`: robots.txt and sitemap.xml served, `/topic/pooling` has og:title/description/image (1200 x 630) and twitter card tags, card PNGs rendered and reviewed (local copies in `design-review/share-cards/`, not committed).
+
+Status: pushed to `claude/seo-sitemap-share` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/pooling-guided-lesson`
 
 User approved the redesigned Pooling lesson (draft v2) to replace the old fallback page.
