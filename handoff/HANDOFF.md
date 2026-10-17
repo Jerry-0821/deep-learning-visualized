@@ -15,7 +15,7 @@ What changed (style only, no formulas/data/search logic touched):
 
 How it was checked: `npm run build` 160/160 pages; all 18 verify scripts pass; `/formula-hub` checked in the browser against the approved sample.
 
-Status: pushed to `claude/formula-hub-unified` for a Vercel preview. NOT merged to `main`.
+Status: user approved the Vercel preview; `main` fast-forwarded to `fa431c8` on 2026-10-17, so it is live in production.
 
 ## 2026-10-17 (later) · Claude (Claude Code) · branch `claude/nav-menu-lesson-bar`
 
