@@ -1,0 +1,167 @@
+/*
+  DESIGN REVIEW SAMPLE ONLY — loaded by /design-review/formula-hub.
+  Re-skins the real Formula Hub with the site-wide design system
+  (Inter + Instrument Serif, --edition-* colours, radii and shadows).
+  Every rule is scoped to .formula-unified, so the real /formula-hub
+  page and app/globals.css are untouched. If approved, these rules get
+  folded into the Formula Hub styles and this file is deleted.
+*/
+
+/* 1. One colour system: Formula Hub variables now point at the site tokens. */
+.formula-unified.formula-v6-root {
+  --purple: var(--edition-purple);
+  --purple-soft: rgba(108, 92, 231, 0.07);
+  --purple-mid: rgba(108, 92, 231, 0.15);
+  --teal: var(--edition-green);
+  --coral: var(--edition-coral);
+  --text: var(--edition-text);
+  --copy: var(--edition-copy);
+  --muted: var(--edition-muted);
+  --line: var(--edition-border);
+  --bg: var(--edition-bg);
+  --surface: var(--edition-surface);
+}
+
+html[data-theme="dark"] .formula-unified.formula-v6-root {
+  --purple-soft: rgba(165, 151, 255, 0.1);
+  --purple-mid: rgba(165, 151, 255, 0.2);
+}
+
+/* Use the site's animated backdrop instead of Formula Hub's own aurora + noise layers. */
+.formula-unified.formula-v6-root::before,
+.formula-unified.formula-v6-root::after {
+  content: none;
+}
+
+/* 2. One type system: Inter for UI text, Instrument Serif for display and math-like text. */
+.formula-unified.formula-v6-root,
+.formula-unified.formula-v6-root *:not(mjx-container *) {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.formula-unified.formula-v6-root .hero-title em,
+.formula-unified.formula-v6-root .hero-chip,
+.formula-unified.formula-v6-root .fcard-formula,
+.formula-unified.formula-v6-root .drawer-formula-wrap,
+.formula-unified.formula-v6-root .formula-step-math,
+.formula-unified.formula-v6-root .shape-box,
+.formula-unified.formula-v6-root .sym-k,
+.formula-unified.formula-v6-root .sym-key,
+.formula-unified.formula-v6-root .rel-formula {
+  font-family: "Instrument Serif", Georgia, serif;
+}
+
+.formula-unified.formula-v6-root .shape-box .dim {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.formula-unified.formula-v6-root .hero-title {
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.formula-unified.formula-v6-root .hero-title em {
+  color: var(--edition-purple);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.formula-unified.formula-v6-root .hero-eyebrow {
+  letter-spacing: 0.12em;
+}
+
+/* 3. One shape language: soft 18px cards, pill-shaped controls, the site's glass surfaces. */
+.formula-unified.formula-v6-root .search-bar,
+.formula-unified.formula-v6-root .saved-toolbar,
+.formula-unified.formula-v6-root .formula-v6-empty,
+.formula-unified.formula-v6-root .module-cta,
+.formula-unified.formula-v6-root .formula-step,
+.formula-unified.formula-v6-root .drawer-formula-wrap,
+.formula-unified.formula-v6-root .hero-art {
+  border-radius: var(--edition-radius);
+}
+
+.formula-unified.formula-v6-root .modal {
+  border-radius: var(--edition-radius-lg);
+}
+
+.formula-unified.formula-v6-root .start-btn,
+.formula-unified.formula-v6-root .bm-btn,
+.formula-unified.formula-v6-root .pg-btn,
+.formula-unified.formula-v6-root .sfbtn,
+.formula-unified.formula-v6-root .sort-btn,
+.formula-unified.formula-v6-root .side-item,
+.formula-unified.formula-v6-root .saved-toolbar-actions button,
+.formula-unified.formula-v6-root .drawer-expand-btn,
+.formula-unified.formula-v6-root .connection-row {
+  border-radius: 999px;
+}
+
+.formula-unified.formula-v6-root .search-bar {
+  border-color: var(--edition-border);
+  background: var(--edition-glass);
+  box-shadow: 0 10px 30px rgba(50, 38, 102, 0.05);
+  backdrop-filter: blur(16px);
+}
+
+.formula-unified.formula-v6-root .search-bar:focus-within {
+  border-color: var(--edition-border-hover);
+  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.08), 0 10px 30px rgba(50, 38, 102, 0.06);
+}
+
+.formula-unified.formula-v6-root .fcard {
+  margin-bottom: 10px;
+  border: 1px solid var(--edition-border);
+  border-radius: var(--edition-radius);
+  background: var(--edition-glass);
+  transition: transform 0.32s, border-color 0.32s, box-shadow 0.32s, background 0.32s;
+}
+
+.formula-unified.formula-v6-root .fcard:hover,
+.formula-unified.formula-v6-root .fcard.active {
+  transform: translateY(-2px);
+  border-color: var(--edition-border-hover);
+  background: var(--edition-surface);
+  box-shadow: 0 16px 44px rgba(50, 38, 102, 0.08);
+}
+
+.formula-unified.formula-v6-root .fcard-icon {
+  border-radius: 12px;
+}
+
+.formula-unified.formula-v6-root .fpill.active,
+.formula-unified.formula-v6-root .start-btn {
+  box-shadow: 0 2px 10px rgba(108, 92, 231, 0.2);
+}
+
+html[data-theme="dark"] .formula-unified.formula-v6-root .search-bar,
+html[data-theme="dark"] .formula-unified.formula-v6-root .fcard:hover,
+html[data-theme="dark"] .formula-unified.formula-v6-root .fcard.active {
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .formula-unified.formula-v6-root .fcard:hover,
+html[data-theme="dark"] .formula-unified.formula-v6-root .fcard.active {
+  background: var(--edition-surface-2);
+}
+
+/* Review banner (sample page only). */
+.design-review-banner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 14px;
+  padding: 10px 20px;
+  background: #1a1630;
+  color: #f5f2ff;
+  font: 500 13px/1.4 "Inter", system-ui, sans-serif;
+  text-align: center;
+}
+
+.design-review-banner a {
+  color: #c3baff;
+  font-weight: 600;
+}

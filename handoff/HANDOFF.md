@@ -4,6 +4,26 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (later) · Claude (Claude Code) · branch `claude/nav-menu-lesson-bar`
+
+User approved items 1, 2, 3, 5 of the design review. Item 4 (unify Formula Hub with the rest of the site) is only a separate SAMPLE awaiting review.
+
+What changed (site chrome only, no lesson content touched):
+1 + 3. Compact nav menu. Below 1180px wide, the page links and "Start learning" move into a menu button (`components/edition/EditionMenu.tsx`); theme and saved icons stay visible. Nav labels no longer wrap ("Formula Hub" used to break onto two lines even at 1280px). Full nav needs about 1125px, hence the 1180px breakpoint.
+2. Lesson pages (`/topic/*` using topic-design-previews) get a slim 48px bar above the iframe: All topics, module + lesson title, Previous/Next (`components/topic/TopicRouteBar.tsx`, `components/topic/RedesignedTopicPage.tsx`). The Pooling page uses a different wrapper with its own links and is unchanged.
+5. Fonts: removed the unused "SF Pro Display" family from the Google Fonts request in `app/layout.tsx`. DM Sans + DM Serif Display are still loaded because only Formula Hub uses them; they can be dropped if item 4 is approved.
+4. SAMPLE ONLY: `/design-review/formula-hub` (`app/design-review/formula-hub/page.tsx` + `formula-unified.css`). It renders the real Formula Hub with the site's fonts, colours, radii and shadows. All rules are scoped to `.formula-unified`; the real `/formula-hub` and its styles are untouched. Page is noindex and not linked from the site. If approved: fold the rules into the Formula Hub styles, drop the DM fonts, delete `app/design-review/`. If rejected: delete `app/design-review/`.
+
+Found, not fixed (lesson file, needs the user's OK):
+- The lesson pages' own "Back to module" link (`public/topic-design-previews/topic-preview-shell.js`, line ~3173) has no `target="_top"`, so clicking it opens the Topics page inside the lesson iframe (page within a page). Fix would be adding `target="_top"` to that link. The new top bar gives a correct way out meanwhile.
+
+How it was checked:
+- `npm run build`: 161/161 pages. All 18 `scripts/verify_*.mjs` pass.
+- Browser: menu opens/closes and navigates at 900px; full nav at 1200px with no wrap; menu at 1150px; lesson bar at 375px (no horizontal scroll) with correct prev/next; review page renders MathJax and search.
+- If `npm run build` fails with `EINVAL ... readlink .next	ypes`, delete `.next/` (OneDrive + dev-server leftovers) and rebuild.
+
+Status: pushed to branch `claude/nav-menu-lesson-bar` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 · Claude (Claude Code) · branch `codex/fix-adam-convolution-logic`
 
 What changed (style only, no lesson content touched):

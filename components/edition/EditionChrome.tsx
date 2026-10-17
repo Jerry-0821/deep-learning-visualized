@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EditionMenu } from "@/components/edition/EditionMenu";
 import { ThemeToggle } from "@/components/edition/ThemeToggle";
 
 type EditionPage = "home" | "topics" | "formula-hub" | "blog" | "mindmap" | "about";
@@ -7,7 +8,16 @@ export function EditionBackdrop() {
   return <div className="edition-atmosphere" aria-hidden="true" />;
 }
 
-export function EditionNav({ active }: { active: EditionPage }) {
+const navItems: { page: EditionPage; href: string; label: string }[] = [
+  { page: "home", href: "/", label: "Curriculum" },
+  { page: "topics", href: "/topics", label: "Topics" },
+  { page: "formula-hub", href: "/formula-hub", label: "Formula Hub" },
+  { page: "blog", href: "/blog", label: "Blog" },
+  { page: "mindmap", href: "/mindmap", label: "Mindmap" },
+  { page: "about", href: "/about", label: "About" },
+];
+
+export function EditionNav({ active }: { active?: EditionPage }) {
   const startLearningHref = active === "home" ? "#modules" : "/#modules";
 
   return (
@@ -17,24 +27,15 @@ export function EditionNav({ active }: { active: EditionPage }) {
           Deep <span>Learning</span> Visualized
         </Link>
         <div className="edition-nav-links">
-          <Link className={`edition-nav-link ${active === "home" ? "active" : ""}`} href="/">
-            Curriculum
-          </Link>
-          <Link className={`edition-nav-link ${active === "topics" ? "active" : ""}`} href="/topics">
-            Topics
-          </Link>
-          <Link className={`edition-nav-link ${active === "formula-hub" ? "active" : ""}`} href="/formula-hub">
-            Formula Hub
-          </Link>
-          <Link className={`edition-nav-link ${active === "blog" ? "active" : ""}`} href="/blog">
-            Blog
-          </Link>
-          <Link className={`edition-nav-link ${active === "mindmap" ? "active" : ""}`} href="/mindmap">
-            Mindmap
-          </Link>
-          <Link className={`edition-nav-link ${active === "about" ? "active" : ""}`} href="/about">
-            About
-          </Link>
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              className={`edition-nav-link ${active === item.page ? "active" : ""}`}
+              href={item.href}
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
         <div className="edition-nav-actions">
           <ThemeToggle />
@@ -44,8 +45,12 @@ export function EditionNav({ active }: { active: EditionPage }) {
             </svg>
           </Link>
           <Link className="edition-nav-cta" href={startLearningHref}>
-            Start learning {"\u2192"}
+            Start learning {"→"}
           </Link>
+          <EditionMenu
+            links={navItems.map((item) => ({ href: item.href, label: item.label, active: active === item.page }))}
+            startLearningHref={startLearningHref}
+          />
         </div>
       </div>
     </nav>
