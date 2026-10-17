@@ -16,7 +16,7 @@ What changed:
 
 How it was checked: `npm run build` 160/160; all 18 verify scripts pass; on `next start`: /prototypes/pooling.html -> 308 -> /topic/pooling, attention redirect still 308, /topic/pooling renders the route bar + lesson shell, 4 stages embedded, 16 MathJax + 14 KaTeX formulas with no errors, no console errors. The draft's full 12-slide run-through passed earlier (max output 4 4 2 / 3 5 2 / 3 4 4, sizes, leftover/overlap counts, parameter counts all correct).
 
-Status: pushed to `claude/pooling-guided-lesson` for a Vercel preview. NOT merged to `main`.
+Status: user approved the Vercel preview; `main` fast-forwarded to `06fe5b4` on 2026-10-17, so the guided Pooling lesson is live. Checked on production: /topic/pooling has the route bar and lesson shell, 4 stages embedded, 16 MathJax + 14 KaTeX formulas, no errors, no inner scrollbar; /prototypes/pooling.html redirects (308) to /topic/pooling.
 
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/accent-text-contrast`
 
