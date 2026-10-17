@@ -22,7 +22,7 @@ How it was checked:
 - Browser: menu opens/closes and navigates at 900px; full nav at 1200px with no wrap; menu at 1150px; lesson bar at 375px (no horizontal scroll) with correct prev/next; review page renders MathJax and search.
 - If `npm run build` fails with `EINVAL ... readlink .next	ypes`, delete `.next/` (OneDrive + dev-server leftovers) and rebuild.
 
-Status: pushed to branch `claude/nav-menu-lesson-bar` for a Vercel preview. NOT merged to `main`.
+Status: user approved the preview. Items 1, 2, 3, 5 were merged to `main` WITHOUT the sample (`app/design-review/` was removed in the release commit). The sample still lives only on branch `claude/nav-menu-lesson-bar` (and its Vercel preview) until the user gives feedback on item 4.
 
 ## 2026-10-17 · Claude (Claude Code) · branch `codex/fix-adam-convolution-logic`
 
