@@ -19,7 +19,7 @@ studied, or regenerated separately without digging through local archive materia
 | --- | --- | --- |
 | `activation-functions-comparison/` | `Activations.ipynb` | Activation Functions Comparison |
 | `adam-vs-sgd/` | `adam_vs_sgd_white_style_source.py` | Adam Optimizer vs. SGD |
-| `attention-mechanism-intuition/` | `transfomer.ipynb` | Attention Mechanism Intuition |
+| `attention-mechanism-intuition/` | `transfomer.ipynb` (archive; the live lesson is `public/prototypes/attention-guided-lesson.html`) | Attention Mechanism Intuition |
 | `backpropagation/` | `Backpropagation.ipynb` | Backpropagation Intuition |
 | `bias-vs-variance-diagnosis/` | `bias_variance_diagnosis_dashboard.py` | Bias vs. Variance Diagnosis |
 | `cnn-convolution-operation/` | `convolution_operation_stepwise_source.py` | Convolution Operation |

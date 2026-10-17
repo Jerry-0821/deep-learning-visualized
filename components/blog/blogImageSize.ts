@@ -6,7 +6,8 @@ import path from "node:path";
 export function getPublicPngSize(publicPath: string): { width: number; height: number } | null {
   if (!publicPath.toLowerCase().endsWith(".png")) return null;
 
-  const filePath = path.join(process.cwd(), "public", decodeURI(publicPath));
+  // decodeURIComponent (not decodeURI) so encoded reserved characters such as "%26" (&) are decoded too.
+  const filePath = path.join(process.cwd(), "public", decodeURIComponent(publicPath));
   const header = Buffer.alloc(24);
   let fd: number | undefined;
 

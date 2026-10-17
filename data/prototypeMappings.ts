@@ -91,8 +91,8 @@ export const prototypeMappings: Record<string, PrototypeMapping> = {
     iframeHeight: 2600,
   },
   "attention-mechanism-intuition": {
-    sourceFile: "transfomer.ipynb",
-    publicPath: "/prototypes/attention-mechanism-intuition.html",
+    sourceFile: "attention-guided-lesson.html",
+    publicPath: "/prototypes/attention-guided-lesson.html",
     iframeHeight: 3000,
   },
   "evaluation-metrics-confusion-matrix": {

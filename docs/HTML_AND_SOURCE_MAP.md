@@ -47,7 +47,7 @@ These rows connect the active standalone prototype HTML to the tracked source co
 | --- | --- | --- |
 | Activation Functions Comparison | `public/prototypes/activation-functions-comparison.html` | `source/visualizations/activation-functions-comparison/Activations.ipynb` |
 | Adam Optimizer vs. SGD | `public/prototypes/adam-vs-sgd.html` and `public/prototypes/adam-optimizer-vs-sgd.html` | `source/visualizations/adam-vs-sgd/adam_vs_sgd_white_style_source.py` |
-| Attention Mechanism Intuition | `public/prototypes/attention-mechanism-intuition.html` | `source/visualizations/attention-mechanism-intuition/transfomer.ipynb` |
+| Attention Mechanism Intuition | `public/prototypes/attention-guided-lesson.html` (old `attention-mechanism-intuition.html` removed; URL redirects) | hand-written, the HTML file is its own source (archive: `source/visualizations/attention-mechanism-intuition/transfomer.ipynb`) |
 | Backpropagation Intuition | `public/prototypes/backpropagation-intuition.html` | `source/visualizations/backpropagation/Backpropagation.ipynb` |
 | Bias vs. Variance Diagnosis | `public/prototypes/bias-vs-variance-diagnosis.html` | `source/visualizations/bias-vs-variance-diagnosis/bias_variance_diagnosis_dashboard.py` |
 | Convolution Operation | `public/prototypes/convolution-operation.html` | `source/visualizations/cnn-convolution-operation/convolution_operation_stepwise_source.py` |

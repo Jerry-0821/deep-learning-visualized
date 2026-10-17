@@ -2,12 +2,14 @@ from __future__ import annotations
 
 """Manual exporter for standalone prototype HTML.
 
-This script is not part of the Vercel build. It writes files under
-public/prototypes/, so run it only when intentionally regenerating prototype
-HTML from the tracked source files.
+This script is not part of the Vercel build. By default it only reports which
+public/prototypes/ files would change. Writing requires --write and an explicit
+output file (--topic) or --all.
 """
 
+import argparse
 import ast
+import html as html_lib
 import json
 import re
 from pathlib import Path
@@ -35,11 +37,31 @@ MAPPINGS = {
     "pooling-and-downsampling/pooling_style_aligned_source.py": "pooling.html",
     "feature-map-visualization/feature_map_visualization_source.py": "feature-map-visualization.html",
     "rnn-structure/rnn_structure_colab.py": "rnn-structure.html",
-    "attention-mechanism-intuition/transfomer.ipynb": "attention-mechanism-intuition.html",
     "evaluation-metrics-confusion-matrix/Evaluation Metrics _ Confusion Matrix Intuition.ipynb": "evaluation-metrics-confusion-matrix.html",
 }
 
+# Browser-tab titles for generated pages; anything not listed falls back to the source file name.
+TITLES = {
+    "neuron-structure.html": "Single Neuron Forward Pass — Interactive Explorer",
+    "loss-functions.html": "Loss Functions & Training Signal — Interactive Explorer",
+    "backpropagation-intuition.html": "Backpropagation — Interactive Explorer",
+    "gradient-descent-learning-rate.html": "Gradient Descent & Learning Rate — Interactive Explorer",
+    "overfitting-vs-underfitting.html": "Overfitting vs. Underfitting — Interactive Explorer",
+    "dropout.html": "Dropout — Interactive Explorer",
+    "adam-vs-sgd.html": "Adam Optimizer vs. SGD — Interactive Explorer",
+    "mini-batch-training-batch-size.html": "Mini-Batch Training & Batch Size — Interactive Explorer",
+    "bias-vs-variance-diagnosis.html": "Bias vs. Variance Diagnosis — Interactive Explorer",
+    "convolution-operation.html": "Convolution Operation — Interactive Explorer",
+    "pooling.html": "Pooling and Downsampling — Interactive Explorer",
+    "rnn-structure.html": "RNN Structure — Interactive Explorer",
+    "evaluation-metrics-confusion-matrix.html": "Evaluation Metrics & Confusion Matrix — Interactive Explorer",
+}
+
 # Intentionally left unmapped for now:
+# - "attention-mechanism-intuition/transfomer.ipynb"
+#   Original Attention animation, kept as an archive. The lesson now uses the
+#   hand-written public/prototypes/attention-guided-lesson.html, and the old
+#   /prototypes/attention-mechanism-intuition.html URL redirects (next.config.ts).
 # - "pooling_style_aligned_standalone.py"
 #   Standalone duplicate kept out of the live mapping because
 #   "pooling_style_aligned_source.py" is the chosen source file.
@@ -70,7 +92,7 @@ def collect_html_outputs(notebook_path: Path) -> list[str]:
 
 
 def collect_python_html_outputs(source_path: Path) -> list[str]:
-    source = source_path.read_text(encoding="utf-8")
+    source = source_path.read_text(encoding="utf-8-sig")
     module = ast.parse(source, filename=str(source_path))
     html_values: dict[str, str] = {}
     html_outputs: list[str] = []
@@ -190,7 +212,7 @@ def to_document(title: str, html_outputs: list[str]) -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{title}</title>
+  <title>{html_lib.escape(title, quote=False)}</title>
 </head>
 <body style="margin:0;background:#ffffff;">
 {body}
@@ -201,17 +223,69 @@ def to_document(title: str, html_outputs: list[str]) -> str:
     return document
 
 
-def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--write", action="store_true", help="Write generated HTML instead of previewing changes")
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument("--topic", choices=sorted(MAPPINGS.values()), help="Select one output HTML file")
+    selection.add_argument("--all", action="store_true", help="Select all mapped output files")
+    args = parser.parse_args()
 
-    for source_name, output_name in MAPPINGS.items():
+    if args.write and not (args.topic or args.all):
+        parser.error("--write requires --topic OUTPUT_HTML or --all")
+
+    selected = [
+        (source_name, output_name)
+        for source_name, output_name in MAPPINGS.items()
+        if args.topic is None or output_name == args.topic
+    ]
+    generated: list[tuple[str, str]] = []
+    errors: list[str] = []
+
+    for source_name, output_name in selected:
         source_path = SOURCE_DIR / source_name
-        if not source_path.exists():
-            raise FileNotFoundError(f"Prototype source not found: {source_path}")
-        html_outputs = collect_source_outputs(source_path)
-        document = to_document(source_path.name, html_outputs)
-        (OUTPUT_DIR / output_name).write_text(document, encoding="utf-8")
+        try:
+            if not source_path.exists():
+                raise FileNotFoundError(f"Prototype source not found: {source_path}")
+            html_outputs = collect_source_outputs(source_path)
+            document = to_document(TITLES.get(output_name, source_path.name), html_outputs)
+        except (FileNotFoundError, ValueError, SyntaxError) as error:
+            detail = str(error).replace(str(source_path), source_name)
+            errors.append(
+                f"Cannot generate {output_name}: {detail}".encode("ascii", "backslashreplace").decode("ascii")
+            )
+            continue
+        generated.append((output_name, document))
+
+    for error in errors:
+        print(error)
+    if errors and args.write:
+        print("No files written: fix every generation error before writing.")
+        return 1
+
+    changed = 0
+    for output_name, document in generated:
+        output_path = OUTPUT_DIR / output_name
+        current = output_path.read_text(encoding="utf-8") if output_path.exists() else None
+        if current == document:
+            print(f"Unchanged: {output_name}")
+            continue
+
+        changed += 1
+        if args.write:
+            OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(document, encoding="utf-8")
+            print(f"Wrote: {output_name}")
+        else:
+            action = "Would create" if current is None else "Would overwrite"
+            print(f"{action}: {output_name}")
+
+    if not args.write:
+        print(f"Preview only: {changed} of {len(generated)} generated file(s) differ; nothing was written.")
+        if changed:
+            print("To write, use --write --topic OUTPUT_HTML (or --write --all).")
+    return 1 if errors else 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

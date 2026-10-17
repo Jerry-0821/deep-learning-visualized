@@ -396,8 +396,8 @@ export const topicTeachingContentBySlug: Record<string, TopicTeachingContent> = 
     canonicalTitle: "Pooling and Downsampling",
     sourceDocument: "deep_learning_content_part2_rewritten.pdf",
     background: [
-      "Pooling is a local summarization step, not a local pattern-learning step. Your prototype already teaches this well: the learner sees a small window move across an existing feature map, then sees a single summarized value written into a smaller output map. That visual contrast with convolution is the key lesson. Convolution learns a pattern by using trainable weights; pooling compresses an existing map by applying a fixed rule such as maximum or average.",
-      "The output becomes spatially smaller, so later layers work with fewer positions and a broader effective view. In this prototype, the beginner should notice the current window, the mapped output cell, the compression ratio, and the fact that the strongest local signal is preserved in max pooling. The supporting text should therefore emphasize spatial compression, local summary, and the absence of learned parameters.",
+      "Pooling is a local summarization step, not a pattern-learning step. A small window moves across an existing feature map and writes one summary value into each output position. Unlike convolution, pooling has no learned kernel weights: it applies a fixed rule such as maximum or average.",
+      "Because one output value represents each local window, pooling usually reduces the feature map's height and width. Max pooling preserves the strongest activation in a window, while average pooling preserves its mean. Pooling is applied independently to each channel, so it normally changes spatial size without changing the number of channels.",
     ],
     formulas: [
       {
@@ -409,9 +409,8 @@ export const topicTeachingContentBySlug: Record<string, TopicTeachingContent> = 
         explanation: "Average pooling keeps the mean of the values inside the current local window.",
       },
       {
-        expression: "Shrink factor depends on window size F and stride S",
-        explanation: "The pooling window size F and stride S determine how much the feature map shrinks along each side.",
-        tone: "statement",
+        expression: "H<sub>out</sub> = floor((H<sub>in</sub> - F) / S) + 1; W<sub>out</sub> = floor((W<sub>in</sub> - F) / S) + 1",
+        explanation: "For pooling without padding, H_in and W_in are the input height and width, F is the square window size, and S is the stride.",
       },
     ],
     pros: [

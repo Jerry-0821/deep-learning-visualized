@@ -4,6 +4,26 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/content-labels-cleanup`
+
+User approved items 2, 3, 4, 8 and 12 of the latest site review (item 1, the site description, is waiting for the user to choose wording).
+
+2. Module badges inside animations now match the site: Dropout and Overfitting say Module 1 (they said 2 and 3). Fixed in `public/prototypes/*.html` and their sources (`Dropout.ipynb`, `overfitting_top_controls_colab.py`).
+3. Pooling fixes released (were local-only since 2026-09-21): Module 2 label, learner-facing Controls text, `(a + b + c + d) / 4` average formula, full no-padding H/W output-size formulas, rewritten Pooling teaching notes in `data/topicTeachingContent.ts` (also removes the "Your prototype..." page description). `POOLING_UNPUSHED_NOTES.md` deleted.
+   - `scripts/export_notebook_prototypes.py` released with it: preview by default, writes only with `--write --topic X` / `--write --all`; new `TITLES` map gives generated pages real titles; titles are HTML-escaped; the old Attention notebook is no longer exported.
+4. Real page titles: 14 animation pages (e.g. "Dropout — Interactive Explorer" instead of "Dropout.ipynb"), static titles on the 12 lesson pages that had none, and lesson titles end in "| Deep Learning Visualized" instead of "| Topic Design Preview" (shell `document.title` too).
+8. `components/blog/blogImageSize.ts` uses `decodeURIComponent`, so images whose filenames contain "&" (Add & Norm post) now go through next/image. All 34 blog image paths resolve.
+12. Cleanup:
+   - Removed the unused `approvedNotes` map from `topic-design-previews/topic-preview-shell.js` (about 13.5 KB, never read).
+   - Removed the old Attention animation `public/prototypes/attention-mechanism-intuition.html`; `next.config.ts` redirects that URL (308) to `/topic/attention-mechanism-intuition`. `data/prototypeMappings.ts`, docs and source READMEs point at `attention-guided-lesson.html`; `transfomer.ipynb` stays as an archive.
+   - Removed 90 CSS rules (about 470 lines) from `app/globals.css` whose selectors need classes the code never produces (old landing page, old Formula Hub nav/footer, old topic list). Checked by fingerprinting the computed style of every element on 15 page states (home, topics, Formula Hub index/detail/saved, blog index/post, about, mindmap, pooling, a lesson page, 404, plus dark home/Formula Hub/blog post) before and after: 0 differences.
+
+Not done: item 1 (site description, app/layout.tsx line 6, unchanged since the first commit), items 5 (noindex for embedded pages), 6 (sitemap/robots/share image), 7 (light grey contrast), 9 (small content wording), 10-11, 13.
+
+How it was checked: `npm run build` 160/160; all 18 verify scripts pass; exporter preview matches the published files exactly as before (same Unchanged/Would-overwrite list); on `next start`: redirect returns 308 to the lesson, Add & Norm images use `/_next/image`, new titles and badges are served.
+
+Status: pushed to `claude/content-labels-cleanup` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/attention-guided-lesson`
 
 User approved the redesigned Attention lesson (draft v3) and asked for it to replace the old one.
@@ -104,8 +124,6 @@ Not done / next:
 
 ## Local-only work, do not commit (until the user says so)
 
-- Pooling fixes: `public/prototypes/pooling.html`, `source/visualizations/pooling-and-downsampling/pooling_style_aligned_source.py`, Pooling section of `data/topicTeachingContent.ts`. Details in `POOLING_UNPUSHED_NOTES.md`. The user said on 2026-10-17 to leave Pooling alone for now.
-- `scripts/export_notebook_prototypes.py`: safer preview-by-default exporter (needs `--write`). Finished, but kept local with the Pooling work.
 - `.claude/launch.json`: local preview-server config for Claude; not needed by the site.
 - Attention lesson design drafts: `design-review/attention-lesson-v2.html` (first draft) and `design-review/attention-lesson-v3.html` (approved draft, now shipped as `public/prototypes/attention-guided-lesson.html`). Folder is in `.git/info/exclude`; safe to delete once the guided lesson is live.
 

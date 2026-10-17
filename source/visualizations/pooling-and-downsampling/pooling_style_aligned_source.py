@@ -582,7 +582,7 @@ html_code = r'''<!DOCTYPE html>
       <div>
         <div class="badge">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
-          Module 4 · CNN Downsampling
+          Module 2 · CNN Downsampling
         </div>
         <h1>Pooling and<br><span>Downsampling</span></h1>
         <p class="desc">
@@ -631,7 +631,7 @@ html_code = r'''<!DOCTYPE html>
     <section class="panel controls-shell">
       <div class="controls-head">
         <h2>Controls</h2>
-        <p class="sub">Keep your original pooling logic, but present it with the same visual language as your overfitting / underfitting page.</p>
+        <p class="sub">Choose a pooling rule, window size, and stride, then follow each local summary into the smaller output map.</p>
       </div>
 
       <div class="controls-grid">
@@ -792,8 +792,10 @@ html_code = r'''<!DOCTYPE html>
             For each local window, keep the largest activation.<br><br>
             <strong>Average pooling</strong><br>
             For each local window, take the mean of all values.<br><br>
-            Output size per side:<br>
-            <strong>⌊(W − F) / S⌋ + 1</strong>
+            Output size (no padding):<br>
+            <strong>H<sub>out</sub> = ⌊(H<sub>in</sub> − F) / S⌋ + 1</strong><br>
+            <strong>W<sub>out</sub> = ⌊(W<sub>in</sub> − F) / S⌋ + 1</strong><br><br>
+            H<sub>in</sub> and W<sub>in</sub> are the input height and width, F is the square window size, and S is the stride.
           </div>
         </div>
 
@@ -956,12 +958,12 @@ html_code = r'''<!DOCTYPE html>
     const vals = getWindowValues(step.startR, step.startC);
     const valuesOnly = vals.map(v => v.value);
     const result = output[step.r][step.c];
-    const opText = state.mode === 'max' ? 'max' : 'avg';
-    const formulaText = state.mode === 'max'
-      ? `Output(${step.r + 1}, ${step.c + 1}) = max(${valuesOnly.join(', ')}) = ${result}`
-      : `Output(${step.r + 1}, ${step.c + 1}) = avg(${valuesOnly.join(' + ')}) / ${valuesOnly.length} = ${result.toFixed(1)}`;
+    const resultText = typeof result === 'number' && !Number.isInteger(result) ? result.toFixed(1) : String(result);
+    const formulaPrefix = state.mode === 'max'
+      ? `Output(${step.r + 1}, ${step.c + 1}) = max(${valuesOnly.join(', ')}) = `
+      : `Output(${step.r + 1}, ${step.c + 1}) = (${valuesOnly.join(' + ')}) / ${valuesOnly.length} = `;
 
-    document.getElementById('formulaLine').innerHTML = formulaText.replace(String(result), `<strong>${typeof result === 'number' && !Number.isInteger(result) ? result.toFixed(1) : result}</strong>`);
+    document.getElementById('formulaLine').innerHTML = `${formulaPrefix}<strong>${resultText}</strong>`;
 
     const tokenWrap = document.getElementById('windowTokens');
     tokenWrap.innerHTML = '';

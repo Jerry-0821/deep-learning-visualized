@@ -450,7 +450,7 @@ display(HTML(r'''
       <div>
         <div class="badge">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
-          Module 3 · Bias–Variance
+          Module 1 · Bias–Variance
         </div>
         <h1>Overfitting vs.<br><span>Underfitting</span></h1>
         <p class="desc">
