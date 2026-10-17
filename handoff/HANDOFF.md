@@ -26,7 +26,7 @@ How it was checked:
 - Checked by hand: toggle switches and persists across pages; light mode values unchanged; toggle visible at 375px with no horizontal scroll; `/topic/pooling` unaffected while dark mode is saved.
 
 Not done / next:
-- Pushed to branch `codex/fix-adam-convolution-logic` for a Vercel preview only. NOT merged to `main`; production is unchanged until the user approves the preview.
+- User checked the Vercel preview and approved it. Fast-forwarded `main` to `1fe351c` on 2026-10-17, so production (https://deep-learning-visualized.vercel.app) now has the toggle.
 - Optional later: theme the lesson prototypes too (user said not now).
 
 ## Local-only work, do not commit (until the user says so)
