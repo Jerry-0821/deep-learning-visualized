@@ -4,6 +4,19 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (latest) · Claude (Claude Code) · branch `claude/formula-hub-unified`
+
+User reviewed a local side-by-side demo and approved item 4: Formula Hub now uses the shared site design system.
+
+What changed (style only, no formulas/data/search logic touched):
+- `app/globals.css`: Formula Hub font declarations switched in place (DM Sans -> Inter, DM Serif Display -> Instrument Serif). New block at the end of the file ("Formula Hub in the shared site design system"): Formula Hub colour variables point at the `--edition-*` tokens, its own aurora/noise backdrop is turned off in favour of the shared site backdrop, 18px cards with hover lift, pill-shaped controls, glass search bar, form controls inherit the font. The now-unused dark rule for the old backdrop was removed.
+- `app/layout.tsx`: Google Fonts request trimmed to Inter + Instrument Serif (DM Sans and DM Serif Display removed). The site now loads 2 font families instead of 5.
+- Deleted the review sample (`app/design-review/`, `public/design-review-formula-hub.html`) and their `.git/info/exclude` lines.
+
+How it was checked: `npm run build` 160/160 pages; all 18 verify scripts pass; `/formula-hub` checked in the browser against the approved sample.
+
+Status: pushed to `claude/formula-hub-unified` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (later) · Claude (Claude Code) · branch `claude/nav-menu-lesson-bar`
 
 User approved items 1, 2, 3, 5 of the design review. Item 4 (unify Formula Hub with the rest of the site) is only a separate SAMPLE awaiting review.
@@ -54,6 +67,7 @@ Not done / next:
 - Pooling fixes: `public/prototypes/pooling.html`, `source/visualizations/pooling-and-downsampling/pooling_style_aligned_source.py`, Pooling section of `data/topicTeachingContent.ts`. Details in `POOLING_UNPUSHED_NOTES.md`. The user said on 2026-10-17 to leave Pooling alone for now.
 - `scripts/export_notebook_prototypes.py`: safer preview-by-default exporter (needs `--write`). Finished, but kept local with the Pooling work.
 - `.claude/launch.json`: local preview-server config for Claude; not needed by the site.
+- Found, not fixed: Formula Hub has a MathJax/React hydration race, seen with the local dev server (production rendered correctly on two checks). MathJax can typeset before hydration, React then reports a mismatch and re-renders, and some formulas (hero chips, symbol dictionary) stay as raw `\(...\)` until the next typeset. Fix idea: have `MathJaxRefresh` call `MathJax.typesetClear()` + `typesetPromise()` after hydration, or render `FormulaMath` only on the client.
 
 ---
 
