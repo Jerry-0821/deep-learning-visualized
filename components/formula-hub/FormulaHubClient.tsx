@@ -876,6 +876,7 @@ export function FormulaHubClient() {
   const canvasRef = useNeuralCanvas();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const savedImportInputRef = useRef<HTMLInputElement | null>(null);
+  const appRef = useRef<HTMLDivElement | null>(null);
   const skipNextQueryUrlSyncRef = useRef(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -1186,6 +1187,33 @@ export function FormulaHubClient() {
     return () => window.clearTimeout(timer);
   }, [drawerOpen, modalOpen, visibleMathKey]);
 
+  // MathJax no longer typesets on load (it could run before hydration and leave raw TeX),
+  // so typeset the whole hub once it has mounted and MathJax is ready.
+  useEffect(() => {
+    const typesetApp = () => {
+      const mathJax = window.MathJax as
+        | (typeof window.MathJax & {
+            typesetClear?: (elements?: Element[]) => void;
+            typesetPromise?: (elements?: Element[]) => Promise<void>;
+          })
+        | undefined;
+      if (!mathJax?.typesetPromise || !appRef.current) return false;
+      mathJax.typesetClear?.([appRef.current]);
+      void mathJax.typesetPromise([appRef.current]);
+      return true;
+    };
+
+    if (typesetApp()) return;
+
+    let attempts = 0;
+    const intervalId = window.setInterval(() => {
+      attempts += 1;
+      if (typesetApp() || attempts >= 40) window.clearInterval(intervalId);
+    }, 250);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   const setCategory = (nextCategory: FormulaCategoryFilter) => {
     updateParams({ category: nextCategory, formula: null, page: null });
     setDrawerOpen(false);
@@ -1199,7 +1227,7 @@ export function FormulaHubClient() {
   };
 
   return (
-    <div className={`${styles.formulaApp} formula-v6-app`}>
+    <div ref={appRef} className={`${styles.formulaApp} formula-v6-app`}>
       <div className="page">
         <aside className={`${styles.formulaSidebar} sidebar`}>
           <p className="sidebar-label">Browse Topics</p>

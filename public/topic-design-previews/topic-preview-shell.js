@@ -3170,7 +3170,7 @@ Dev &rarr; Test = dev overfitting</pre>
         </a>
         <div class="topbar-actions">
           <span class="preview-label">Topic design preview</span>
-          <a class="back-module-link" href="${config.moduleUrl}">Back to module</a>
+          <a class="back-module-link" href="${config.moduleUrl}" target="_top">Back to module</a>
         </div>
       </div>
     </header>

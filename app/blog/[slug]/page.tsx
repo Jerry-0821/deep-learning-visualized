@@ -1,8 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlogReadingLayout, type BlogNavigationItem } from "@/components/blog/BlogReadingLayout";
+import { getPublicPngSize } from "@/components/blog/blogImageSize";
 import { MathJaxRefresh } from "@/components/blog/MathJaxRefresh";
 import { EditionBackdrop, EditionNav } from "@/components/edition/EditionChrome";
 import { blogPosts, blogPostsBySlug, type BlogBlock, type BlogPost } from "@/data/blogPosts";
@@ -64,7 +66,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               inlineMath: [['\\\\(', '\\\\)']],
               displayMath: [['\\\\[', '\\\\]']]
             },
-            svg: { fontCache: 'global' }
+            svg: { fontCache: 'global' },
+            // Typeset only after React hydrates (MathJaxRefresh), never the server HTML.
+            startup: { typeset: false }
           };
         `}
       </Script>
@@ -93,12 +97,23 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 const headingId = getBlogBlockHeading(block) ? blockId(index) : undefined;
 
                 if (block.type === "image") {
+                  const imageSize = getPublicPngSize(block.src);
                   return (
                     <figure
                       key={`${block.type}-${index}`}
                       className={`blog-image-card ${block.size === "wide" ? "blog-image-wide" : ""}`}
                     >
-                      <img src={block.src} alt={block.alt} />
+                      {imageSize ? (
+                        <Image
+                          src={block.src}
+                          alt={block.alt}
+                          width={imageSize.width}
+                          height={imageSize.height}
+                          sizes="(max-width: 760px) 100vw, 680px"
+                        />
+                      ) : (
+                        <img src={block.src} alt={block.alt} loading="lazy" />
+                      )}
                       {block.caption ? <figcaption>{block.caption}</figcaption> : null}
                     </figure>
                   );

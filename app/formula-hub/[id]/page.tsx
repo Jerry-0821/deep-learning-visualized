@@ -364,7 +364,9 @@ export default async function FormulaDetailPage({ params }: FormulaDetailPagePro
               inlineMath: [['\\\\(', '\\\\)']],
               displayMath: [['\\\\[', '\\\\]']]
             },
-            svg: { fontCache: 'global' }
+            svg: { fontCache: 'global' },
+            // Typeset only after React hydrates (MathJaxRefresh), never the server HTML.
+            startup: { typeset: false }
           };
         `}
       </Script>

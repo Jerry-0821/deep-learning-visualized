@@ -4,6 +4,18 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/images-mathjax-backlink`
+
+User approved items 1, 4, 5 of the second design review.
+
+1. Blog post images now use `next/image` (`app/blog/[slug]/page.tsx`): resized to the reader's screen, served as WebP/AVIF where supported, lazy-loaded. `components/blog/blogImageSize.ts` reads each PNG's width/height at build time, so `data/blogPosts.ts` and the image files are unchanged. Local test: a ~1.5MB figure now loads as ~120-145KB even as PNG. Non-PNG sources fall back to a lazy `<img>`. Note: uses Vercel Image Optimization (Hobby plan has a monthly transformation quota; 35 images x a few widths is well within it).
+4. Lesson pages' own "Back to module" link now has `target="_top"` (`topic-design-previews/topic-preview-shell.js` line ~3173, synced to `public/` by `scripts/sync_topic_design_previews.mjs`). Before, it opened the Topics page inside the lesson iframe. The user approved this one-attribute change to a lesson file.
+5. MathJax raw-TeX race fixed: MathJax configs on `/formula-hub`, `/formula-hub/saved`, `/formula-hub/[id]` and `/blog/[slug]` set `startup: { typeset: false }`, so MathJax never typesets the server HTML before React hydrates. `MathJaxRefresh` (existing) typesets after mount; `FormulaHubClient` now also typesets its whole app once MathJax is ready (hero chips + symbol dictionary were previously only typeset by MathJax's startup pass).
+
+How it was checked: `npm run build` 160/160; all 18 verify scripts pass; on `next start`: blog images load via `/_next/image`, Formula Hub 0 raw formulas over 2 reloads (35 rendered), formula detail and blog post formulas render, lesson back link navigates the top page to `/topics#mod-1`.
+
+Status: pushed to `claude/images-mathjax-backlink` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (latest) · Claude (Claude Code) · branch `claude/formula-hub-unified`
 
 User reviewed a local side-by-side demo and approved item 4: Formula Hub now uses the shared site design system.
@@ -26,9 +38,6 @@ What changed (site chrome only, no lesson content touched):
 2. Lesson pages (`/topic/*` using topic-design-previews) get a slim 48px bar above the iframe: All topics, module + lesson title, Previous/Next (`components/topic/TopicRouteBar.tsx`, `components/topic/RedesignedTopicPage.tsx`). The Pooling page uses a different wrapper with its own links and is unchanged.
 5. Fonts: removed the unused "SF Pro Display" family from the Google Fonts request in `app/layout.tsx`. DM Sans + DM Serif Display are still loaded because only Formula Hub uses them; they can be dropped if item 4 is approved.
 4. SAMPLE ONLY: `/design-review/formula-hub` (`app/design-review/formula-hub/page.tsx` + `formula-unified.css`). It renders the real Formula Hub with the site's fonts, colours, radii and shadows. All rules are scoped to `.formula-unified`; the real `/formula-hub` and its styles are untouched. Page is noindex and not linked from the site. If approved: fold the rules into the Formula Hub styles, drop the DM fonts, delete `app/design-review/`. If rejected: delete `app/design-review/`.
-
-Found, not fixed (lesson file, needs the user's OK):
-- The lesson pages' own "Back to module" link (`public/topic-design-previews/topic-preview-shell.js`, line ~3173) has no `target="_top"`, so clicking it opens the Topics page inside the lesson iframe (page within a page). Fix would be adding `target="_top"` to that link. The new top bar gives a correct way out meanwhile.
 
 How it was checked:
 - `npm run build`: 161/161 pages. All 18 `scripts/verify_*.mjs` pass.
@@ -67,7 +76,6 @@ Not done / next:
 - Pooling fixes: `public/prototypes/pooling.html`, `source/visualizations/pooling-and-downsampling/pooling_style_aligned_source.py`, Pooling section of `data/topicTeachingContent.ts`. Details in `POOLING_UNPUSHED_NOTES.md`. The user said on 2026-10-17 to leave Pooling alone for now.
 - `scripts/export_notebook_prototypes.py`: safer preview-by-default exporter (needs `--write`). Finished, but kept local with the Pooling work.
 - `.claude/launch.json`: local preview-server config for Claude; not needed by the site.
-- Found, not fixed: Formula Hub has a MathJax/React hydration race, seen with the local dev server (production rendered correctly on two checks). MathJax can typeset before hydration, React then reports a mismatch and re-renders, and some formulas (hero chips, symbol dictionary) stay as raw `\(...\)` until the next typeset. Fix idea: have `MathJaxRefresh` call `MathJax.typesetClear()` + `typesetPromise()` after hydration, or render `FormulaMath` only on the client.
 
 ---
 
