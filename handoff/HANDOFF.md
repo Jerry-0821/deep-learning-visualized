@@ -14,7 +14,7 @@ User approved items 1, 4, 5 of the second design review.
 
 How it was checked: `npm run build` 160/160; all 18 verify scripts pass; on `next start`: blog images load via `/_next/image`, Formula Hub 0 raw formulas over 2 reloads (35 rendered), formula detail and blog post formulas render, lesson back link navigates the top page to `/topics#mod-1`.
 
-Status: pushed to `claude/images-mathjax-backlink` for a Vercel preview. NOT merged to `main`.
+Status: user approved the Vercel preview; `main` fast-forwarded to `2d8cea8` on 2026-10-17, so it is live in production.
 
 ## 2026-10-17 (latest) · Claude (Claude Code) · branch `claude/formula-hub-unified`
 
