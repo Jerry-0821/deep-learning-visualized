@@ -16,7 +16,7 @@ User approved adding a sitemap, robots.txt and share preview images.
 
 How it was checked: `npm run build` 194/194 (now includes the image routes, sitemap and robots); all 18 verify scripts pass; on `next start`: robots.txt and sitemap.xml served, `/topic/pooling` has og:title/description/image (1200 x 630) and twitter card tags, card PNGs rendered and reviewed (local copies in `design-review/share-cards/`, not committed).
 
-Status: pushed to `claude/seo-sitemap-share` for a Vercel preview. NOT merged to `main`.
+Status: user approved; `main` fast-forwarded to `f4d89cd` on 2026-10-17 (live). Checked on production: /sitemap.xml (151 URLs), /robots.txt, share cards for the site, a lesson and a blog post (200, image/png), og:image + twitter:card tags on the home page.
 
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/pooling-guided-lesson`
 
