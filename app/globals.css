@@ -2095,7 +2095,7 @@ a {
   --edition-border-hover: rgba(120, 100, 180, 0.22);
   --edition-text: #1a1630;
   --edition-copy: #5c5677;
-  --edition-muted: #9b95b0;
+  --edition-muted: #6f6888;
   --edition-purple: #6c5ce7;
   --edition-purple-light: #a29bfe;
   --edition-green: #00b894;
@@ -5380,7 +5380,7 @@ a {
   --coral: #d4614a;
   --text: #16122e;
   --copy: #4a4668;
-  --muted: #9590ab;
+  --muted: #6f6888;
   --line: rgba(108, 92, 231, 0.1);
   --bg: #f9f8fe;
   --surface: #ffffff;
@@ -7168,7 +7168,7 @@ html[data-theme="dark"] .edition-menu-cta {
 
 .topic-route-bar-context span {
   flex: none;
-  color: #9b95b0;
+  color: #6f6888;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;

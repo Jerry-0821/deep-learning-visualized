@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Deep Learning Visualized",
-  description: "Deep learning course pages migrated from the approved static prototype.",
+  description:
+    "Learn deep learning visually: interactive lessons, formulas and essays, from single neurons to transformers.",
 };
 
 export default function RootLayout({

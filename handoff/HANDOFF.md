@@ -4,6 +4,21 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/description-contrast`
+
+User approved review items 1 and 7.
+
+1. Site description (`app/layout.tsx`, used by the home page and any page without its own): was the dev note "Deep learning course pages migrated from the approved static prototype." (unchanged since the first commit, 2026-04-26). Now: "Learn deep learning visually: interactive lessons, formulas and essays, from single neurons to transformers." (the user's choice, option A).
+7. Light grey text contrast (light mode only; dark mode unchanged): `--edition-muted` #9b95b0 -> #6f6888, Formula Hub `--muted` #9590ab -> #6f6888, topic route bar label, lesson shell `--text-muted` #817d8f -> #6f6888, guided Attention lesson `--muted` #817d8f -> #6f6888. #6f6888 is at least 4.55:1 on every light background used (#f7f6fc, #ffffff, #f0eef6, #f9f8fe, #fcfbfd). A browser audit of home, topics, Formula Hub, a formula page, blog, a blog post and about found no grey text below AA afterwards.
+
+Still below AA (not changed, needs a design decision): module accent colours used as text (green #00b894 about 2.4:1, coral #e17055 about 3:1, pink #fd79a8 about 2.3:1 on light backgrounds) and white text on green/coral card badges and "Explore topic" chips (2.5:1 / 3.2:1); purple #6c5ce7 small labels on light-purple tints (about 4.0-4.4:1).
+
+Pooling finding (for the user's next decision): Pooling is the only one of the 18 topics without a redesigned lesson page. `/topic/pooling` still uses the old fallback wrapper `components/topic/EmbeddedPrototypePage.tsx` ("Interactive prototype" badge, "Return to module" / "Open prototype only" buttons, no site nav, notes from `data/topicTeachingContent.ts`), and `public/prototypes/pooling.html` is the original animation. The old local note (untracked `POOLING_UNPUSHED_NOTES.md`, removed in 0aee99c) said the Pooling fixes were "intentionally not pushed" on 2026-09-21 but gave no reason; the fixes themselves were released in 0aee99c.
+
+How it was checked: `npm run build` 160/160; all 18 verify scripts pass; browser contrast audit as above.
+
+Status: pushed to `claude/description-contrast` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/content-labels-cleanup`
 
 User approved items 2, 3, 4, 8 and 12 of the latest site review (item 1, the site description, is waiting for the user to choose wording).
