@@ -14,7 +14,7 @@ User approved three items.
 
 How it was checked: `npm run build` 194/194; all 18 verify scripts pass; exporter preview unchanged; on `next start`: header present on embedded pages and absent on /mindmap, /topic/pooling, /, /formula-hub; 404 returns 404 with the new page; MathJax 3.2.2 renders with no errors.
 
-Status: pushed to `claude/mathjax-404-noindex` for a Vercel preview. NOT merged to `main`.
+Status: user approved; `main` fast-forwarded to `a2a7e9a` on 2026-10-17 (live). Checked on production: X-Robots-Tag on embedded pages only, new 404 page with status 404, MathJax 3.2.2 served.
 
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/seo-sitemap-share`
 
