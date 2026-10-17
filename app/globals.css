@@ -7263,3 +7263,232 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* ------------------------------------------------------------------
+   Site-wide dark theme.
+   Toggled by components/edition/ThemeToggle.tsx (html[data-theme="dark"]).
+   Every rule here is scoped to dark mode, so light mode is unchanged.
+   Lesson content in iframes (prototypes, topic previews, mindmap) is
+   intentionally left in its original light design.
+   ------------------------------------------------------------------ */
+.edition-theme-toggle {
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.edition-theme-toggle:focus-visible {
+  outline: 3px solid rgba(155, 140, 255, 0.32);
+  outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .edition-nav-actions {
+    display: flex;
+    margin-left: auto;
+  }
+
+  .edition-nav-actions > :not(.edition-theme-toggle) {
+    display: none;
+  }
+}
+
+html[data-theme="dark"]:has(.edition-root) {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body:has(.edition-root) {
+  background: #0f0e17;
+}
+
+html[data-theme="dark"] .edition-root {
+  --edition-bg: #0f0e17;
+  --edition-surface: #191724;
+  --edition-surface-2: #211e2e;
+  --edition-glass: rgba(25, 23, 36, 0.78);
+  --edition-border: rgba(205, 196, 255, 0.12);
+  --edition-border-hover: rgba(205, 196, 255, 0.26);
+  --edition-text: #f5f2ff;
+  --edition-copy: #bbb5cf;
+  --edition-muted: #8a849d;
+  --edition-purple: #a597ff;
+  --edition-purple-light: #c3baff;
+}
+
+html[data-theme="dark"] .edition-atmosphere {
+  background:
+    radial-gradient(ellipse 58% 52% at 18% 10%, rgba(126, 103, 255, 0.18), transparent 54%),
+    radial-gradient(ellipse 48% 48% at 84% 18%, rgba(230, 111, 174, 0.08), transparent 55%),
+    radial-gradient(ellipse 54% 44% at 54% 78%, rgba(26, 191, 160, 0.07), transparent 52%);
+}
+
+html[data-theme="dark"] .edition-atmosphere::after {
+  opacity: 0.2;
+  background-image: radial-gradient(rgba(180, 166, 255, 0.22) 0.5px, transparent 0.5px);
+}
+
+html[data-theme="dark"] .edition-nav {
+  background: rgba(15, 14, 23, 0.78);
+}
+
+html[data-theme="dark"] .edition-nav-link:hover,
+html[data-theme="dark"] .edition-nav-link.active {
+  background: rgba(155, 140, 255, 0.13);
+}
+
+html[data-theme="dark"] .edition-nav-icon {
+  border-color: rgba(184, 173, 255, 0.22);
+}
+
+html[data-theme="dark"] .edition-nav-icon:hover {
+  border-color: rgba(184, 173, 255, 0.38);
+  background: rgba(155, 140, 255, 0.12);
+}
+
+html[data-theme="dark"] .edition-nav-cta {
+  background: #7c6cf0;
+  box-shadow: 0 2px 14px rgba(124, 108, 240, 0.32);
+}
+
+/* Lesson content keeps its own light design inside dark pages. */
+html[data-theme="dark"] .edition-root iframe {
+  background: #ffffff;
+  color-scheme: light;
+}
+
+/* Dark versions of surfaces that use fixed white tints in light mode. */
+html[data-theme="dark"] .edition-hero-chip,
+html[data-theme="dark"] .edition-button-secondary,
+html[data-theme="dark"] .edition-stats,
+html[data-theme="dark"] .edition-note-node,
+html[data-theme="dark"] .edition-note-card-main {
+  background: rgba(33, 30, 46, 0.78);
+}
+
+html[data-theme="dark"] .edition-note-node,
+html[data-theme="dark"] .edition-note-card-main {
+  border-color: rgba(184, 173, 255, 0.18);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+}
+
+html[data-theme="dark"] .edition-notes-inner {
+  background:
+    linear-gradient(135deg, rgba(31, 28, 44, 0.94), rgba(25, 23, 36, 0.8)),
+    linear-gradient(118deg, rgba(253, 121, 168, 0.08), transparent 32%),
+    linear-gradient(245deg, rgba(0, 184, 148, 0.08), transparent 36%);
+}
+
+html[data-theme="dark"] .edition-notes-inner:hover {
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .edition-notes-visual {
+  border-color: rgba(205, 196, 255, 0.12);
+  background:
+    linear-gradient(rgba(165, 151, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(165, 151, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(33, 30, 46, 0.8), rgba(20, 18, 30, 0.6));
+  background-size: 26px 26px, 26px 26px, auto;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .edition-note-formula-card {
+  border-color: rgba(26, 191, 160, 0.28);
+  background: linear-gradient(180deg, rgba(22, 44, 42, 0.92), rgba(20, 33, 34, 0.86));
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="dark"] .edition-note-formula-card strong {
+  color: #5fe0c4;
+}
+
+html[data-theme="dark"] .edition-footer {
+  background: rgba(15, 14, 23, 0.85);
+}
+
+html[data-theme="dark"] .formula-page-guide-grid article,
+html[data-theme="dark"] .formula-page-path,
+html[data-theme="dark"] .formula-page-shape-flow span,
+html[data-theme="dark"] .formula-page-related a,
+html[data-theme="dark"] .formula-page-step,
+html[data-theme="dark"] .formula-page-connection-group a,
+html[data-theme="dark"] .formula-page-link-row a {
+  background: rgba(33, 30, 46, 0.72);
+}
+
+/* Blog figures are content images with white backgrounds: frame them so they sit cleanly on dark. */
+html[data-theme="dark"] .blog-image-card img {
+  border: 1px solid rgba(205, 196, 255, 0.16);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+}
+
+html[data-theme="dark"] .blog-reading-navigation-toggle {
+  border-color: rgba(211, 204, 255, 0.24);
+  background: #242131;
+}
+
+@media (max-width: 980px) {
+  html[data-theme="dark"] .blog-reading-navigation {
+    background: rgba(20, 18, 30, 0.98);
+    box-shadow: 20px 0 45px rgba(0, 0, 0, 0.3);
+  }
+}
+
+html[data-theme="dark"] .edition-mod-1 {
+  --edition-module: #a597ff;
+  --edition-module-soft: rgba(165, 151, 255, 0.12);
+}
+
+/* Formula Hub uses its own variable set. */
+html[data-theme="dark"] .formula-v6-root {
+  --purple: #a597ff;
+  --purple-soft: rgba(165, 151, 255, 0.1);
+  --purple-mid: rgba(165, 151, 255, 0.2);
+  --teal: #3ad3b2;
+  --coral: #f08a72;
+  --text: #f5f2ff;
+  --copy: #bbb5cf;
+  --muted: #8a849d;
+  --line: rgba(205, 196, 255, 0.13);
+  --bg: #0f0e17;
+  --surface: #191724;
+}
+
+html[data-theme="dark"] .formula-v6-root .fcard:hover,
+html[data-theme="dark"] .formula-v6-root .fcard.active {
+  background: #211e2e;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .formula-v6-root .hero-chip,
+html[data-theme="dark"] .formula-v6-root .search-suggestions button,
+html[data-theme="dark"] .formula-v6-root .saved-toolbar,
+html[data-theme="dark"] .formula-v6-root .formula-step {
+  background: rgba(33, 30, 46, 0.78);
+}
+
+html[data-theme="dark"] .formula-v6-root::before {
+  background:
+    radial-gradient(ellipse 70% 55% at 12% 20%, rgba(126, 103, 255, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 45% at 88% 15%, rgba(26, 191, 160, 0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 45% 60% at 55% 85%, rgba(126, 103, 255, 0.07) 0%, transparent 70%),
+    #0f0e17;
+}
+
+html[data-theme="dark"] .mindmap-route-root {
+  background: #0f0e17;
+}
+
+/* Filled accent buttons keep a deeper purple so white labels stay readable. */
+html[data-theme="dark"] .edition-chip-purple,
+html[data-theme="dark"] .edition-button-primary,
+html[data-theme="dark"] .formula-category-pills button.active,
+html[data-theme="dark"] .formula-v6-root .brand-mark,
+html[data-theme="dark"] .formula-v6-root .start-btn,
+html[data-theme="dark"] .formula-v6-root .fpill.active,
+html[data-theme="dark"] .formula-v6-root .pg-btn.active {
+  background: #7c6cf0;
+}

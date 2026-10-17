@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/edition/ThemeToggle";
 
 type EditionPage = "home" | "topics" | "formula-hub" | "blog" | "mindmap" | "about";
 
@@ -36,6 +37,7 @@ export function EditionNav({ active }: { active: EditionPage }) {
           </Link>
         </div>
         <div className="edition-nav-actions">
+          <ThemeToggle />
           <Link className="edition-nav-icon" href="/formula-hub/saved" aria-label="Saved formulas">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M7 4.75c0-.69.56-1.25 1.25-1.25h7.5c.69 0 1.25.56 1.25 1.25v15.02l-5-3.12-5 3.12V4.75Z" />
