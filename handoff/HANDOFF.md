@@ -17,7 +17,7 @@ Still open from the animation review (not approved yet): Attention scores includ
 
 How it was checked: `npm run build` 160/160; all 18 verify scripts pass; every framed lesson measured for inner overflow in the browser; exporter preview shows notebooks and published HTML match (Dropout differs only by a pre-existing blank line).
 
-Status: pushed to `claude/attention-and-author-text` for a Vercel preview. NOT merged to `main`.
+Status: user approved everything EXCEPT the Attention lesson changes, because they want to redesign the whole Attention teaching content. Released to `main` via `claude/release-content-fixes`, which drops item 1 (the `attention-editorial` treatment) and the Attention footer rewrite (`public/prototypes/attention-mechanism-intuition.html`, `transfomer.ipynb`). The general frame-height fix (item 2) is shared code and was released, so the Attention lesson's inner scrollbar is gone too. The full Attention version stays on branch `claude/attention-and-author-text` for reference; Attention redesign is being discussed with the user, do not ship Attention changes without their approval.
 
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/images-mathjax-backlink`
 

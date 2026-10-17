@@ -192,7 +192,6 @@
       drawerMode: "empty",
       reservedReading: true,
       decard: true,
-      frameTreatment: "attention-editorial",
     },
     "evaluation-metrics-confusion-matrix": {
       moduleLabel: "Module 03 / Evaluation",
@@ -3361,40 +3360,6 @@ Dev &rarr; Test = dev overfitting</pre>
   }
 
   function frameTreatmentCss() {
-    if (config.frameTreatment === "attention-editorial") {
-      return `
-        body { background: transparent !important; }
-        #tf-page-7d8d5759 .page {
-          background: transparent !important;
-          border: 0 !important;
-          border-radius: 0 !important;
-          box-shadow: none !important;
-          margin: 0 !important;
-          max-width: none !important;
-        }
-        #tf-page-7d8d5759 .nav,
-        #tf-page-7d8d5759 .hero,
-        #tf-page-7d8d5759 .section-label,
-        #tf-page-7d8d5759 .footer-strip {
-          display: none !important;
-        }
-        #tf-page-7d8d5759 .main {
-          margin: 0 !important;
-          max-width: none !important;
-          padding: 0 !important;
-        }
-        #tf-page-7d8d5759 .chip.active,
-        #tf-page-7d8d5759 .seg-btn.active,
-        #tf-page-7d8d5759 .focus-chip.active,
-        #tf-page-7d8d5759 .step-chip.active,
-        #tf-page-7d8d5759 .play-btn.playing {
-          background: #6c5ce7 !important;
-          border-color: #6c5ce7 !important;
-          color: #ffffff !important;
-        }
-        #tf-page-7d8d5759 input[type="range"] { accent-color: #6c5ce7 !important; }
-      `;
-    }
     if (config.frameTreatment === "rnn-editorial") {
       return `
         body { background: transparent !important; padding: 0 !important; }
