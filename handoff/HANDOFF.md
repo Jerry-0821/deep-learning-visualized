@@ -4,6 +4,20 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/pooling-guided-lesson`
+
+User approved the redesigned Pooling lesson (draft v2) to replace the old fallback page.
+
+What changed:
+- New `public/prototypes/pooling-guided-lesson.html` (hand-written, its own source): four stages of slides, built like the guided Attention lesson. Stage 1 why shrink (layer size count-up; "how pooling works" with a window that fills the output one cell at a time and shows the calculation; "small shifts" with four coloured 2 x 2 blocks matching their output cells); Stage 2 max (learner picks the max in each window, value flies to the output) / average (animated arithmetic) / compare; Stage 3 output-size explorer with live LaTeX, leftover edges and overlap, per-channel pooling; Stage 4 convolution vs pooling ("train the kernel"), parameter count, three-question check. Data grids use a teal/amber palette, not the site purple (user request: avoid colour fatigue). All numbers computed from the matrices in the script. `?embed=1` hides its own title and reading sections.
+- New lesson page `topic-design-previews/pooling.html` + `"pooling"` config in `topic-design-previews/topic-preview-shell.js` (notes with LaTeX formulas, `notesMath`, `autoFrameHeight`), and `"pooling"` in `data/redesignedTopicPreviews.ts`. `/topic/pooling` now uses the lesson shell with the top route bar like the other 17 topics; no topic uses `EmbeddedPrototypePage` any more (kept as fallback).
+- Removed the old `public/prototypes/pooling.html`; `next.config.ts` redirects it (308) to `/topic/pooling`. Exporter mapping and title removed (source `pooling_style_aligned_source.py` kept as archive); `data/prototypeMappings.ts`, `docs/HTML_AND_SOURCE_MAP.md`, `docs/WEBSITE_FILE_IMPACT_MAP.md` updated; app-integration check now requires the pooling lesson page.
+- Shell `autoFrameHeight` made robust (affects Attention and Pooling): the ResizeObserver is created from the frame's own window, uses a short timer instead of requestAnimationFrame, and a 500 ms check keeps the frame matched even in tabs that are not repainting. Checked: frame grows (2936 -> 2997) and shrinks (2918) with the slides; Attention still matches exactly.
+
+How it was checked: `npm run build` 160/160; all 18 verify scripts pass; on `next start`: /prototypes/pooling.html -> 308 -> /topic/pooling, attention redirect still 308, /topic/pooling renders the route bar + lesson shell, 4 stages embedded, 16 MathJax + 14 KaTeX formulas with no errors, no console errors. The draft's full 12-slide run-through passed earlier (max output 4 4 2 / 3 5 2 / 3 4 4, sizes, leftover/overlap counts, parameter counts all correct).
+
+Status: pushed to `claude/pooling-guided-lesson` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/accent-text-contrast`
 
 User approved fixing accent colours that were too light as text.
@@ -11,7 +25,7 @@ User approved fixing accent colours that were too light as text.
 - `app/globals.css`, new block at the end ("Accessible text colours"): darker text shades `--edition-purple-text` #5b4bd6, `--edition-green-text` #00775f, `--edition-coral-text` #b54a30, `--edition-pink-text` #b83d71 (all at least 4.5:1 on white and the light tints; white on them also passes). Used only where an accent is text (module labels and arrows on the home map, "View all" links, pink note kicker, green note formula text, small purple labels on purple tints) in light mode. Card badges and "Explore topic" / "Read note" chips (white text) use `--edition-module-strong` in both themes. Two small Formula Hub detail labels use body grey. Decorative uses of the accents (stripes, dots, art) are unchanged.
 - Checked with a browser contrast audit (light mode): home, topics, Formula Hub, two formula pages, blog, about now report no text below AA. Remaining: the old Pooling page wrapper badges (blue #0071e3 on blue tint, about 4.1:1), which the planned Pooling redesign replaces.
 
-Status: pushed to `claude/accent-text-contrast` for a Vercel preview. NOT merged to `main`.
+Status: user approved; `main` fast-forwarded to `301b45b` on 2026-10-17 (live).
 
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/description-contrast`
 
@@ -149,6 +163,7 @@ Not done / next:
 ## Local-only work, do not commit (until the user says so)
 
 - `.claude/launch.json`: local preview-server config for Claude; not needed by the site.
+- Pooling lesson design drafts: `design-review/pooling-lesson-v1.html` and `design-review/pooling-lesson-v2.html` (approved, shipped as `public/prototypes/pooling-guided-lesson.html`).
 - Attention lesson design drafts: `design-review/attention-lesson-v2.html` (first draft) and `design-review/attention-lesson-v3.html` (approved draft, now shipped as `public/prototypes/attention-guided-lesson.html`). Folder is in `.git/info/exclude`; safe to delete once the guided lesson is live.
 
 ---

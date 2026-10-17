@@ -59,7 +59,7 @@ These rows connect the active standalone prototype HTML to the tracked source co
 | Mini-batch Training & Batch Size | `public/prototypes/mini-batch-training-batch-size.html` | `source/visualizations/mini-batch-training/Mini-batch Training and Batch Size Intuition.ipynb` |
 | Neuron Structure | `public/prototypes/neuron-structure.html` | `source/visualizations/single-neuron/single_neuron.ipynb` |
 | Overfitting vs. Underfitting | `public/prototypes/overfitting-vs-underfitting.html` | `source/visualizations/overfitting-vs-underfitting/overfitting_top_controls_colab.py` |
-| Pooling and Downsampling | `public/prototypes/pooling.html` | `source/visualizations/pooling-and-downsampling/pooling_style_aligned_source.py` |
+| Pooling and Downsampling | `public/prototypes/pooling-guided-lesson.html` (old `pooling.html` removed; URL redirects) | hand-written, the HTML file is its own source (archive: `source/visualizations/pooling-and-downsampling/pooling_style_aligned_source.py`) |
 | RNN Structure | `public/prototypes/rnn-structure.html` | `source/visualizations/rnn-structure/rnn_structure_colab.py` |
 | Train / Val / Test Split | `public/prototypes/train-val-test-split.html` | `source/visualizations/train-val-test-split/train_val_test_split_visualization.py` |
 | Transfer Learning Intuition | `public/prototypes/transfer-learning-intuition.html` | `source/visualizations/transfer-learning-intuition/transfer_learning_intuition_source.py` |

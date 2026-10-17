@@ -2,6 +2,7 @@ const redesignedTopicPreviewPaths: Record<string, string> = {
   "neuron-structure": "/topic-design-previews/single-neuron.html",
   "activation-functions-comparison": "/topic-design-previews/activation-functions-comparison.html",
   "attention-mechanism-intuition": "/topic-design-previews/attention-mechanism-intuition.html",
+  "pooling": "/topic-design-previews/pooling.html",
   "evaluation-metrics-confusion-matrix": "/topic-design-previews/evaluation-metrics-confusion-matrix.html",
   "bias-vs-variance-diagnosis": "/topic-design-previews/bias-vs-variance-diagnosis.html",
   "train-val-test-split": "/topic-design-previews/train-val-test-split.html",

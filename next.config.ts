@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
         destination: "/topic/attention-mechanism-intuition",
         permanent: true,
       },
+      // The original Pooling animation was replaced by the guided lesson (October 2026).
+      {
+        source: "/prototypes/pooling.html",
+        destination: "/topic/pooling",
+        permanent: true,
+      },
     ];
   },
 };

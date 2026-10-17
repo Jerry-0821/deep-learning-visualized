@@ -34,7 +34,6 @@ MAPPINGS = {
     "bias-vs-variance-diagnosis/bias_variance_diagnosis_dashboard.py": "bias-vs-variance-diagnosis.html",
     "transfer-learning-intuition/transfer_learning_intuition_source.py": "transfer-learning-intuition.html",
     "cnn-convolution-operation/convolution_operation_stepwise_source.py": "convolution-operation.html",
-    "pooling-and-downsampling/pooling_style_aligned_source.py": "pooling.html",
     "feature-map-visualization/feature_map_visualization_source.py": "feature-map-visualization.html",
     "rnn-structure/rnn_structure_colab.py": "rnn-structure.html",
     "evaluation-metrics-confusion-matrix/Evaluation Metrics _ Confusion Matrix Intuition.ipynb": "evaluation-metrics-confusion-matrix.html",
@@ -52,12 +51,15 @@ TITLES = {
     "mini-batch-training-batch-size.html": "Mini-Batch Training & Batch Size — Interactive Explorer",
     "bias-vs-variance-diagnosis.html": "Bias vs. Variance Diagnosis — Interactive Explorer",
     "convolution-operation.html": "Convolution Operation — Interactive Explorer",
-    "pooling.html": "Pooling and Downsampling — Interactive Explorer",
     "rnn-structure.html": "RNN Structure — Interactive Explorer",
     "evaluation-metrics-confusion-matrix.html": "Evaluation Metrics & Confusion Matrix — Interactive Explorer",
 }
 
 # Intentionally left unmapped for now:
+# - "pooling-and-downsampling/pooling_style_aligned_source.py"
+#   Original Pooling animation, kept as an archive. The lesson now uses the
+#   hand-written public/prototypes/pooling-guided-lesson.html, and the old
+#   /prototypes/pooling.html URL redirects (next.config.ts).
 # - "attention-mechanism-intuition/transfomer.ipynb"
 #   Original Attention animation, kept as an archive. The lesson now uses the
 #   hand-written public/prototypes/attention-guided-lesson.html, and the old

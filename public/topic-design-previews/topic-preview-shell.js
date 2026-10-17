@@ -69,6 +69,59 @@
           "A common mistake is reading attention weights as next-word probabilities; they are weights over the input words. Others are forgetting the mask in a decoder (the model can then see the answer during training), leaving out the \\(\\sqrt{d_k}\\) scaling (softmax saturates and gradients become tiny), and thinking Q, K and V are three different inputs, when in self-attention they all come from the same words through three learned weight matrices.",
       },
     },
+    "pooling": {
+      moduleLabel: "Module 02 / Downsampling",
+      moduleUrl: "/module/2",
+      title: "Pooling and Downsampling",
+      subtitle: "See why CNNs shrink feature maps, compute max and average pooling window by window, and connect window size and stride to the output size.",
+      prototype: "../prototypes/pooling-guided-lesson.html?embed=1",
+      frameHeight: 1400,
+      drawerMode: "empty",
+      reservedReading: false,
+      // The guided lesson changes height from slide to slide, so keep the frame matched to it.
+      autoFrameHeight: true,
+      notesMath: true,
+      notes: {
+        background: [
+          "A convolution layer produces feature maps: grids that say how strongly a pattern was found at each position. Early layers keep a lot of spatial detail, so these maps are large, and the network keeps stacking more of them as channels.",
+          "Pooling is a local summarization step, not a pattern-learning step. A small window moves across the map and writes one summary value per position. It has no learned weights: max pooling keeps the strongest activation in the window, average pooling keeps the mean.",
+          "Because one value stands in for a whole window, height and width shrink, later layers do less work and see a wider area of the original image, and small shifts inside a window stop mattering. Pooling runs on each channel separately, so the number of channels does not change.",
+        ],
+        formulas: [
+          {
+            expression: "\\[ y_{i,j} = \\max_{(u,v)\\,\\in\\,\\text{window}(i,j)} x_{u,v} \\]",
+            explanation: "Max pooling: each output cell is the largest value inside its window.",
+          },
+          {
+            expression: "\\[ y_{i,j} = \\frac{1}{F^2} \\sum_{(u,v)\\,\\in\\,\\text{window}(i,j)} x_{u,v} \\]",
+            explanation: "Average pooling: each output cell is the mean of the \\(F \\times F\\) values in its window.",
+          },
+          {
+            expression: "\\[ H_{\\text{out}} = \\left\\lfloor \\frac{H_{\\text{in}} - F}{S} \\right\\rfloor + 1, \\qquad W_{\\text{out}} = \\left\\lfloor \\frac{W_{\\text{in}} - F}{S} \\right\\rfloor + 1 \\]",
+            explanation: "Output size without padding, for window size \\(F\\) and stride \\(S\\). The floor means leftover rows or columns that do not fit a whole window are dropped.",
+          },
+          {
+            expression: "\\[ H_{\\text{in}} \\times W_{\\text{in}} \\times C \\;\\longrightarrow\\; H_{\\text{out}} \\times W_{\\text{out}} \\times C \\]",
+            explanation: "Pooling works channel by channel: height and width shrink, the number of channels \\(C\\) stays the same, and there are no learnable parameters.",
+          },
+        ],
+        pros: [
+          "Less to compute: a 2 x 2, stride 2 pool keeps a quarter of the values, so memory and later computation drop.",
+          "Tolerates small shifts: if a strong response moves within its window, max pooling gives the same output.",
+          "Wider view for later layers: each later cell summarizes a bigger area of the image.",
+          "No parameters: nothing to learn, so it is simple, fast and easy to explain.",
+        ],
+        cons: [
+          "Throws away detail: exact positions are lost, which hurts tasks that need precise locations.",
+          "Can be too aggressive: large windows or strides shrink the map faster than the network can afford.",
+          "Fixed rule: max can ignore moderate but useful signals and average can blur a sharp one; it cannot adapt the way a learned stride-2 convolution can.",
+        ],
+        quickExample:
+          "A 6 x 6 feature map pooled with a 2 x 2 window and stride 2 becomes 3 x 3. In the lesson's map, the centre window holds 4, 4, 5 and 3: max pooling writes 5, average pooling writes (4 + 4 + 5 + 3) / 4 = 4.",
+        commonMistake:
+          "A common mistake is to describe pooling as if it learned a detector; it learns nothing and only compresses a map that convolution already produced. Others are thinking pooling mixes channels (it works on each channel separately), forgetting the floor in the size formula (edge rows and columns that do not fit a window are skipped), and assuming pooling makes a network fully shift invariant (it only tolerates small shifts that stay inside a window).",
+      },
+    },
     "evaluation-metrics-confusion-matrix": {
       moduleLabel: "Module 03 / Evaluation",
       moduleUrl: "/module/3",
@@ -3852,17 +3905,28 @@ Dev &rarr; Test = dev overfitting</pre>
       removeDuplicateOutputPanels(frameDocument);
       updateMirroredBlocks(frameDocument);
       lockFrameHeight(frameDocument);
-      if (config.autoFrameHeight && "ResizeObserver" in window) {
+      if (config.autoFrameHeight) {
+        // Keep the frame matched to content that changes height after load (slides).
+        // The observer lives in the frame's own window so it sees the frame's elements;
+        // the slow interval is a fallback for tabs that are not repainting.
+        const resync = () => {
+          if (frame.isConnected && frame.contentDocument === frameDocument) lockFrameHeight(frameDocument);
+        };
+        const FrameResizeObserver = frameDocument.defaultView && frameDocument.defaultView.ResizeObserver;
         let pending = 0;
-        const observer = new ResizeObserver(() => {
-          if (pending) return;
-          pending = window.requestAnimationFrame(() => {
-            pending = 0;
-            if (frame.isConnected && frame.contentDocument === frameDocument) lockFrameHeight(frameDocument);
+        if (FrameResizeObserver) {
+          const observer = new FrameResizeObserver(() => {
+            if (pending) return;
+            pending = window.setTimeout(() => { pending = 0; resync(); }, 60);
           });
-        });
-        Array.from(frameBody.children).forEach((child) => observer.observe(child));
-        window.addEventListener("pagehide", () => observer.disconnect(), { once: true });
+          Array.from(frameBody.children).forEach((child) => observer.observe(child));
+          window.addEventListener("pagehide", () => observer.disconnect(), { once: true });
+        }
+        const heightTimer = window.setInterval(() => {
+          if (!frame.isConnected || frame.contentDocument !== frameDocument) return window.clearInterval(heightTimer);
+          if (Math.abs(frameDocument.scrollingElement.scrollHeight - frame.clientHeight) > 1 || frameBody.scrollHeight < frame.clientHeight - 40) resync();
+        }, 500);
+        window.addEventListener("pagehide", () => window.clearInterval(heightTimer), { once: true });
       }
       if (config.freezeFrameAfterLoad) {
         window.setTimeout(() => {

@@ -102,7 +102,7 @@ Important topic routing rule:
 
 - If a slug exists in `data/redesignedTopicPreviews.ts`, `/topic/[slug]` iframes the matching `public/topic-design-previews/*.html`.
 - If a slug does not exist there but exists in `data/prototypeMappings.ts`, it falls back to `public/prototypes/*.html`.
-- Currently `pooling` is the clear fallback topic and uses `public/prototypes/pooling.html`.
+- No topic uses the fallback wrapper any more (October 2026): Pooling moved to the lesson shell with `public/prototypes/pooling-guided-lesson.html`. `components/topic/EmbeddedPrototypePage.tsx` stays as the fallback for any future topic without a lesson page.
 
 ### Module Redirects: `/module/[id]`
 

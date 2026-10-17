@@ -76,8 +76,8 @@ export const prototypeMappings: Record<string, PrototypeMapping> = {
     iframeHeight: 1900,
   },
   pooling: {
-    sourceFile: "pooling_style_aligned_source.py",
-    publicPath: "/prototypes/pooling.html",
+    sourceFile: "pooling-guided-lesson.html",
+    publicPath: "/prototypes/pooling-guided-lesson.html",
     iframeHeight: 2600,
   },
   "feature-map-visualization": {

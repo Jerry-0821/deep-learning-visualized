@@ -14,6 +14,7 @@ function readRequired(relativePath) {
 const requiredPreviews = {
   "neuron-structure": "single-neuron.html",
   "attention-mechanism-intuition": "attention-mechanism-intuition.html",
+  pooling: "pooling.html",
   "evaluation-metrics-confusion-matrix": "evaluation-metrics-confusion-matrix.html",
   "bias-vs-variance-diagnosis": "bias-vs-variance-diagnosis.html",
   "transfer-learning-intuition": "transfer-learning-intuition.html",
