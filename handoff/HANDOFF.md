@@ -22,7 +22,7 @@ Not done: item 1 (site description, app/layout.tsx line 6, unchanged since the f
 
 How it was checked: `npm run build` 160/160; all 18 verify scripts pass; exporter preview matches the published files exactly as before (same Unchanged/Would-overwrite list); on `next start`: redirect returns 308 to the lesson, Add & Norm images use `/_next/image`, new titles and badges are served.
 
-Status: pushed to `claude/content-labels-cleanup` for a Vercel preview. NOT merged to `main`.
+Status: user approved the Vercel preview; `main` fast-forwarded to `0aee99c` on 2026-10-17, so these changes are live (checked: redirect 308, new titles and badges, Pooling fixes, Add & Norm images optimized).
 
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/attention-guided-lesson`
 
