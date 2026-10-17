@@ -7347,3 +7347,64 @@ html[data-theme="dark"] .formula-v6-root .fcard:hover,
 html[data-theme="dark"] .formula-v6-root .fcard.active {
   background: var(--edition-surface-2);
 }
+
+/* ------------------------------------------------------------------
+   Accessible text colours (light mode).
+   The module accents (#00b894 green, #e17055 coral, #fd79a8 pink) stay as
+   they are for stripes, dots and art; where an accent is used as TEXT, or
+   sits behind white text, these darker shades keep contrast at WCAG AA
+   (at least 4.5:1). Dark mode keeps its own colours.
+   ------------------------------------------------------------------ */
+html:not([data-theme="dark"]) .edition-root {
+  --edition-purple-text: #5b4bd6;
+  --edition-green-text: #00775f;
+  --edition-coral-text: #b54a30;
+  --edition-pink-text: #b83d71;
+  --edition-module-text: var(--edition-purple-text);
+}
+
+html:not([data-theme="dark"]) .edition-mod-2 { --edition-module-text: var(--edition-green-text); }
+html:not([data-theme="dark"]) .edition-mod-3 { --edition-module-text: var(--edition-coral-text); }
+
+html:not([data-theme="dark"]) .edition-map-label,
+html:not([data-theme="dark"]) .edition-node-arrow,
+html:not([data-theme="dark"]) .edition-map-view-all {
+  color: var(--edition-module-text);
+}
+
+/* White text on badges and chips: darker module shades in both themes. */
+.edition-root { --edition-module-strong: #5b4bd6; }
+.edition-mod-2 { --edition-module-strong: #00775f; }
+.edition-mod-3 { --edition-module-strong: #b54a30; }
+
+.edition-card-badge,
+.edition-card-action {
+  background: var(--edition-module-strong);
+}
+
+html:not([data-theme="dark"]) .edition-notes-copy > div,
+html:not([data-theme="dark"]) .edition-note-kicker {
+  color: var(--edition-pink-text);
+}
+
+html:not([data-theme="dark"]) .edition-note-formula-card span,
+html:not([data-theme="dark"]) .edition-note-formula-card strong {
+  color: var(--edition-green-text);
+}
+
+/* Small purple labels that sit on purple tints. */
+html:not([data-theme="dark"]) .edition-nav-link.active,
+html:not([data-theme="dark"]) .edition-menu-link.active,
+html:not([data-theme="dark"]) .edition-feature-mark,
+html:not([data-theme="dark"]) .formula-page-step > div:first-child span,
+html:not([data-theme="dark"]) .formula-page-header > span,
+html:not([data-theme="dark"]) .formula-result-title-row span,
+html:not([data-theme="dark"]) .formula-icon {
+  color: var(--edition-purple-text);
+}
+
+html:not([data-theme="dark"]) .formula-page-section-heading span,
+html:not([data-theme="dark"]) .formula-page-section-heading small,
+html:not([data-theme="dark"]) .formula-page-shape-flow small {
+  color: var(--edition-copy);
+}

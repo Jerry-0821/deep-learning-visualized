@@ -4,6 +4,15 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/accent-text-contrast`
+
+User approved fixing accent colours that were too light as text.
+
+- `app/globals.css`, new block at the end ("Accessible text colours"): darker text shades `--edition-purple-text` #5b4bd6, `--edition-green-text` #00775f, `--edition-coral-text` #b54a30, `--edition-pink-text` #b83d71 (all at least 4.5:1 on white and the light tints; white on them also passes). Used only where an accent is text (module labels and arrows on the home map, "View all" links, pink note kicker, green note formula text, small purple labels on purple tints) in light mode. Card badges and "Explore topic" / "Read note" chips (white text) use `--edition-module-strong` in both themes. Two small Formula Hub detail labels use body grey. Decorative uses of the accents (stripes, dots, art) are unchanged.
+- Checked with a browser contrast audit (light mode): home, topics, Formula Hub, two formula pages, blog, about now report no text below AA. Remaining: the old Pooling page wrapper badges (blue #0071e3 on blue tint, about 4.1:1), which the planned Pooling redesign replaces.
+
+Status: pushed to `claude/accent-text-contrast` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/description-contrast`
 
 User approved review items 1 and 7.
@@ -17,7 +26,7 @@ Pooling finding (for the user's next decision): Pooling is the only one of the 1
 
 How it was checked: `npm run build` 160/160; all 18 verify scripts pass; browser contrast audit as above.
 
-Status: pushed to `claude/description-contrast` for a Vercel preview. NOT merged to `main`.
+Status: user approved; `main` fast-forwarded to `2e3cc97` on 2026-10-17 (live; new description served).
 
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/content-labels-cleanup`
 
