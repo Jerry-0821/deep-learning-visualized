@@ -580,7 +580,7 @@
             <div class="card" style="background:#f5faff;border-color:#c7d2fe;">
               <div class="card-title-dark" style="color:#3730a3;">PyTorch Context</div>
               <div class="context-text">
-                This corresponds to <code>nn.Dropout(p=0.5)</code> in your <code>DropoutModel</code>. During <code>model.train()</code>, the nodes are randomly dropped and scaled.
+                In PyTorch this layer is <code>nn.Dropout(p)</code>, for example <code>nn.Dropout(p=0.5)</code>. During <code>model.train()</code>, nodes are randomly dropped and the survivors are scaled by 1/(1-p); <code>model.eval()</code> turns dropout off.
               </div>
             </div>
           </div>

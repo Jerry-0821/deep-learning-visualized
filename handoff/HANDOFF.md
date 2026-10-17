@@ -4,6 +4,21 @@ Rules for every assistant are in `AGENTS.md` at the repo root. Read the change l
 
 # Change log (newest first)
 
+## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/attention-and-author-text`
+
+User-approved content fixes after an animation review (all 18 animations load and pass a click-everything stress test with no JS errors; core math checked).
+
+1. Attention lesson cleaned up (`topic-design-previews/topic-preview-shell.js`): new `attention-editorial` frame treatment, like the other lessons. It hides the animation's old top bar, old header ("Module 5 · Transformer Intuition", "Transformer Visualization", the Colab description), section label and footer, removes the outer card, and uses the site purple for active controls. Animation content unchanged.
+2. Double scrollbar fixed for all framed lessons: `lockFrameHeight` now measures from the document top plus the body's bottom spacing, then grows to the frame's real scroll height if anything still overflows. Attention was 36px short (inner scrollbar); Feature Map and Train/Val/Test were 8px short (clipped). All framed lessons now measure 0px overflow.
+3. Author-facing text rewritten for learners: Convolution and RNN lesson Background (shell + `data/topicTeachingContent.ts`), Train/Val/Test and Feature Map teaching text (used for page descriptions), Attention footer, Dropout PyTorch note (now `nn.Dropout(p)` + train/eval behaviour). Notebook sources (`source/visualizations/attention-mechanism-intuition/transfomer.ipynb`, `source/visualizations/dropout/Dropout.ipynb`) updated to match. RNN wording also corrected: unaligned many-to-many is sequence-to-sequence (e.g. translation), not "sequence labeling".
+   - `data/topicTeachingContent.ts` also holds the unpublished Pooling edits; only the non-Pooling hunks were committed.
+
+Still open from the animation review (not approved yet): Attention scores include undisclosed hand-tuned terms (+0.75 self, -0.22 x distance, preset relations); module badges inside Dropout (Module 2), Overfitting (Module 3) and standalone Attention (Module 5) disagree with the site; activation derivative labelled g'(z) instead of f'(z); British/US spelling mix; dev filenames as animation page titles ("transfomer.ipynb" etc.); backprop shows W2 but labels values v1/v2.
+
+How it was checked: `npm run build` 160/160; all 18 verify scripts pass; every framed lesson measured for inner overflow in the browser; exporter preview shows notebooks and published HTML match (Dropout differs only by a pre-existing blank line).
+
+Status: pushed to `claude/attention-and-author-text` for a Vercel preview. NOT merged to `main`.
+
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/images-mathjax-backlink`
 
 User approved items 1, 4, 5 of the second design review.

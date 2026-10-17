@@ -315,8 +315,8 @@ export const topicTeachingContentBySlug: Record<string, TopicTeachingContent> = 
     canonicalTitle: "Train / Val / Test Split",
     sourceDocument: "deep_learning_content_part2_rewritten.pdf",
     background: [
-      "Train / val / test split is not only about percentages; it is about assigning the right job to each subset and keeping the target honest. Your prototype makes this unusually clear by showing that a split can produce a flattering dev score while still optimizing the wrong world. The training set is where the model learns parameters, but the training distribution alone does not define the final target. The validation or dev set is where you compare ideas, tune hyperparameters, and decide which direction is actually better. The test set is the final honest check and should stay closed until the end.",
-      "In this prototype, the most important lesson is distribution matching: dev and test should reflect the future data you care about, even if that makes the intermediate score look worse. A high number only matters if it is both relevant to future users and still trustworthy.",
+      "Train / val / test split is not only about percentages; it is about assigning the right job to each subset and keeping the target honest. The interactive lesson makes this clear by showing that a split can produce a flattering dev score while still optimizing for the wrong data. The training set is where the model learns parameters, but the training distribution alone does not define the final target. The validation or dev set is where you compare ideas, tune hyperparameters, and decide which direction is actually better. The test set is the final honest check and should stay closed until the end.",
+      "The most important lesson here is distribution matching: dev and test should reflect the future data you care about, even if that makes the intermediate score look worse. A high number only matters if it is both relevant to future users and still trustworthy.",
     ],
     formulas: [
       {
@@ -331,7 +331,7 @@ export const topicTeachingContentBySlug: Record<string, TopicTeachingContent> = 
       },
       {
         expression: "Repeated test peeking biases the final test score",
-        explanation: "This is not a numeric law but the core rule of the prototype: repeated test peeking turns the final test score into a biased estimate.",
+        explanation: "This is not a numeric law but a core rule of evaluation: repeated test peeking turns the final test score into a biased estimate.",
         tone: "statement",
       },
     ],
@@ -348,7 +348,7 @@ export const topicTeachingContentBySlug: Record<string, TopicTeachingContent> = 
       "If the team keeps peeking at test results, the final score stops being an honest final estimate.",
     ],
     quickExample:
-      "If web images are cleaner but future users mainly upload noisy mobile-app images, a web-heavy dev set may make the model look stronger than it really is. The prototype shows exactly this trap: the intermediate dev score can rise while the real-world score stays misaligned.",
+      "If web images are cleaner but future users mainly upload noisy mobile-app images, a web-heavy dev set may make the model look stronger than it really is. The interactive lesson shows exactly this trap: the intermediate dev score can rise while the real-world score stays misaligned.",
     commonMistake:
       "A common mistake is to ask only, 'Which split gives the prettiest score?' The better question is, 'Which dev/test split best represents the future data I actually care about?' Another mistake is to keep reopening test during iteration and still call the final test number unbiased.",
   },
@@ -356,8 +356,8 @@ export const topicTeachingContentBySlug: Record<string, TopicTeachingContent> = 
     canonicalTitle: "Convolution Operation",
     sourceDocument: "deep_learning_content_part2_rewritten.pdf",
     background: [
-      "Convolution is the step-by-step pattern-matching operation that gives CNNs their local visual intelligence. In your prototype, the beginner is supposed to watch one filter slide across one local patch at a time, multiply matching entries, add them up, and write one output value into one output cell. That is the right teaching focus: one patch, one kernel position, one output cell. Stride matters because it changes how far the window jumps between positions, so it directly changes both the path of the filter and the final output size.",
-      "The prototype also makes the filter choice meaningful: different kernels behave like different local questions, such as vertical-edge detection, sharpening, or local averaging. So the explanation below the visualization should help the learner connect the moving window to the output feature map, not jump too quickly into a general CNN lecture. Convolution becomes intuitive when the learner can narrate each step: align patch, multiply, sum, place result, move, repeat.",
+      "Convolution is the step-by-step pattern-matching operation that gives CNNs their local visual intelligence. Watch one filter slide across one local patch at a time: multiply matching entries, add them up, and write one output value into one output cell. Keep that picture in mind: one patch, one kernel position, one output cell. Stride matters because it changes how far the window jumps between positions, so it directly changes both the path of the filter and the final output size.",
+      "The filter choice matters too: different kernels behave like different local questions, such as vertical-edge detection, sharpening, or local averaging. Focus on connecting the moving window to the output feature map before thinking about whole CNN architectures. Convolution becomes intuitive once you can narrate each step yourself: align the patch, multiply, sum, place the result, move, repeat.",
     ],
     formulas: [
       {
@@ -435,8 +435,8 @@ export const topicTeachingContentBySlug: Record<string, TopicTeachingContent> = 
     canonicalTitle: "CNN Feature Map Visualization",
     sourceDocument: "deep_learning_content_part2_rewritten.pdf",
     background: [
-      "A feature map is the spatial response pattern produced after a filter looks at an image or at a previous layer. Your prototype is strongest when it shows that different channels light up for different reasons and that those responses become more abstract across layers. In Layer 1, the learner should notice local edges, contrast changes, and simple textures. In the middle layer, the learner should notice grouped contours, corners, and local parts built from earlier channels. In the deeper layer, the learner should stop expecting a normal-looking image filter and instead look for broader object-relevant regions and more abstract focus.",
-      "The overlay interaction is especially important because it connects a selected channel back to the original image region. So the supporting text should explain not only what a feature map is, but also what the learner is supposed to notice when clicking a map, changing the layer, and comparing channels.",
+      "A feature map is the spatial response pattern produced after a filter looks at an image or at a previous layer. Different channels light up for different reasons, and those responses become more abstract across layers. In Layer 1, look for local edges, contrast changes, and simple textures. In the middle layer, look for grouped contours, corners, and local parts built from earlier channels. In the deeper layer, stop expecting a normal-looking image filter and look instead for broader object-relevant regions and more abstract focus.",
+      "The overlay is especially useful because it connects a selected channel back to the original image region. When you click a map, change the layer, or compare channels, ask what part of the image that channel is responding to.",
     ],
     formulas: [
       {
@@ -475,8 +475,8 @@ export const topicTeachingContentBySlug: Record<string, TopicTeachingContent> = 
     canonicalTitle: "RNN Architectures",
     sourceDocument: "deep_learning_content_part2_rewritten.pdf",
     background: [
-      "RNN architectures are best understood by asking how many time steps come in and how many outputs come out. Your prototype is architecture-focused, so the text should stay architecture-focused too. The central idea is that an RNN carries a hidden state forward through time, letting each step combine the current input with information from earlier steps. That shared hidden state is what makes sequence processing different from an ordinary feedforward network.",
-      "But the prototype is not mainly about LSTM gates or advanced NLP internals; it is about mapping sequence shapes to task shapes. One-to-one behaves like a standard non-sequential model. One-to-many, many-to-one, and many-to-many show how the same recurrent core can support generation, classification, and aligned or unaligned sequence labeling. The best supporting note is therefore one that helps the learner match each architecture diagram to the kind of problem it is meant to solve.",
+      "RNN architectures are best understood by asking how many time steps come in and how many outputs come out. The central idea is that an RNN carries a hidden state forward through time, letting each step combine the current input with information from earlier steps. That shared hidden state is what makes sequence processing different from an ordinary feedforward network.",
+      "This lesson focuses on matching sequence shapes to task shapes rather than on LSTM gates or advanced NLP internals. One-to-one behaves like a standard non-sequential model. One-to-many, many-to-one, and many-to-many show how the same recurrent core can support generation, classification, aligned sequence labeling, and unaligned sequence-to-sequence tasks such as translation. As you explore, try matching each architecture diagram to the kind of problem it is meant to solve.",
     ],
     formulas: [
       {

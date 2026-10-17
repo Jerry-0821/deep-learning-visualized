@@ -96,8 +96,8 @@
     },
     "convolution-operation": {
       background: [
-        "Convolution is the step-by-step pattern-matching operation that gives CNNs their local visual intelligence. In your prototype, the beginner is supposed to watch one filter slide across one local patch at a time, multiply matching entries, add them up, and write one output value into one output cell. That is the right teaching focus: one patch, one kernel position, one output cell. Stride matters because it changes how far the window jumps between positions, so it directly changes both the path of the filter and the final output size.",
-        "The prototype also makes the filter choice meaningful: different kernels behave like different local questions, such as vertical-edge detection, sharpening, or local averaging. So the explanation below the visualization should help the learner connect the moving window to the output feature map, not jump too quickly into a general CNN lecture. Convolution becomes intuitive when the learner can narrate each step: align patch, multiply, sum, place result, move, repeat.",
+        "Convolution is the step-by-step pattern-matching operation that gives CNNs their local visual intelligence. Watch one filter slide across one local patch at a time: multiply matching entries, add them up, and write one output value into one output cell. Keep that picture in mind: one patch, one kernel position, one output cell. Stride matters because it changes how far the window jumps between positions, so it directly changes both the path of the filter and the final output size.",
+        "The filter choice matters too: different kernels behave like different local questions, such as vertical-edge detection, sharpening, or local averaging. Focus on connecting the moving window to the output feature map before thinking about whole CNN architectures. Convolution becomes intuitive once you can narrate each step yourself: align the patch, multiply, sum, place the result, move, repeat.",
       ],
       formulas: [
         {
@@ -132,8 +132,8 @@
     },
     "rnn-structure": {
       background: [
-        "RNN architectures are best understood by asking how many time steps come in and how many outputs come out. Your prototype is architecture-focused, so the text should stay architecture-focused too. The central idea is that an RNN carries a hidden state forward through time, letting each step combine the current input with information from earlier steps. That shared hidden state is what makes sequence processing different from an ordinary feedforward network.",
-        "But the prototype is not mainly about LSTM gates or advanced NLP internals; it is about mapping sequence shapes to task shapes. One-to-one behaves like a standard non-sequential model. One-to-many, many-to-one, and many-to-many show how the same recurrent core can support generation, classification, and aligned or unaligned sequence labeling. The best supporting note is therefore one that helps the learner match each architecture diagram to the kind of problem it is meant to solve.",
+        "RNN architectures are best understood by asking how many time steps come in and how many outputs come out. The central idea is that an RNN carries a hidden state forward through time, letting each step combine the current input with information from earlier steps. That shared hidden state is what makes sequence processing different from an ordinary feedforward network.",
+        "This lesson focuses on matching sequence shapes to task shapes rather than on LSTM gates or advanced NLP internals. One-to-one behaves like a standard non-sequential model. One-to-many, many-to-one, and many-to-many show how the same recurrent core can support generation, classification, aligned sequence labeling, and unaligned sequence-to-sequence tasks such as translation. As you explore, try matching each architecture diagram to the kind of problem it is meant to solve.",
       ],
       formulas: [
         {
@@ -192,6 +192,7 @@
       drawerMode: "empty",
       reservedReading: true,
       decard: true,
+      frameTreatment: "attention-editorial",
     },
     "evaluation-metrics-confusion-matrix": {
       moduleLabel: "Module 03 / Evaluation",
@@ -3360,6 +3361,40 @@ Dev &rarr; Test = dev overfitting</pre>
   }
 
   function frameTreatmentCss() {
+    if (config.frameTreatment === "attention-editorial") {
+      return `
+        body { background: transparent !important; }
+        #tf-page-7d8d5759 .page {
+          background: transparent !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          margin: 0 !important;
+          max-width: none !important;
+        }
+        #tf-page-7d8d5759 .nav,
+        #tf-page-7d8d5759 .hero,
+        #tf-page-7d8d5759 .section-label,
+        #tf-page-7d8d5759 .footer-strip {
+          display: none !important;
+        }
+        #tf-page-7d8d5759 .main {
+          margin: 0 !important;
+          max-width: none !important;
+          padding: 0 !important;
+        }
+        #tf-page-7d8d5759 .chip.active,
+        #tf-page-7d8d5759 .seg-btn.active,
+        #tf-page-7d8d5759 .focus-chip.active,
+        #tf-page-7d8d5759 .step-chip.active,
+        #tf-page-7d8d5759 .play-btn.playing {
+          background: #6c5ce7 !important;
+          border-color: #6c5ce7 !important;
+          color: #ffffff !important;
+        }
+        #tf-page-7d8d5759 input[type="range"] { accent-color: #6c5ce7 !important; }
+      `;
+    }
     if (config.frameTreatment === "rnn-editorial") {
       return `
         body { background: transparent !important; padding: 0 !important; }
@@ -3929,17 +3964,32 @@ Dev &rarr; Test = dev overfitting</pre>
     if (!frame) return;
     let measuredHeight = 0;
     if (frameDocument?.body) {
-      const bodyTop = frameDocument.body.getBoundingClientRect().top;
-      measuredHeight = Array.from(frameDocument.body.children).reduce((maxBottom, child) => {
+      // Measure from the top of the document (not the body) and include the body's own bottom
+      // spacing, so body margins/padding never leave the frame a few pixels short (which shows
+      // a second, inner scrollbar).
+      const view = frameDocument.defaultView;
+      const documentTop = frameDocument.documentElement.getBoundingClientRect().top;
+      const contentBottom = Array.from(frameDocument.body.children).reduce((maxBottom, child) => {
         const rect = child.getBoundingClientRect();
-        const style = frameDocument.defaultView?.getComputedStyle(child);
+        const style = view?.getComputedStyle(child);
         const marginBottom = style ? Number.parseFloat(style.marginBottom) || 0 : 0;
-        return Math.max(maxBottom, rect.bottom - bodyTop + marginBottom);
+        return Math.max(maxBottom, rect.bottom - documentTop + marginBottom);
       }, 0);
+      const bodyStyle = view?.getComputedStyle(frameDocument.body);
+      const bodyBottomSpace = bodyStyle
+        ? (Number.parseFloat(bodyStyle.paddingBottom) || 0) + (Number.parseFloat(bodyStyle.marginBottom) || 0)
+        : 0;
+      measuredHeight = contentBottom + bodyBottomSpace;
     }
     const fallback = config.frameHeight || 720;
     const lockedHeight = Math.max(720, Math.ceil(measuredHeight || fallback) + (config.frameExtraHeight || 0));
     frame.style.height = `${lockedHeight}px`;
+    // Content that overflows its own container is not caught by the measurement above;
+    // grow the frame to the real scroll height so nothing is clipped or scrolls inside.
+    const scrollHeight = frameDocument?.scrollingElement?.scrollHeight || 0;
+    if (scrollHeight > lockedHeight) {
+      frame.style.height = `${scrollHeight}px`;
+    }
   }
 
   if (frame) {
