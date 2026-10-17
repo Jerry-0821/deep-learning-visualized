@@ -18,7 +18,7 @@ What changed:
 
 How it was checked: `npm run build` 160/160; all 18 verify scripts pass; in the browser the lesson page shows the guided lesson embedded (no duplicate title), 20 MathJax formulas render with no errors, no inner scrollbar; the draft's full 9-slide run-through passed earlier with no JS errors.
 
-Status: pushed to `claude/attention-guided-lesson` for a Vercel preview. NOT merged to `main`.
+Status: user approved the Vercel preview; `main` fast-forwarded to `fcb7778` on 2026-10-17, so the guided Attention lesson is live. Checked on production: lesson embeds the guided lesson (3 stages), 20 KaTeX + 20 MathJax formulas render, no reserved placeholders, no inner scrollbar, no console errors.
 
 ## 2026-10-17 (newest) · Claude (Claude Code) · branch `claude/attention-and-author-text`
 
